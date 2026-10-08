@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: health-promotion-smart-platform-dev
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/version
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: APP_ENV
+        value: production
+      # This release enforces port 3000 at startup.
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: health-promotion-smart-platform-dev-db
+          property: connectionString
+
+databases:
+  - name: health-promotion-smart-platform-dev-db
+    plan: free
+    databaseName: health_check_smart_search
+    user: health_check
