@@ -1,0 +1,22 @@
+BEGIN;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS hn TEXT NOT NULL DEFAULT '';
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS passport_number TEXT NOT NULL DEFAULT '';
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS vn TEXT NOT NULL DEFAULT '';
+ALTER TABLE company_customers ADD COLUMN IF NOT EXISTS screening_year TEXT NOT NULL DEFAULT '';
+ALTER TABLE company_customers ADD COLUMN IF NOT EXISTS booking_status TEXT NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS customers_hn_idx ON customers(hn) WHERE hn<>'';
+CREATE INDEX IF NOT EXISTS customers_hn_normalized_idx ON customers ((regexp_replace(hn, '[^A-Za-z0-9]', '', 'g'))) WHERE hn<>'';
+CREATE INDEX IF NOT EXISTS customers_vn_idx ON customers(vn) WHERE vn<>'';
+CREATE INDEX IF NOT EXISTS customers_identification_idx ON customers(identification_number) WHERE identification_number<>'';
+CREATE INDEX IF NOT EXISTS customers_passport_idx ON customers(passport_number) WHERE passport_number<>'';
+CREATE INDEX IF NOT EXISTS customers_first_name_trgm_idx ON customers USING gin (LOWER(first_name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS customers_last_name_trgm_idx ON customers USING gin (LOWER(last_name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS customers_full_name_trgm_idx ON customers USING gin ((LOWER(first_name||' '||last_name)) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS company_customers_company_year_idx ON company_customers(company_year_id,screening_year);
+CREATE INDEX IF NOT EXISTS checkup_bookings_project_status_idx ON checkup_bookings(project_id,booking_status);
+CREATE INDEX IF NOT EXISTS checkup_visits_date_status_idx ON checkup_visits(visit_date DESC,visit_status);
+CREATE INDEX IF NOT EXISTS checkup_visits_vn_idx ON checkup_visits(vn) WHERE vn<>'';
+-- The application startup creates the normalized EMR/audit/job tables with the same idempotent definitions.
+INSERT INTO schema_migrations(version,description) VALUES('0110','Scalable relational customer + normalized EMR schema') ON CONFLICT(version) DO NOTHING;
+COMMIT;

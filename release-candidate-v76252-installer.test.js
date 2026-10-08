@@ -1,0 +1,13 @@
+const fs = require('fs');
+const assert = require('assert');
+const install = fs.readFileSync('tools/install.ps1','utf8');
+const worker = fs.readFileSync('tools/installer-worker.ps1','utf8');
+const server = fs.readFileSync('server.js','utf8');
+assert(server.includes('v7.62.55-rc-compact-gui-installer'));
+assert(worker.includes("$version='v7.62.55'"));
+assert(install.includes('function Invoke-PsqlChecked'));
+assert(install.includes('2> $stderrFile'));
+assert(install.includes("if ($exitCode -ne 0) { throw $FailureMessage }"));
+assert(install.includes("Invoke-PsqlChecked -Arguments @('-h','127.0.0.1'"));
+assert(!install.includes("& $psqlPath -h 127.0.0.1 -p $port -U $dbUser -d $dbName -v ON_ERROR_STOP=1 -f $schemaBootstrap"));
+console.log('v7.62.55 psql NOTICE handling regression PASS');

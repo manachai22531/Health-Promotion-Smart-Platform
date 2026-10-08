@@ -1,0 +1,11 @@
+const fs=require('fs');const assert=require('assert');
+const p='tools/ocr-scan-agent/INSTALL-SCAN-AGENT.cmd';const s=fs.readFileSync(p,'utf8');
+assert(s.includes('v7.63.52'));
+assert(s.includes('taskkill /IM HealthCheckTwainAgent.exe'));
+assert(s.includes('set "DEST=%ROOT%\\%VER%"'));
+assert(s.includes('copy /Y /B'));
+assert(!s.includes('PowerShell'));
+assert(!s.includes('install-agent.ps1'));
+const server=fs.readFileSync('server.js','utf8');assert(server.includes('/downloads/healthcheck-scan-agent-v7.63.52.zip'));
+const html=fs.readFileSync('ocr-review-mockup.html','utf8');assert(html.includes('/downloads/healthcheck-scan-agent-v7.63.52.zip'));
+console.log('v7.63.52 versioned Scan Agent installer regression passed');

@@ -1,0 +1,290 @@
+{
+  "opd-claim-th": {
+    "name": "OPD Claim Form Thai",
+    "file": "opd-claim-th.pdf",
+    "lang": "th",
+    "kind": "claim",
+    "fields": [
+      [
+        "companyName",
+        360,
+        729,
+        7,
+        177,
+        15
+      ],
+      [
+        "fullName",
+        154,
+        690,
+        8,
+        175,
+        12
+      ],
+      [
+        "identificationNumber",
+        137,
+        680,
+        8,
+        85,
+        12
+      ],
+      [
+        "birthDate",
+        279,
+        679,
+        8,
+        53,
+        12
+      ],
+      [
+        "age",
+        357,
+        677,
+        8,
+        24,
+        12
+      ],
+      [
+        "phone",
+        107,
+        668,
+        8,
+        92,
+        12
+      ],
+      [
+        "email",
+        363,
+        668,
+        7,
+        198,
+        12
+      ],
+      [
+        "address",
+        100,
+        656,
+        7,
+        459,
+        12
+      ],
+      [
+        "today",
+        95,
+        255,
+        7,
+        120,
+        24
+      ]
+    ]
+  },
+  "opd-claim-en": {
+    "name": "OPD Claim Form English",
+    "file": "opd-claim-en.pdf",
+    "lang": "en",
+    "kind": "claim",
+    "fields": [
+      [
+        "companyName",
+        372,
+        744,
+        7
+      ],
+      [
+        "fullName",
+        140,
+        691,
+        8
+      ],
+      [
+        "identificationNumber",
+        175,
+        674,
+        8
+      ],
+      [
+        "birthDate",
+        365,
+        674,
+        8
+      ],
+      [
+        "age",
+        500,
+        674,
+        8
+      ],
+      [
+        "phone",
+        145,
+        655,
+        8
+      ],
+      [
+        "email",
+        430,
+        655,
+        7
+      ],
+      [
+        "address",
+        145,
+        637,
+        7
+      ],
+      [
+        "genderMark",
+        445,
+        690,
+        9
+      ],
+      [
+        "today",
+        95,
+        255,
+        7
+      ]
+    ]
+  },
+  "medical-certificate-th": {
+    "name": "ใบรับรองแพทย์ ภาษาไทย",
+    "file": "medical-certificate-th.pdf",
+    "lang": "th",
+    "kind": "medical",
+    "fields": [
+      [
+        "fullName",
+        136,
+        713,
+        9
+      ],
+      [
+        "hn",
+        153,
+        689,
+        9
+      ],
+      [
+        "age",
+        304,
+        689,
+        9
+      ],
+      [
+        "today",
+        164,
+        653,
+        8
+      ],
+      [
+        "outpatientMark",
+        75,
+        631,
+        9
+      ]
+    ]
+  },
+  "medical-certificate-en": {
+    "name": "Medical Certificate English",
+    "file": "medical-certificate-en.pdf",
+    "lang": "en",
+    "kind": "medical",
+    "fields": [
+      [
+        "fullName",
+        136,
+        713,
+        9
+      ],
+      [
+        "hn",
+        153,
+        689,
+        9
+      ],
+      [
+        "age",
+        304,
+        689,
+        9
+      ],
+      [
+        "today",
+        164,
+        653,
+        8
+      ],
+      [
+        "outpatientMark",
+        75,
+        631,
+        9
+      ]
+    ]
+  },
+  "medical-5-diseases-th": {
+    "name": "ใบรับรองแพทย์ 5 โรค ภาษาไทย",
+    "file": "medical-5-diseases-th.pdf",
+    "lang": "th",
+    "kind": "five",
+    "fields": [
+      [
+        "today",
+        427,
+        678,
+        8
+      ],
+      [
+        "fullName",
+        190,
+        608,
+        9
+      ],
+      [
+        "identificationNumber",
+        315,
+        588,
+        9
+      ],
+      [
+        "fullName",
+        110,
+        566,
+        9
+      ]
+    ]
+  },
+  "medical-5-diseases-en": {
+    "name": "Medical Certificate 5 Diseases English",
+    "file": "medical-5-diseases-en.pdf",
+    "lang": "en",
+    "kind": "five",
+    "fields": [
+      [
+        "today",
+        427,
+        678,
+        8
+      ],
+      [
+        "fullName",
+        190,
+        608,
+        9
+      ],
+      [
+        "identificationNumber",
+        315,
+        588,
+        9
+      ],
+      [
+        "fullName",
+        110,
+        566,
+        9
+      ]
+    ]
+  }
+}

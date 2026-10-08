@@ -1,0 +1,13 @@
+BEGIN;
+DROP INDEX IF EXISTS checkup_workflow_audit_time_idx;
+DROP INDEX IF EXISTS checkup_visits_result_status_idx;
+DROP INDEX IF EXISTS checkup_visits_vn_idx;
+DROP INDEX IF EXISTS checkup_bookings_status_updated_idx;
+DROP INDEX IF EXISTS checkup_bookings_record_key_idx;
+DROP INDEX IF EXISTS checkup_bookings_hn_idx;
+DROP TABLE IF EXISTS system_notifications;
+DROP TABLE IF EXISTS system_action_audit;
+DROP TABLE IF EXISTS operations_job_items;
+DROP TABLE IF EXISTS operations_jobs;
+DELETE FROM schema_migrations WHERE version='0200';
+COMMIT;

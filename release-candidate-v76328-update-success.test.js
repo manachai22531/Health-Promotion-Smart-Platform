@@ -1,0 +1,13 @@
+const fs=require('fs');
+const assert=require('assert');
+const app=fs.readFileSync('assets/app.js','utf8');
+const server=fs.readFileSync('server.js','utf8');
+const html=fs.readFileSync('app.html','utf8');
+assert(server.includes("app.get('/api/system/update/public-status'"));
+assert(server.includes("runningCommand:status.runningCommand||''"));
+assert(app.includes("publicPoll?'/api/system/update/public-status':'/api/system/update/status'"));
+assert(app.includes('ติดตั้ง Production สำเร็จ'));
+assert(app.includes("updateReloadArmed&&phase==='SUCCESS'"));
+assert(/v=7\.63\.\d+-(?:remove-duplicate-fullpage-buttons|login-100-layout|workspace-width|workspace-edge-alignment|top5-first-screen|production-only|update-center-e2e|company-folder-import|company-folder-update-export)/.test(html));
+assert(/const RELEASE_NAME = 'v7\.63\.\d+-production'/.test(server));
+console.log('v7.63.28 update completion UX regression: PASS');

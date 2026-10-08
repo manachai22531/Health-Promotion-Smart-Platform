@@ -1,0 +1,12 @@
+Health Check Up Smart Search v7.63.96 - PRODUCTION ONLY
+
+NEW INSTALL / REPAIR / UPGRADE
+1. Extract this ZIP completely to a short folder, for example D:\HC76396
+2. Right-click INSTALL-REPAIR.bat and choose Run as administrator (or double-click and approve UAC)
+3. The Production Installer performs preflight, backup, deploy, migration, start and health check.
+4. Target is fixed to D:\HealthCheck\Production, Port 3000, DB health_check_smart_search.
+
+UPDATE CENTER
+- This same ZIP can be uploaded directly to the Production Update Center.
+- Do not manually stop Production before using Update Center.
+- Update Center performs precheck, backup, stop, deploy, migrate, start, health check and rollback on failure.

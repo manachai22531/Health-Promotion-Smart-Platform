@@ -1,0 +1,25 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const root=__dirname;
+const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
+test('v7.63.50 offline native TWAIN scan agent',()=>{
+  const server=read('server.js');
+  const html=read('ocr-review-mockup.html');
+  const install=read('tools/ocr-scan-agent/install-agent.ps1');
+  const cs=read('tools/ocr-scan-agent/HealthCheckTwainAgent.cs');
+  assert.match(server,/v7\.63\.50-production/);
+  assert.match(server,/healthcheck-scan-agent-v7\.63\.50\.zip/);
+  assert.match(html,/Scan Agent v7\.63\.50 Offline/);
+  assert.match(html,/Offline Native TWAIN x86/);
+  assert.doesNotMatch(install,/Invoke-WebRequest|nuget\.org|Downloading NTwain/i);
+  assert.match(install,/Framework\\v4\.0\.30319\\csc\.exe/);
+  assert.match(install,/\/platform:x86/);
+  assert.match(cs,/DllImport\("twain_32\.dll"/);
+  assert.match(cs,/CAP_FEEDERENABLED/);
+  assert.match(cs,/CAP_AUTOFEED/);
+  assert.match(cs,/CAP_XFERCOUNT/);
+  assert.match(cs,/TWAIN-NATIVE-OFFLINE/);
+});

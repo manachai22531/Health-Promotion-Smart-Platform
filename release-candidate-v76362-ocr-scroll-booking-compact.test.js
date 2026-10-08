@@ -1,0 +1,17 @@
+const fs=require('fs'),assert=require('assert');
+const html=fs.readFileSync('app.html','utf8');
+const css=fs.readFileSync('assets/style.css','utf8');
+const ocr=fs.readFileSync('assets/ocr-native.js','utf8');
+const server=fs.readFileSync('server.js','utf8');
+assert.match(server,/v7\.63\.62-production/);
+assert.match(html,/style\.css\?v=7\.63\.62-ocr-page-scroll/);
+assert.match(html,/ocr-native\.js\?v=7\.63\.62-ocr-page-scroll/);
+assert.match(css,/body\.ocr-workspace-active,[\s\S]*overflow-y:auto!important/);
+assert.match(css,/#ocrView \.ocr-native-host\{height:auto!important/);
+assert.match(ocr,/v7\.63\.62 — natural document flow/);
+assert.match(ocr,/:host\{height:auto!important/);
+assert.match(ocr,/\.ocr-root\.embedded \.top-actions\{display:flex!important;[\s\S]*flex-wrap:wrap!important/);
+assert.match(ocr,/\.ocr-root\.embedded \.batch-review-panel\{height:auto!important/);
+assert.match(css,/#bookingOverlay \.booking-row-actions\{[\s\S]*height:27px!important/);
+assert.match(css,/#bookingOverlay \.booking-row-actions \.button,[\s\S]*height:22px!important/);
+console.log('v7.63.62 OCR page scroll + Booking compact regression: PASS');

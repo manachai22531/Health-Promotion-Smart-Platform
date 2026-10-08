@@ -1,0 +1,14 @@
+const fs=require('fs'),assert=require('assert'),path=require('path');
+const root=__dirname;
+const gui=fs.readFileSync(path.join(root,'tools/universal-installer-gui.ps1'),'utf8');
+const worker=fs.readFileSync(path.join(root,'tools/installer-worker.ps1'),'utf8');
+const install=fs.readFileSync(path.join(root,'tools/install.ps1'),'utf8');
+const server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+assert(gui.includes('Height="640" Width="900"'),'compact default GUI');
+assert(gui.includes('Expand log')&&gui.includes("Height=\"96\""),'compact collapsible log');
+assert(gui.includes('PgPasswordBox'),'GUI postgres credential input');
+assert(worker.includes('HEALTH_CHECK_NONINTERACTIVE')&&worker.includes('PGCONNECT_TIMEOUT'),'worker noninteractive timeout');
+assert(install.includes('Get-ProvidedPostgresAdminPassword'),'installer reads GUI credential');
+assert(install.includes('PostgreSQL administrator password is required. Re-run the GUI installer'),'no hidden Read-Host in GUI flow');
+assert(server.includes('v7.62.49-rc-compact-gui-installer'),'release bumped');
+console.log('v7.62.49 compact GUI + noninteractive PostgreSQL installer regression PASS');

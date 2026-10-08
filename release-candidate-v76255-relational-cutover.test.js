@@ -1,0 +1,10 @@
+const fs=require('fs'),assert=require('assert');
+const server=fs.readFileSync('server.js','utf8'),app=fs.readFileSync('assets/app.js','utf8');
+assert(server.includes("APP_STATE_RELATIONAL_KEYS = new Set(['companies','records','packages'])"));
+assert(server.includes("version='0130'"));
+assert(server.includes('RELATIONAL_CUTOVER_0130'));
+assert(server.includes('hydrateRelationalState'));
+assert(server.includes('relationalOnly:true'));
+assert(app.includes("fetch(`/api/state/records/${encodeURIComponent(r.key||r.id)}`"));
+assert(!app.includes("fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...state,at:new Date().toISOString()})"));
+console.log('v7.62.55 relational cutover regression PASS');

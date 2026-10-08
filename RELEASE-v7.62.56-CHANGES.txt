@@ -1,0 +1,17 @@
+Health Check Up Smart Search v7.62.56 RC - HIS FAST PATH
+
+Source: user-provided แก้บัค.zip
+
+Applied changes:
+- Added patchRecordHisFields(recordKey, fields) for bounded single-record HIS persistence.
+- /api/his/visit no longer uses readState()/writeState() to persist one HIS visit result.
+- /api/his/emr no longer rehydrates and rewrites every customer after one HIS EMR result.
+- /api/his/checkup-result uses the same single-record fast path.
+- Relational EMR persistence remains enabled through persistEmrPayload().
+- app_state is only touched for lightweight revision/cache invalidation, not full customer replay.
+
+Expected effect:
+- HIS calls scale with the one record being updated rather than total customer count.
+- Reduces latency and database write amplification for 25,000-100,000 customer datasets.
+
+No database migration is required for this patch.

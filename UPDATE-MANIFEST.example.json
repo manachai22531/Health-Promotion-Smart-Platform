@@ -1,0 +1,7 @@
+{
+  "version": "7.63.97",
+  "environment": "production",
+  "downloadUrl": "https://YOUR-SERVER.example.com/updates/HealthCheck-v7.63.97-PRODUCTION-MULTICOMPANY-UNIFIED-PDF-WINDOWS-INSTALLER.zip",
+  "sha256": "PUT_SHA256_OF_ZIP_HERE",
+  "releaseNotes": "v7.63.97: Adds subsidiary company rows for circulars, stacks hospital/family HIS program lists, removes redundant PDF cards and forms, and unifies Save + Generate primary PDF."
+}

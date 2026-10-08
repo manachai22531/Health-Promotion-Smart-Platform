@@ -1,0 +1,2099 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Health Check Up Smart Search</title>
+    <link rel="stylesheet" href="assets/style.css?v=7.59.31" />
+  </head>
+  <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
+    <div class="app-version-corner">Version <b data-app-version>-</b></div>
+    <header class="topbar">
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="assets/vimut-logo.png"
+          alt="โรงพยาบาลวิมุต"
+        />
+        <div class="header-product-wrap">
+          <span class="header-product">Health Check Up · Smart Search</span>
+          <div class="header-database">
+            <strong id="databaseTitle">ยังไม่มีข้อมูลลูกค้า</strong
+            ><span id="importInfo"
+              >เพิ่มบริษัทและนำเข้าข้อมูลลูกค้าเพื่อเริ่มใช้งาน</span
+            >
+          </div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <nav class="main-nav" aria-label="เมนูหลัก">
+          <button class="nav-button active" data-view="searchView" data-permission="search" type="button" aria-label="ค้นหาข้อมูล" title="ค้นหาข้อมูล">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/search.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>ค้นหาข้อมูล</strong><small>ค้นหาผู้รับบริการ บริษัท แพ็กเกจ ผลตรวจ และข้อมูลต่าง ๆ</small></span>
+          </button>
+          <button class="nav-button" data-view="projectView" data-permission="projectView" type="button" aria-label="โครงการ" title="โครงการ">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/project.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>โครงการ</strong><small>จัดการโครงการตรวจสุขภาพแต่ละบริษัท/ปี และรายละเอียดโครงการ</small></span>
+          </button>
+          <button class="nav-button" data-view="worklistView" data-permission="worklistView" type="button" aria-label="Worklist" title="Worklist">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/worklist.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>Worklist</strong><small>ดูรายชื่อผู้รับบริการประจำวัน เช็กอินและติดตามสถานะการตรวจ</small></span>
+          </button>
+          <button class="nav-button" data-view="companyView" data-permission="companyView" type="button" aria-label="ข้อมูลบริษัท" title="ข้อมูลบริษัท">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/company.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>ข้อมูลบริษัท</strong><small>จัดการข้อมูลบริษัท ผู้ประสานงาน และปีตรวจสุขภาพ</small></span>
+          </button>
+          <button class="nav-button" data-view="packageView" data-permission="packageView" type="button" aria-label="แพ็กเกจ & สัญญา" title="แพ็กเกจ & สัญญา">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/package.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>แพ็กเกจ & สัญญา</strong><small>จัดการแพ็กเกจตรวจสุขภาพ สัญญา ราคา และเงื่อนไขการให้บริการ</small></span>
+          </button>
+          <button class="nav-button" data-view="packageApiView" data-permission="hisView" type="button" aria-label="Package HIS" title="Package HIS">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/his-package.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>Package HIS</strong><small>เชื่อมต่อและจัดการแพ็กเกจจากระบบ HIS</small></span>
+          </button>
+          <button class="nav-button" data-view="orderSetupView" data-permission="orderTypeManage" type="button" aria-label="Order & Station" title="Order & Station">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/order-station.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>Order & Station</strong><small>จัดการรายการตรวจ (Order) และสถานีตรวจ (Station) รวมถึงการแมป</small></span>
+          </button>
+          <button class="nav-button" data-view="appointmentView" data-permission="appointmentView" type="button" aria-label="นัดหมาย HIS" title="นัดหมาย HIS">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/appointment.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>นัดหมาย HIS</strong><small>ดูและจัดการนัดหมายจากระบบ HIS</small></span>
+          </button>
+          <button class="nav-button" data-view="dashboardView" data-permission="dashboardView" type="button" aria-label="สถิติ" title="สถิติ">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/statistics.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>สถิติ</strong><small>รายงานสถิติและ Dashboard สรุปผลข้อมูลการตรวจสุขภาพ</small></span>
+          </button>
+          <button class="nav-button" data-view="apiView" data-permission="apiView" type="button" aria-label="System & API" title="System & API">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/api.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>System & API</strong><small>ตั้งค่าการเชื่อมต่อ API ระบบภายนอก และตรวจสอบสถานะการทำงาน</small></span>
+          </button>
+          <button class="nav-button" data-view="userView" data-permission="userView" type="button" aria-label="ผู้ใช้ & สิทธิ์" title="ผู้ใช้ & สิทธิ์">
+            <i class="nav-icon-3d" aria-hidden="true"><img src="assets/nav/users.svg" alt="" /></i>
+            <span class="nav-popover" role="tooltip"><strong>ผู้ใช้ & สิทธิ์</strong><small>จัดการผู้ใช้งาน ระบบสิทธิ์ บทบาท และการอนุญาต</small></span>
+          </button>
+        </nav>
+        <div class="user-session">
+          <span><strong id="currentUserName">-</strong></span
+          ><button id="logoutButton" type="button">ออกจากระบบ</button>
+        </div>
+      </div>
+    </header>
+    <main class="page">
+      <div id="projectView" class="app-view">
+        <section class="workflow-hero">
+          <div><p class="eyebrow">CHECKUP OPERATION · PHASE 1</p><h1>โครงการตรวจสุขภาพ</h1><p class="hero-note">สร้าง Project และผูกรายชื่อบริษัทเข้า Booking โดยใช้ข้อมูลเดิมจาก Smart Search</p></div>
+          <button class="button primary" id="newProjectButton" data-permission="projectManage" type="button">+ สร้างโครงการ</button>
+        </section>
+        <section class="workflow-kpis"><article><span>โครงการทั้งหมด</span><strong id="projectTotal">0</strong></article><article><span>กำลังดำเนินการ</span><strong id="projectActive">0</strong></article><article><span>Booking</span><strong id="projectBookings">0</strong></article><article><span>มาถึงแล้ว</span><strong id="projectArrived">0</strong></article></section>
+        <section class="workflow-toolbar"><input id="projectSearch" type="search" placeholder="ค้นหารหัสโครงการ ชื่อโครงการ บริษัท"><select id="projectStatusFilter"><option value="">ทุกสถานะ</option><option>DRAFT</option><option>OPEN</option><option>IN_PROGRESS</option><option>CLOSED</option><option>CANCELLED</option></select><button class="button secondary" id="refreshProjects" type="button">รีเฟรช</button></section>
+        <section id="projectList" class="workflow-project-list"></section>
+      </div>
+
+      <div id="worklistView" class="app-view">
+        <section class="workflow-hero"><div><p class="eyebrow">DAILY OPERATION</p><h1>Worklist งานประจำวัน</h1><p class="hero-note">ค้นหา Booking, Check-in และติดตามสถานะหน้างานจากจุดเดียว</p></div><button class="button secondary" id="refreshWorklist" type="button">รีเฟรช</button></section>
+        <section class="workflow-toolbar worklist-filter"><input id="worklistQuery" type="search" placeholder="ชื่อ, HN, ID, Employee Code"><input id="worklistDate" type="date"><select id="worklistCompany"><option value="">ทุกบริษัท</option></select><select id="worklistProject"><option value="">ทุกโครงการ</option></select><select id="worklistStatus"><option value="">ทุกสถานะ</option><option value="NOT_ARRIVED">ยังไม่มา</option><option value="CHECKED_IN">Checked-in</option><option value="IN_SERVICE">กำลังรับบริการ</option><option value="COMPLETE">เสร็จสิ้น</option><option value="CANCELLED">ยกเลิก</option></select><button class="button primary" id="runWorklist" type="button">ค้นหา</button></section>
+        <section class="workflow-kpis"><article><span>ทั้งหมด</span><strong id="worklistTotal">0</strong></article><article><span>ยังไม่มา</span><strong id="worklistNotArrived">0</strong></article><article><span>Checked-in</span><strong id="worklistCheckedIn">0</strong></article><article><span>เสร็จสิ้น</span><strong id="worklistComplete">0</strong></article></section>
+        <section class="workflow-table-card"><div class="workflow-table-scroll"><table class="workflow-table"><thead><tr><th>จัดการ</th><th>สถานะ</th><th>HN</th><th>ชื่อ-นามสกุล</th><th>บริษัท</th><th>โครงการ</th><th>แพ็กเกจ</th><th>Employee</th><th>เวลา Check-in</th><th>ผลตรวจ</th></tr></thead><tbody id="worklistRows"></tbody></table></div></section>
+      </div>
+
+      <div id="projectOverlay" class="overlay" hidden>
+        <section class="modal workflow-modal workflow-project-modal project-popup-v75914">
+          <header>
+            <div>
+              <p>CHECKUP PROJECT</p>
+              <h2 id="projectModalTitle">สร้างโครงการ</h2>
+              <span class="project-popup-subtitle">ระบุข้อมูลงานตรวจสุขภาพและแพคเกจหลักก่อนสร้าง Booking</span>
+            </div>
+            <button class="modal-close" data-close="projectOverlay" type="button">×</button>
+          </header>
+          <div class="project-create-form">
+            <label class="project-field project-field-full">ชื่อองค์กร*
+              <select id="projectCompanyInput"><option value="">เลือกองค์กร</option></select>
+            </label>
+            <label class="project-field">ชื่อรายการตรวจ (ไทย)*
+              <input id="projectNameInput" placeholder="ระบุชื่อรายการตรวจ" />
+            </label>
+            <label class="project-field">Booking Name (English)*
+              <input id="projectBookingNameEnInput" placeholder="Booking name in English" />
+            </label>
+            <label class="project-field project-date-range-field">วันที่ตรวจ
+              <button class="project-date-range-display" id="projectDateRangeDisplay" type="button">เลือกช่วงวันที่ตรวจ</button>
+              <span class="project-date-range-popup" id="projectDateRangePopup" hidden>
+                <span><small>วันเริ่มตรวจ</small><input id="projectStartInput" type="date" /></span>
+                <span><small>วันสิ้นสุดตรวจ</small><input id="projectEndInput" type="date" /></span>
+                <span class="project-date-range-actions"><button class="button secondary mini" id="clearProjectDateRange" type="button">ล้างวันที่</button><button class="button primary mini" id="applyProjectDateRange" type="button">ตกลง</button></span>
+              </span>
+            </label>
+            <label class="project-field">สถานที่ตรวจ
+              <input id="projectLocationInput" placeholder="ระบุสถานที่ตรวจ" />
+            </label>
+            <label class="project-field project-field-full">รายการแพคเกจ
+              <select id="projectPackageSelect"><option value="">เลือกแพคเกจ</option></select>
+              <small class="workflow-project-help">เลือกแพคเกจหลัก ระบบจะบันทึก Package Code และ Package Name ให้อัตโนมัติ</small>
+            </label>
+            <details class="project-advanced project-field-full">
+              <summary>ข้อมูลเพิ่มเติม</summary>
+              <div class="project-advanced-grid">
+                <label>รหัสโครงการ<input id="projectCodeInput" placeholder="ระบบสร้างให้อัตโนมัติได้" /></label>
+                <label>ปีตรวจ<input id="projectYearInput" placeholder="เช่น 2569" /></label>
+                <label>สถานะ<select id="projectStatusInput"><option>DRAFT</option><option selected>OPEN</option><option>IN_PROGRESS</option><option>CLOSED</option><option>CANCELLED</option></select></label>
+                <label>ผู้ประสานงาน<input id="projectContactInput" placeholder="ชื่อผู้ประสานงาน" /></label>
+                <label>Billing Type<input id="projectBillingInput" placeholder="Contract / Cash" /></label>
+                <label>Package Code<input id="projectPackageCodeInput" readonly /></label>
+                <label class="project-advanced-full">Package Name<input id="projectPackageNameInput" readonly /></label>
+                <label class="project-advanced-full">หมายเหตุ<textarea id="projectRemarkInput" rows="3" placeholder="รายละเอียดเพิ่มเติม"></textarea></label>
+              </div>
+            </details>
+          </div>
+          <footer>
+            <button class="button secondary" data-close="projectOverlay" type="button">ยกเลิก</button>
+            <button class="button primary" id="saveProjectButton" type="button">บันทึกโครงการ</button>
+          </footer>
+        </section>
+      </div>
+      <div id="bookingOverlay" class="overlay" hidden><section class="modal workflow-modal workflow-booking-modal"><header><div><p>PROJECT BOOKING</p><h2 id="bookingModalTitle">รายชื่อ Booking</h2></div><button class="modal-close" data-close="bookingOverlay" type="button">×</button></header><div class="workflow-booking-head"><div id="bookingProjectMeta"></div><div><button class="button primary" id="bulkBookingButton" type="button">+ ดึงรายชื่อบริษัททั้งหมด</button></div></div><div class="workflow-toolbar"><input id="bookingSearch" type="search" placeholder="ค้นหาชื่อ HN Employee Code"><button class="button secondary" id="refreshBookings" type="button">ค้นหา</button></div><div class="workflow-table-scroll"><table class="workflow-table"><thead><tr><th>สถานะ</th><th>HN</th><th>ชื่อ-นามสกุล</th><th>Employee</th><th>Department</th><th>Package</th><th>วันที่นัด</th><th>จัดการ</th></tr></thead><tbody id="bookingRows"></tbody></table></div><footer><button class="button secondary" data-close="bookingOverlay" type="button">ปิด</button></footer></section></div>
+
+      <div id="searchView" class="app-view active">
+
+        <div class="search-page-layout">
+        <div class="search-main-stack">
+        <section class="search-card card-search-theme">
+          <div class="search-grid">
+            <label class="search-field"
+              ><span>บริษัท</span
+              ><input
+                id="companyFilter"
+                type="search"
+                list="companyFilterOptions"
+                autocomplete="off"
+                placeholder="พิมพ์ค้นหาหรือเลือกทุกบริษัท" /><datalist
+                id="companyFilterOptions"
+              ></datalist></label
+            ><label class="search-field"
+              ><span>ค้นหาชื่อ–นามสกุล / ID / Passport / HN</span
+              ><input
+                id="search"
+                type="search"
+                autocomplete="off"
+                autofocus
+                placeholder="เช่น สมชาย, 1234567890123 หรือ HN" /></label
+            ><label class="search-field"
+              ><span>ค้นหา Package Code / Package Name</span
+              ><input
+                id="packageFilter"
+                type="search"
+                list="packageFilterOptions"
+                autocomplete="off"
+                placeholder="เช่น HC-EXE-01 หรือ Executive" /><datalist id="packageFilterOptions"></datalist><small id="packageScopeHint" class="package-scope-hint"></small></label
+            ><button
+              class="button primary search-submit"
+              id="searchSubmit"
+              type="button"
+            >
+              ค้นหา</button
+            ><button
+              class="button secondary search-clear"
+              id="clearSearch"
+              type="button"
+            >
+              ล้างข้อมูล
+            </button>
+            <div class="search-add-customer">
+              <button
+                class="button primary"
+                id="searchAddCustomer"
+                data-permission="customerCreate"
+                type="button"
+              >
+                + เพิ่มข้อมูลลูกค้า ▾
+              </button>
+              <div
+                class="add-customer-company-menu"
+                id="addCustomerCompanyMenu"
+                hidden
+              >
+                <strong>เลือกบริษัทและปี</strong
+                ><input
+                  id="addCustomerCompanySearch"
+                  type="search"
+                  placeholder="พิมพ์ค้นหาบริษัท"
+                />
+                <div id="addCustomerCompanyOptions"></div>
+              </div>
+            </div>
+          </div>
+          <p class="hint">
+            กรอกอย่างน้อย 2 ตัวอักษรในช่องใดช่องหนึ่ง ·
+            ช่องบริษัทพิมพ์ค้นหาและเลือกจากรายการได้ ·
+            ปุ่มเพิ่มข้อมูลลูกค้าเลือกบริษัทภายในปุ่ม
+          </p>
+          <div class="result-meta" id="resultMeta"></div>
+          <div class="result-cards" id="resultRows" hidden></div>
+          <div class="empty" id="emptyState">
+            <span class="empty-icon">⌕</span><strong>พร้อมค้นหารายชื่อ</strong
+            ><span>เพิ่มบริษัทและนำเข้าข้อมูลลูกค้าก่อนเริ่มค้นหา</span>
+          </div>
+        </section>
+        <aside class="sales-ranking-rail" id="salesRankingRail" aria-label="แพ็กเกจยอดนิยม 5 อันดับ">
+          <header><span>TOP 5</span><strong>แพ็กเกจยอดนิยม</strong><small>จากรายการที่ยืนยันรับบริการแล้ว</small></header>
+          <section><h3>แพ็กเกจคู่สัญญา</h3><div id="topContractPackages" class="sales-ranking-list"></div></section>
+          <section><h3>ซื้อเพิ่ม · วางบิล</h3><div id="topBillingPackages" class="sales-ranking-list"></div></section>
+          <section><h3>ซื้อเพิ่ม · ชำระเอง</h3><div id="topCashPackages" class="sales-ranking-list"></div></section>
+        </aside>
+        </div>
+        <div class="search-side-stack">
+        <aside class="today-registration-panel" aria-labelledby="todayRegistrationTitle">
+          <header>
+            <div><p>อัปเดตตามข้อมูลล่าสุด</p><h2 id="todayRegistrationTitle">สถานะเคสวันนี้</h2></div>
+            <span class="today-live-dot" title="ข้อมูลวันนี้"></span>
+          </header>
+          <div class="today-registration-summary">
+            <article><span>ทั้งหมด</span><strong id="todayCaseTotal">0</strong></article>
+            <article class="confirmed"><span>ยืนยันแล้ว</span><strong id="todayCaseConfirmed">0</strong></article>
+            <article class="pending"><span>รอยืนยัน</span><strong id="todayCasePending">0</strong></article>
+          </div>
+          <div class="today-registration-list" id="todayRegistrationRows"></div>
+          <button class="today-pending-toggle" id="todayPendingToggle" type="button">ดูเฉพาะเคสที่รอยืนยัน</button>
+        </aside>
+        </div>
+        </div>
+      </div>
+      <div id="companyView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">แหล่งข้อมูลหลัก</p>
+            <h1>ข้อมูลบริษัท</h1>
+            <p class="hero-note">
+              ข้อมูลลูกค้าทุกชุดต้องนำเข้าผ่านบริษัทที่เลือกเสมอ
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button
+              class="button secondary"
+              id="openMultiCompanyImport"
+              type="button"
+            >
+              นำเข้าหลายบริษัท</button
+            ><button class="button primary" id="addCompany" type="button">
+              + เพิ่มบริษัท
+            </button>
+          </div>
+        </section>
+        <section class="company-search-bar">
+          <label for="companySearch"
+            ><span>ค้นหาข้อมูลบริษัท</span>
+            <div class="company-search-input">
+              <span aria-hidden="true">⌕</span
+              ><input
+                id="companySearch"
+                type="search"
+                autocomplete="off"
+                placeholder="ค้นหาชื่อบริษัท รหัสบริษัท หรือปี"
+              /><button
+                id="clearCompanySearch"
+                type="button"
+                aria-label="ล้างคำค้น"
+              >
+                ×
+              </button>
+            </div></label
+          ><span class="result-meta" id="companySearchMeta"></span>
+        </section>
+        <section class="company-list" id="companyList"></section>
+        <div class="empty company-empty" id="companyEmpty">
+          <span class="empty-icon">🏢</span><strong>ยังไม่มีข้อมูลบริษัท</strong
+          ><span>เพิ่มบริษัทก่อน แล้วจึงนำเข้ารายชื่อลูกค้า</span>
+        </div>
+      </div>
+      <div id="packageView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">ฐานข้อมูลรายการตรวจเพิ่มเติม</p>
+            <h1>แพ็กเกจตรวจเพิ่มคู่สัญญา</h1>
+            <p class="hero-note">
+              นำเข้า Package Code, Package Name และ Price
+              เพื่อให้เลือกในหน้ารับการตรวจ
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="button secondary" id="openPackageSetup" type="button">ตั้งค่ารายการตรวจ</button>
+            <button class="button secondary" id="openPackageCategoryMaster" type="button">จัดการหมวด</button>
+            <a
+              class="button secondary button-link"
+              href="templates/contract-extra-package-template.xlsx"
+              download
+              >ดาวน์โหลดเทมเพลต</a
+            ><button
+              class="button primary"
+              id="openPackageImport"
+              type="button"
+            >
+              นำเข้าแพ็กเกจ
+            </button>
+          </div>
+        </section>
+        <section class="summary">
+          <article>
+            <span>จำนวนแพ็กเกจ</span><strong id="packageCount">0</strong>
+          </article>
+          <article>
+            <span>มูลค่าต่ำสุด</span><strong id="packageMin">฿0</strong>
+          </article>
+          <article>
+            <span>มูลค่าสูงสุด</span><strong id="packageMax">฿0</strong>
+          </article>
+          <article>
+            <span>อัปเดตล่าสุด</span
+            ><strong class="summary-date" id="packageUpdated">-</strong>
+          </article>
+        </section>
+        <section class="package-workbench">
+          <aside class="package-quick-nav-card">
+            <div class="package-side-title">ค้นหาเร็ว (Jump to)</div>
+            <div id="packageQuickNav" class="package-quick-nav"></div>
+            <div class="package-subfilter-card">
+              <strong>กรองหมวดย่อย (ตัวเลือก)</strong>
+              <select id="packageSubcategoryFilter"><option value="">เลือกหมวดย่อย</option></select>
+              <button class="package-text-link" id="clearPackageSubFilter" type="button">ล้างตัวเลือก</button>
+            </div>
+            <div class="package-helper-tip" aria-label="คำแนะนำการค้นหา">
+              <div class="package-helper-icon" aria-hidden="true">⌕</div>
+              <div><strong>ค้นหาแพ็กเกจได้เร็วขึ้น</strong><span>ใช้ตัวกรองหมวดหลักและหมวดย่อย เพื่อจำกัดรายการที่ต้องการ</span></div>
+            </div>
+          </aside>
+          <section class="package-center-column">
+            <div class="package-filter-toolbar mockup-toolbar">
+              <label class="package-search-field"><span class="sr-only">ค้นหาแพ็กเกจ</span><input id="packageAdminSearch" type="search" placeholder="ค้นหา Package Code, ชื่อแพ็กเกจ, คำสำคัญ..." /></label>
+              <label class="package-filter-select"><span class="sr-only">หมวดหลัก</span><select id="packageCategoryFilter"><option value="">ทั้งหมด</option></select></label>
+              <button class="button secondary" id="clearPackageFilters" type="button">ล้างตัวกรอง</button>
+            </div>
+            <div class="package-category-chips" id="packageCategoryChips"></div>
+            <div class="package-bulk-toolbar mockup-bulk-toolbar" id="packageBulkToolbar">
+              <label><input id="selectAllPackages" type="checkbox" /> เลือกทั้งหมด</label>
+              <span id="selectedPackageMeta">เลือก 0 รายการ</span>
+              <div class="package-toolbar-actions">
+                <button class="button secondary" id="printSelectedPackages" type="button" disabled>พิมพ์รายการที่เลือก A4</button>
+                <button class="button secondary" id="exportSelectedPackagesPdf" type="button" disabled>Export PDF</button>
+                <button class="button danger" id="deleteSelectedPackages" type="button" disabled>ลบรายการที่เลือก</button>
+              </div>
+            </div>
+            <div class="result-meta" id="packageMeta"></div>
+            <div class="package-grouped-list" id="packageGroupedList" hidden></div>
+            <div class="empty" id="packageEmpty">
+              <span class="empty-icon">฿</span><strong>ยังไม่มีแพ็กเกจตรวจเพิ่ม</strong><span>กด “นำเข้าแพ็กเกจ” แล้วเลือกไฟล์ Excel</span>
+            </div>
+          </section>
+          <aside class="package-summary-column">
+            <section class="package-selection-summary">
+              <div class="package-summary-head"><strong>สรุปรายการที่เลือก</strong></div>
+              <span>จำนวนที่เลือก</span><strong class="package-summary-count" id="packageSelectedCount">0 <small>รายการ</small></strong>
+              <span>ราคารวมโดยประมาณ</span><strong class="package-summary-total" id="packageSelectedTotal">฿0.00</strong>
+              <button class="button primary package-summary-print" id="summaryPrintSelected" type="button" disabled>▣ พิมพ์รายการที่เลือก A4</button>
+              <button class="button secondary package-summary-export" id="summaryExportSelected" type="button" disabled>▤ Export PDF</button>
+              <button class="package-clear-selection" id="clearSelectedPackages" type="button">ล้างรายการที่เลือกทั้งหมด</button>
+              <div class="package-recent-selected"><strong>รายการล่าสุดที่เพิ่ม</strong><div id="packageSelectedRecent"></div></div>
+              <button class="button secondary package-view-all-selected" id="viewAllSelectedPackages" type="button" disabled>ดูรายการทั้งหมด (0)</button>
+            </section>
+            <section class="package-pdf-mini-preview">
+              <div class="package-pdf-preview-head"><strong>ตัวอย่างการส่งออก PDF</strong><span>จัดตามหมวดหลัก / หมวดย่อย</span></div>
+              <div id="packagePdfPreviewBody" class="package-pdf-preview-body"><span>เลือกรายการเพื่อดูตัวอย่าง</span></div>
+              <div class="package-pdf-preview-foot"><span>A4 แนวตั้ง</span><span id="packagePdfPreviewCount">0 รายการ</span></div>
+            </section>
+          </aside>
+        </section>
+        <section class="package-condition-card">
+          <label for="packageUsageConditions"
+            ><strong>เงื่อนไขการใช้งานแพ็กเกจ</strong
+            ><span
+              >ระบุรายละเอียดหรือข้อกำหนดสำหรับแพ็กเกจตรวจเพิ่มคู่สัญญา</span
+            ></label
+          ><textarea
+            id="packageUsageConditions"
+            rows="5"
+            maxlength="2000"
+            placeholder="เช่น ใช้สิทธิ์ได้เฉพาะพนักงานตามรายชื่อบริษัท และต้องชำระเงินตามเงื่อนไขที่กำหนด"
+          ></textarea>
+          <div class="condition-actions">
+            <span class="save-note" id="packageConditionStatus"></span
+            ><button
+              class="button primary"
+              id="savePackageConditions"
+              type="button"
+            >
+              บันทึกเงื่อนไข
+            </button>
+          </div>
+        </section>
+      </div>
+      <div id="packageApiView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">HIS PACKAGE DATABASE</p>
+            <h1>Package HIS</h1>
+            <p class="hero-note">
+              ฐานข้อมูลแพ็กเกจจาก HIS ตรวจ Code เดิมและอัปเดตให้อัตโนมัติ
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button
+              class="button primary his-sync-button"
+              id="sendPackageApiRequest"
+              type="button"
+            >
+              ดึงรายการแพ็กเกจจาก HIS
+            </button>
+          </div>
+        </section>
+        <section class="api-card package-api-browser">
+          <div class="api-tester-head">
+            <div>
+              <h2>รายการแพ็กเกจจาก HIS</h2>
+              <p>ค้นหาจากฐานข้อมูลภายใน โดยไม่ส่ง Request ไปยัง HIS</p>
+            </div>
+          </div>
+          <div class="package-api-browser-search">
+            <label
+              >ค้นหา Package Code<input
+                id="packageApiCode"
+                type="search"
+                placeholder="ระบุ Code" /></label
+            ><label
+              >ค้นหา Package Name<input
+                id="packageApiName"
+                type="search"
+                placeholder="ระบุชื่อแพ็กเกจ"
+            /></label>
+          <label>ประเภทแพ็กเกจ<select id="hisPackageTypeFilter"><option value="">ทุกประเภท</option><option value="Mobile">Mobile</option><option value="Inhouse">Inhouse</option></select></label><label>บริษัทที่ผูก<select id="hisPackageCompanyFilter"><option value="">ทุกบริษัท</option></select></label></div>
+          <div class="his-package-toolbar">
+            <label
+              ><input id="selectAllHisPackages" type="checkbox" />
+              เลือกทั้งหมด</label
+            ><span id="hisPackageSelectedMeta">เลือก 0 รายการ</span
+            ><div class="his-package-type-buttons" id="hisPackageQuickTypes">
+              <button class="his-type-filter-chip active" data-his-quick-type="" type="button">ทั้งหมด</button>
+              <button class="his-type-filter-chip" data-his-quick-type="Mobile" type="button">Mobile</button>
+              <button class="his-type-filter-chip" data-his-quick-type="Inhouse" type="button">Inhouse</button>
+            </div><button
+              class="button contract"
+              id="moveSelectedHisPackages"
+              type="button"
+              disabled
+            >
+              ย้ายเป็นแพ็กเกจคู่สัญญา</button
+            ><button
+              class="button danger"
+              id="deleteSelectedHisPackages"
+              type="button"
+              disabled
+            >
+              ลบรายการที่เลือก
+            </button>
+          </div>
+          <div class="api-tester-actions">
+            <span id="packageApiRequestStatus">กำลังโหลดฐานข้อมูลแพ็กเกจ…</span>
+          </div>
+          <div id="packageApiResultList" class="package-api-result-list">
+            <div class="package-detail-loading">
+              <span></span>กำลังโหลดข้อมูล…
+            </div>
+          </div>
+          <code id="packageApiResponse" hidden>ยังไม่ได้ส่ง Request</code>
+          <input id="packageApiStartDate" type="date" hidden /><input
+            id="packageApiEndDate"
+            type="date"
+            hidden
+          /><select id="packageApiType" hidden>
+            <option value="ALL">ALL</option>
+          </select>
+          <div id="packageApiHistoryRows" hidden></div>
+          <div id="packageApiHistoryEmpty" hidden></div>
+          <div id="packageApiConfigLogRows" hidden></div>
+          <div id="packageApiConfigLogEmpty" hidden></div>
+        </section>
+      </div>
+      <div id="orderSetupView" class="app-view">
+        <section class="hero"><div><p class="eyebrow">ORDER &amp; STATION SETUP</p><h1>Set Up Order&amp;Station</h1><p class="hero-note">กำหนดประเภท สถานี และซ่อนรายการที่ไม่ควรแสดงให้ลูกค้า</p></div></section>
+        <section class="api-card order-setup-card">
+          <div class="api-tester-head"><div><h2>จัดการประเภท</h2><p>ประเภทที่สร้างจะใช้เรียงรายละเอียดแพ็กเกจ</p></div><button class="button secondary" id="addOrderType" type="button">+ เพิ่มประเภท</button></div>
+          <div id="orderTypeChips" class="order-type-chips"></div>
+          <div class="api-tester-head order-station-head"><div><h2>จัดการสถานี</h2><p>หนึ่ง Order สามารถกำหนดได้มากกว่าหนึ่งสถานี</p></div><button class="button secondary" id="addOrderStation" type="button">+ เพิ่มสถานี</button></div>
+          <div id="orderStationChips" class="order-type-chips"></div>
+          <div class="order-setup-filters"><input id="orderSetupSearch" type="search" placeholder="ค้นหา Code หรือ Name"><select id="orderSetupTypeFilter"><option value="">ทุกประเภท</option><option value="__unassigned">ยังไม่กำหนด</option></select><select id="orderSetupVisibility"><option value="">ทั้งหมด</option><option value="visible">แสดงอยู่</option><option value="hidden">ซ่อนอยู่</option></select></div>
+          <div class="his-package-toolbar"><label><input id="selectAllOrderItems" type="checkbox"> เลือกทั้งหมดที่แสดง</label><span id="orderSelectedMeta">เลือก 0 รายการ</span><select id="bulkOrderType"></select><button class="button primary" id="applyOrderType" type="button">กำหนดประเภท</button><select id="bulkOrderStation" title="เลือกสถานี"></select><button class="button primary" id="applyOrderStation" type="button">กำหนดสถานี</button><button class="button danger" id="hideOrderItems" type="button">ซ่อนรายการ</button><button class="button secondary" id="showOrderItems" type="button">นำกลับมาแสดง</button></div>
+          <div id="orderSetupList"></div>
+          <div id="orderSetupPager" class="order-setup-pager"></div>
+        </section>
+      </div>
+      <div id="appointmentView" class="app-view">
+        <section class="hero">
+          <div><p class="eyebrow">ปฏิทินนัดหมายจากฐานข้อมูล HIS</p><h1>นัดหมาย HIS</h1><p class="hero-note">เลือกรายวัน รายสัปดาห์ หรือรายเดือน และกรองตาม Location ก่อนดึงข้อมูล</p></div>
+        </section>
+        <section class="appointment-filter-card">
+          <div class="appointment-filter-fields">
+            <label>วันที่อ้างอิง<input id="appointmentDate" type="date"></label>
+            <label>Location<select id="appointmentLocation"><option value="95">Corporate Health Checkup · ID 95</option><option value="">ทุก Location</option></select><small id="appointmentLocationStatus">กำลังโหลดรายการจาก HIS…</small></label>
+          </div>
+          <div class="appointment-filter-actions">
+            <button class="button primary" id="pullHisAppointments" type="button">ดึงข้อมูลนัดหมายจาก HIS</button>
+            <button class="button secondary" id="clearAppointmentFilter" type="button">ล้างตัวกรอง</button>
+            <button class="button secondary" id="exportAppointmentsExcel" type="button" disabled>Export Excel</button>
+          </div>
+        </section>
+        <section class="appointment-calendar-toolbar">
+          <div class="appointment-period-nav"><button class="button secondary" id="appointmentPrevious" type="button" aria-label="ช่วงก่อนหน้า">‹</button><button class="button secondary" id="appointmentToday" type="button">วันนี้</button><button class="button secondary" id="appointmentNext" type="button" aria-label="ช่วงถัดไป">›</button></div>
+          <strong id="appointmentPeriodLabel">-</strong>
+          <div class="appointment-view-switch" role="group" aria-label="รูปแบบปฏิทิน"><button class="active" data-appointment-view="day" type="button">รายวัน</button><button data-appointment-view="week" type="button">รายสัปดาห์</button><button data-appointment-view="month" type="button">รายเดือน</button></div>
+        </section>
+        <div class="result-meta" id="appointmentMeta">ค่าเริ่มต้น Location ID 95 · เลือกรูปแบบแล้วกดดึงข้อมูล</div>
+        <section class="appointment-calendar-card">
+          <div id="appointmentCalendar" class="appointment-calendar"></div>
+          <div class="empty" id="appointmentEmpty"><strong>ยังไม่ได้ดึงข้อมูลนัดหมาย</strong><span>ค่าเริ่มต้นเป็นวันนี้และ Corporate Health Checkup (ID 95)</span></div>
+        </section>
+      </div>
+      <div id="dashboardView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">ติดตามการเข้ารับบริการ</p>
+            <h1>สถิติการมาตรวจ</h1>
+            <p class="hero-note">ดูความครบถ้วนแยกตามบริษัทและปี</p>
+          </div>
+        </section>
+        <section class="dashboard-filter">
+          <label
+            >บริษัท<select id="dashboardCompany">
+              <option value="">ทุกบริษัท</option>
+            </select></label
+          ><label
+            >ปี<select id="dashboardYear">
+              <option value="">ทุกปี</option>
+            </select></label
+          ><button class="button primary dashboard-export-button" id="exportDashboardExcel" data-permission="dashboardExport" type="button">Export Excel</button>
+        </section>
+        <section class="summary dashboard-summary">
+          <article>
+            <span>รายชื่อทั้งหมด</span><strong id="dashTotal">0</strong>
+          </article>
+          <article>
+            <span>มาตรวจแล้ว</span><strong id="dashVisited">0</strong>
+          </article>
+          <article>
+            <span>ยังไม่มาตรวจ</span><strong id="dashPending">0</strong>
+          </article>
+          <article>
+            <span>อัตราการมาตรวจ</span><strong id="dashRate">0%</strong>
+          </article>
+        </section>
+        <section class="executive-sales-kpis" aria-label="ยอดขายสำหรับผู้บริหาร">
+          <article><span>ยอดขายรวมที่บันทึก</span><strong id="execSalesTotal">฿0.00</strong><small>เฉพาะรายการที่มีราคาในระบบ</small></article>
+          <article><span>แพ็กเกจหลัก</span><strong id="execPrimarySales">฿0.00</strong><small id="execPrimaryCoverage">0 รายการ</small></article>
+          <article><span>ซื้อเพิ่ม · วางบิล</span><strong id="execBillingSales">฿0.00</strong><small id="execBillingCount">0 รายการ</small></article>
+          <article><span>ซื้อเพิ่ม · ชำระเอง</span><strong id="execSelfPaySales">฿0.00</strong><small id="execSelfPayCount">0 รายการ</small></article>
+          <article><span>ยอดเฉลี่ย / ผู้มาตรวจ</span><strong id="execAverageSales">฿0.00</strong><small id="execExtraBuyerRate">ผู้ซื้อเพิ่ม 0%</small></article>
+        </section>
+        <section class="executive-sales-grid">
+          <article class="dashboard-card executive-sales-card">
+            <div class="executive-card-head"><div><p>EXECUTIVE SALES</p><h2>สัดส่วนรายได้</h2></div><strong id="execRevenueGrand">฿0.00</strong></div>
+            <div id="execRevenueMix" class="executive-revenue-mix"></div>
+          </article>
+          <article class="dashboard-card executive-sales-card">
+            <div class="executive-card-head"><div><p>TOP REVENUE</p><h2>รายการสร้างรายได้สูงสุด</h2></div><span>5 อันดับ</span></div>
+            <div id="execTopRevenue" class="executive-top-list"></div>
+          </article>
+          <article class="dashboard-card executive-sales-card executive-company-sales-card">
+            <div class="executive-card-head"><div><p>CORPORATE SALES</p><h2>ยอดขายแยกตามบริษัท / ปี</h2></div><span>สำหรับผู้บริหาร</span></div>
+            <div id="execCompanySales" class="executive-company-sales"></div>
+          </article>
+        </section>
+        <section class="dashboard-grid">
+          <article class="dashboard-card">
+            <h2>ภาพรวมการมาตรวจ</h2>
+            <div class="donut-wrap">
+              <div class="donut" id="dashDonut">
+                <span id="dashDonutText">0%</span>
+              </div>
+              <div class="legend">
+                <span
+                  ><i class="visited-dot"></i>มาตรวจแล้ว
+                  <strong id="legendVisited">0</strong></span
+                ><span
+                  ><i class="pending-dot"></i>ยังไม่มาตรวจ
+                  <strong id="legendPending">0</strong></span
+                >
+              </div>
+            </div>
+          </article>
+          <article class="dashboard-card">
+            <h2>แยกตามบริษัทและปี</h2>
+            <div class="company-stats" id="companyStats"></div>
+          </article>
+        </section>
+      </div>
+      <div id="apiView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">เชื่อมต่อระบบภายนอก</p>
+            <h1>System&amp;API</h1>
+            <p class="hero-note">
+              ดูสถานะ จุดเชื่อมต่อ API Key และตัวอย่างการเรียกใช้งานจากหน้าเดียว
+            </p>
+          </div>
+          <button class="button secondary" id="refreshApiInfo" type="button">
+            ตรวจสถานะใหม่
+          </button>
+        </section>
+        <section class="api-card system-status-card">
+          <div class="compact-settings-head"><div><h2>สถานะระบบและการอัปเดต</h2><p>ตรวจสอบโปรแกรม ฐานข้อมูล Backup และโหมดปิดปรับปรุง</p></div><div class="system-head-actions"><button class="button primary" id="openUpdateGuide" type="button">คู่มืออัปเดตระบบ</button><button class="button secondary" id="refreshSystemStatus" type="button">ตรวจสอบใหม่</button></div></div>
+          <div class="system-status-grid">
+            <div><span>เวอร์ชันโปรแกรม</span><strong id="systemRelease">-</strong></div>
+            <div><span>เวอร์ชันฐานข้อมูล</span><strong id="systemSchemaVersion">-</strong></div>
+            <div><span>PostgreSQL</span><strong id="systemDatabaseStatus">-</strong></div>
+            <div><span>Revision ข้อมูล</span><strong id="systemRevision">-</strong></div>
+            <div><span>Backup ล่าสุด</span><strong id="systemLastBackup">-</strong></div>
+            <div><span>แก้ไขข้อมูลล่าสุด</span><strong id="systemDataUpdated">-</strong></div>
+          </div>
+          <div class="maintenance-control"><div><strong>Maintenance Mode</strong><span id="maintenanceStatus">กำลังตรวจสอบ…</span></div><button class="button danger" id="toggleMaintenance" data-permission="apiManage" type="button">เปิดโหมดปิดปรับปรุง</button></div>
+        </section>
+        <section class="api-card package-api-compact-settings">
+          <div class="package-config-lock" id="packageApiConfigLock">
+            <div><strong>🔒 SetUp API to HIS ถูกซ่อนอยู่</strong><span>กรุณาใส่รหัสผ่านของบัญชีที่กำลังใช้งาน การเปิดดู X-api-Key ทุกครั้งจะถูกบันทึกใน Log</span></div>
+            <form id="packageApiUnlockForm" autocomplete="off"><input id="packageApiUnlockPassword" type="password" placeholder="รหัสผ่าน" required autocomplete="current-password" /><button class="button primary" type="submit">ปลดล็อก</button></form>
+            <span class="save-note" id="packageApiUnlockStatus"></span>
+          </div>
+          <div id="packageApiConfigProtected" hidden>
+            <div class="compact-settings-head">
+              <div><h2>SetUp API to HIS</h2><p>จัดการเส้น API ที่เชื่อมต่อ HIS และตรวจสอบประวัติการแก้ไขหรือเปิดดู Key</p></div>
+              <button class="button primary" id="addHisApiConnection" type="button">+ เพิ่ม API</button>
+            </div>
+            <div id="hisApiConnectionList" class="his-api-connection-list"></div>
+            <section class="his-db-settings-card his-patient-query-card">
+              <div class="compact-settings-head"><div><h3>PostgreSQL HIS — ตาราง patient</h3><p>ใช้สำหรับค้นหา HN แบบ Second-pass เมื่อค้นด้วย ID / Passport แล้วไม่พบ โดยค้นจาก ชื่อ + นามสกุล + วันเกิด แบบ Read-only</p></div></div>
+              <div class="his-db-settings-grid">
+                <label class="his-db-host">Host / IP<input id="hisPatientHost" type="text" autocomplete="off" placeholder="PostgreSQL host"></label>
+                <label>Port<input id="hisPatientPort" type="number" min="1" max="65535" value="5432"></label>
+                <label>Database<input id="hisPatientDatabase" type="text" value="vimut_gorilla"></label>
+                <label>Username<input id="hisPatientUser" type="text" autocomplete="off"></label>
+                <label class="his-db-password-field">Password<input id="hisPatientPassword" type="password" autocomplete="new-password" placeholder="เว้นว่างเพื่อใช้รหัสเดิม"><small id="hisPatientPasswordStored"></small></label>
+                <label>Schema<input id="hisPatientSchema" type="text" value="public"></label>
+                <label>Table / View<input id="hisPatientTable" type="text" value="patient"></label>
+                <div class="his-db-query-preview"><strong>SQL Query ที่ระบบใช้เรียก</strong><pre id="hisPatientQueryPreview"></pre></div>
+              </div>
+              <div class="his-db-settings-actions"><button class="button secondary" id="testHisPatientConnection" type="button">ทดสอบการเชื่อมต่อ</button><button class="button primary" id="saveHisPatientConfig" type="button">บันทึก PostgreSQL HIS</button><span class="save-note" id="hisPatientConfigStatus"></span></div>
+              <div class="patientinfo-test-warning">ทดสอบค้นหา: SELECT เท่านั้น ไม่มี INSERT / UPDATE / DELETE ข้อมูล HIS</div>
+              <div class="patientinfo-test-grid">
+                <label>FirstName *<input id="hisPatientQueryFirstName" autocomplete="off" placeholder="ชื่อใน HIS"></label>
+                <label>LastName *<input id="hisPatientQueryLastName" autocomplete="off" placeholder="นามสกุลใน HIS"></label>
+                <label>BirthDate *<input id="hisPatientQueryBirthDate" type="date"></label>
+              </div>
+              <div class="his-db-settings-actions"><button class="button primary" id="runHisPatientQueryTest" type="button">ทดลองค้นหา</button><button class="button secondary" id="clearHisPatientQueryTest" type="button">ล้างผล</button><span class="save-note" id="hisPatientQueryStatus"></span></div>
+              <div class="patientinfo-test-result" id="hisPatientQueryResult" hidden>
+                <div class="patientinfo-test-summary" id="hisPatientQuerySummary"></div>
+                <div class="table-wrap"><table class="api-table"><thead><tr><th>HN</th><th>ID / Passport</th><th>ชื่อ–นามสกุล</th><th>วันเกิด</th><th>เพศ</th><th>โทรศัพท์</th></tr></thead><tbody id="hisPatientQueryRows"></tbody></table><div class="empty" id="hisPatientQueryEmpty" hidden>ไม่พบข้อมูลตรงกันในตาราง patient</div></div>
+              </div>
+            </section>
+            <section class="his-db-settings-card">
+              <div class="compact-settings-head"><div><h3>PostgreSQL HIS — ตารางนัดหมาย</h3><p>ใช้สำหรับปุ่มดึงข้อมูลในหน้า “นัดหมาย HIS” ระบบบันทึกรหัสผ่านแบบเข้ารหัสและนำกลับมาใช้ให้อัตโนมัติ</p></div></div>
+              <div class="his-db-settings-grid">
+                <label class="his-db-host">Host / IP<input id="hisAptHost" type="text" autocomplete="off" placeholder="PostgreSQL host"></label>
+                <label>Port<input id="hisAptPort" type="number" min="1" max="65535" value="5432"></label>
+                <label>Database<input id="hisAptDatabase" type="text" value="vimut_gorilla"></label>
+                <label>Username<input id="hisAptUser" type="text" autocomplete="off"></label>
+                <label class="his-db-password-field">Password<input id="hisAptPassword" type="password" autocomplete="new-password" placeholder="เว้นว่างเพื่อใช้รหัสเดิม"><small id="hisAptPasswordStored"></small></label>
+                <label>Schema<input id="hisAptSchema" type="text" value="public"></label>
+                <label>Table / View<input id="hisAptTable" type="text" value="patientapt"></label>
+                <label>Location Table<input id="hisAptLocationTable" type="text" value="location"></label>
+                <label>Doctor Table<input id="hisAptDoctorTable" type="text" value="usermas"></label>
+                <label>Patient Table<input id="hisAptPatientTable" type="text" value="patient"></label>
+                <div class="his-db-query-preview"><strong>SQL Query ที่ระบบใช้เรียก</strong><pre id="hisAptQueryPreview"></pre></div>
+              </div>
+              <div class="his-db-settings-actions"><button class="button secondary" id="testHisAptConnection" type="button">ทดสอบการเชื่อมต่อ</button><button class="button primary" id="saveHisAptConfig" type="button">บันทึก PostgreSQL HIS</button><span class="save-note" id="hisAptConfigStatus"></span></div>
+            </section>
+            <datalist id="hisApiContentTypes"><option value="application/json"></option><option value="application/xml"></option><option value="text/plain"></option><option value="application/x-www-form-urlencoded"></option></datalist>
+            <span class="save-note" id="packageApiConfigStatus"></span>
+            <section class="his-api-audit-section">
+              <div class="compact-settings-head"><div><h3>Log การตั้งค่า API</h3><p>บันทึกการเพิ่ม แก้ไข ลบ และเปิดดู X-api-Key</p></div><button class="button secondary" id="refreshHisApiLogs" type="button">รีเฟรช Log</button></div>
+              <div class="table-wrap"><table class="api-table"><thead><tr><th>วัน–เวลา</th><th>API</th><th>การทำรายการ</th><th>ผู้ใช้งาน</th><th>รายละเอียด</th></tr></thead><tbody id="hisApiAuditRows"></tbody></table><div id="hisApiAuditEmpty" class="empty">ยังไม่มี Log</div></div>
+            </section>
+            <select id="packageApiMethod" hidden><option value="GET">GET</option><option value="POST">POST</option></select>
+            <textarea id="packageApiPayload" hidden>{"0":"","CODE":""}</textarea>
+          </div>
+        </section>
+        <section class="api-status-card">
+          <div>
+            <span class="api-status-dot" id="apiStatusDot"></span
+            ><strong id="apiStatusTitle">กำลังตรวจสอบ API</strong>
+            <p id="apiStatusDetail">กรุณารอสักครู่</p>
+          </div>
+          <span class="api-version">REST API v1</span>
+        </section>
+        <section class="api-grid">
+          <article class="api-card">
+            <h2>ข้อมูลการเชื่อมต่อ</h2>
+            <label
+              >Base URL
+              <div class="copy-field">
+                <code id="apiBaseUrl"
+                  >http://localhost:3000/external-api/v1</code
+                ><button type="button" data-copy-target="apiBaseUrl">
+                  คัดลอก
+                </button>
+              </div></label
+            ><label
+              >API Key
+              <div class="copy-field">
+                <code id="apiKeyValue">••••••••••••••••</code
+                ><button type="button" id="toggleApiKey">แสดง</button
+                ><button type="button" data-copy-target="apiKeyValue">
+                  คัดลอก
+                </button>
+              </div></label
+            >
+            <p class="api-security-note">
+              API Key เป็นข้อมูลลับ ใช้เฉพาะผู้ดูแลระบบและไม่ควรส่งผ่าน URL
+            </p>
+          </article>
+          <article class="api-card">
+            <h2>การยืนยันตัวตน</h2>
+            <p>ส่ง API Key มากับ Header ทุกคำขอ</p>
+            <div class="code-block">
+              <code id="apiHeaderExample">X-API-Key: YOUR_API_KEY</code
+              ><button type="button" data-copy-target="apiHeaderExample">
+                คัดลอก
+              </button>
+            </div>
+            <p>หรือใช้ Bearer Token</p>
+            <div class="code-block">
+              <code id="apiBearerExample"
+                >Authorization: Bearer YOUR_API_KEY</code
+              ><button type="button" data-copy-target="apiBearerExample">
+                คัดลอก
+              </button>
+            </div>
+          </article>
+        </section>
+        <section class="api-card api-endpoints">
+          <h2>Endpoints ที่พร้อมใช้งาน</h2>
+          <p class="api-section-note">
+            URL เต็มจาก Server ที่กำลังใช้งาน กด Copy แล้วนำไปเรียกได้ทันที
+          </p>
+          <div class="table-wrap">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Endpoint URL เต็ม</th>
+                  <th></th>
+                  <th>การใช้งาน</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code id="endpointHealth" data-endpoint-path="/health"
+                      >http://localhost:3000/external-api/v1/health</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointHealth"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>ตรวจสอบ API และ PostgreSQL</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code id="endpointCompanies" data-endpoint-path="/companies"
+                      >http://localhost:3000/external-api/v1/companies</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointCompanies"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>รายการและค้นหาบริษัท</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code
+                      id="endpointCustomers"
+                      data-endpoint-path="/customers?q=&amp;companyId=&amp;limit=100&amp;offset=0"
+                      >http://localhost:3000/external-api/v1/customers?q=&amp;companyId=&amp;limit=100&amp;offset=0</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointCustomers"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>ค้นหาและแบ่งหน้าข้อมูลลูกค้า</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code
+                      id="endpointCustomerByKey"
+                      data-endpoint-path="/customers/CUSTOMER_KEY"
+                      >http://localhost:3000/external-api/v1/customers/CUSTOMER_KEY</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointCustomerByKey"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>อ่านลูกค้าหนึ่งราย</td>
+                </tr>
+                <tr>
+                  <td><span class="method post">POST</span></td>
+                  <td>
+                    <code
+                      id="endpointCreateCustomer"
+                      data-endpoint-path="/customers"
+                      >http://localhost:3000/external-api/v1/customers</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointCreateCustomer"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>เพิ่มข้อมูลลูกค้า</td>
+                </tr>
+                <tr>
+                  <td><span class="method put">PUT</span></td>
+                  <td>
+                    <code
+                      id="endpointUpdateCustomer"
+                      data-endpoint-path="/customers/CUSTOMER_KEY"
+                      >http://localhost:3000/external-api/v1/customers/CUSTOMER_KEY</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointUpdateCustomer"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>แก้ไขข้อมูลลูกค้า</td>
+                </tr>
+                <tr>
+                  <td><span class="method delete">DELETE</span></td>
+                  <td>
+                    <code
+                      id="endpointDeleteCustomer"
+                      data-endpoint-path="/customers/CUSTOMER_KEY"
+                      >http://localhost:3000/external-api/v1/customers/CUSTOMER_KEY</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointDeleteCustomer"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>ลบข้อมูลลูกค้า</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code
+                      id="endpointPackages"
+                      data-endpoint-path="/packages?q="
+                      >http://localhost:3000/external-api/v1/packages?q=</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointPackages"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>รายการและค้นหาแพ็กเกจตรวจเพิ่ม</td>
+                </tr>
+                <tr>
+                  <td><span class="method get">GET</span></td>
+                  <td>
+                    <code
+                      id="endpointStatistics"
+                      data-endpoint-path="/statistics?companyId="
+                      >http://localhost:3000/external-api/v1/statistics?companyId=</code
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="endpoint-copy"
+                      type="button"
+                      data-copy-target="endpointStatistics"
+                    >
+                      Copy
+                    </button>
+                  </td>
+                  <td>สถิติการมาตรวจ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="api-section-note">
+            <code>CUSTOMER_KEY</code> และค่าหลังเครื่องหมาย
+            <code>=</code> ให้แทนด้วยข้อมูลจริงก่อนเรียก
+          </p>
+        </section>
+        <section class="api-card">
+          <h2>ตัวอย่าง Body พร้อมใช้งาน</h2>
+          <div class="api-body-examples">
+            <article>
+              <header>
+                <div>
+                  <span class="method post">POST</span
+                  ><strong>เพิ่มข้อมูลลูกค้า</strong>
+                </div>
+                <button type="button" data-copy-target="apiPostCustomerBody">
+                  Copy Body
+                </button>
+              </header>
+              <pre><code id="apiPostCustomerBody">{
+  "companyId": "COMPANY_ID",
+  "title": "นาย",
+  "firstName": "สมชาย",
+  "lastName": "ตัวอย่าง",
+  "idPassport": "1234567890123",
+  "birthDate": "1990-01-31",
+  "sex": "ชาย",
+  "packageCode": "PACKAGE_CODE",
+  "packageName": "ชื่อแพ็กเกจ"
+}</code></pre>
+            </article>
+            <article>
+              <header>
+                <div>
+                  <span class="method put">PUT</span
+                  ><strong>แก้ไขข้อมูลลูกค้า</strong>
+                </div>
+                <button type="button" data-copy-target="apiPutCustomerBody">
+                  Copy Body
+                </button>
+              </header>
+              <pre><code id="apiPutCustomerBody">{
+  "firstName": "สมชาย",
+  "lastName": "แก้ไขแล้ว",
+  "packageCode": "NEW_PACKAGE_CODE",
+  "packageName": "ชื่อแพ็กเกจใหม่"
+}</code></pre>
+            </article>
+            <article>
+              <header>
+                <div>
+                  <span class="method delete">DELETE</span
+                  ><strong>ลบข้อมูลลูกค้า</strong>
+                </div>
+                <button
+                  type="button"
+                  data-copy-target="apiDeleteCustomerExample"
+                >
+                  Copy Request
+                </button>
+              </header>
+              <pre><code id="apiDeleteCustomerExample">DELETE http://localhost:3000/external-api/v1/customers/CUSTOMER_KEY
+X-API-Key: YOUR_API_KEY
+Content-Type: application/json
+
+{"key":"CUSTOMER_KEY"}</code></pre>
+            </article>
+          </div>
+        </section>
+        <section class="api-card">
+          <h2>ตัวอย่างเรียกข้อมูลลูกค้า</h2>
+          <div class="code-block code-block-large">
+            <code id="apiCurlExample"
+              >curl -H "X-API-Key: YOUR_API_KEY"
+              "http://localhost:3000/external-api/v1/customers?limit=20"</code
+            ><button type="button" data-copy-target="apiCurlExample">
+              คัดลอก
+            </button>
+          </div>
+          <div class="copy-feedback" id="apiCopyFeedback"></div>
+        </section>
+      </div>
+      <div id="userView" class="app-view">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">ระบบรักษาความปลอดภัย</p>
+            <h1>ผู้ใช้และสิทธิ์การใช้งาน</h1>
+            <p class="hero-note">
+              สร้างผู้ใช้ แยกตาม Role และกำหนดสิทธิ์ของแต่ละ Role
+            </p>
+          </div>
+          <button class="button primary" id="addUser" type="button">
+            + เพิ่มผู้ใช้
+          </button>
+        </section>
+        <section class="access-grid">
+          <article class="access-card">
+            <h2>บัญชีผู้ใช้</h2>
+            <div class="user-list" id="userList"></div>
+          </article>
+          <article class="access-card">
+            <div class="role-card-head"><h2>ตั้งค่าสิทธิ์ตาม Role</h2><button class="button primary" id="addRole" type="button">+ เพิ่ม Role</button></div>
+            <p class="hero-note">
+              สิทธิ์ที่แก้ไขจะมีผลกับผู้ใช้ใน Role นั้นทันที
+            </p>
+            <div class="role-list" id="roleList"></div>
+          </article>
+        </section>
+        <section class="access-card" id="permissionAuditCard">
+          <h2>ประวัติการเปลี่ยนผู้ใช้และสิทธิ์</h2>
+          <p class="hero-note">แสดงผู้ดำเนินการ เวลา และรายการที่เปลี่ยนแปลงล่าสุด</p>
+          <div class="user-list" id="permissionAuditList"></div>
+        </section>
+      </div>
+    </main>
+    <div class="overlay" id="detailOverlay" aria-hidden="true">
+      <article class="modal modal-wide">
+        <header class="modal-header">
+          <div>
+            <p id="detailPackage"></p>
+            <h2 id="detailName">รายละเอียดลูกค้า</h2>
+          </div>
+          <button class="icon-button" type="button" data-close="detailOverlay">
+            ×
+          </button>
+        </header>
+        <div class="modal-body" id="detailBody"></div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="detailOverlay"
+          >
+            ปิด</button
+          ><button
+            class="button secondary"
+            id="printCustomerPackage"
+            type="button"
+            hidden
+          >
+            พิมพ์รายละเอียดแพ็กเกจ</button
+          ><button
+            class="button secondary"
+            id="saveCustomerDetail"
+            type="button"
+          >
+            บันทึกข้อมูลส่วนตัวและแพ็กเกจหลัก</button
+          ><button class="button primary" id="receiveCheckup" type="button">
+            มารับการตรวจ
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="personalLogOverlay" aria-hidden="true">
+      <article class="modal personal-log-modal">
+        <header class="modal-header">
+          <div>
+            <p id="personalLogMeta">ประวัติการบันทึก</p>
+            <h2 id="personalLogName">Log รายบุคคล</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="personalLogOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body personal-log-body" id="personalLogBody"></div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="personalLogOverlay"
+          >
+            ปิด
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="summaryOverlay" aria-hidden="true">
+      <article class="modal summary-modal">
+        <header class="modal-header summary-screen-only">
+          <div>
+            <p>ตรวจสอบข้อมูลก่อนบันทึกสถิติ</p>
+            <h2>สรุปรายการรับการตรวจ (A4)</h2>
+          </div>
+          <button class="icon-button" type="button" data-close="summaryOverlay">
+            ×
+          </button>
+        </header>
+        <div class="modal-body summary-preview-wrap">
+          <article class="a4-summary" id="a4Summary"></article>
+        </div>
+        <footer class="modal-footer summary-screen-only">
+          <button class="button secondary" id="backToDetail" type="button">
+            ย้อนกลับแก้ไข</button
+          ><button class="button secondary" id="printSummary" type="button">
+            พิมพ์ A4</button
+          ><button class="button secondary" id="printHnSticker" type="button" hidden>
+            พิมพ์สติกเกอร์ HN</button
+          ><button class="button primary" id="confirmCheckup" type="button">
+            ยืนยันและบันทึกการตรวจ
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="companyOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>ตั้งค่าบริษัทแยกตามปี</p>
+            <h2 id="companyModalTitle">เพิ่มบริษัท</h2>
+          </div>
+          <button class="icon-button" type="button" data-close="companyOverlay">
+            ×
+          </button>
+        </header>
+        <div class="modal-body form-stack">
+          <label
+            >ชื่อบริษัท <span class="required">*</span
+            ><input
+              id="companyName"
+              maxlength="150"
+              placeholder="เช่น บริษัท ตัวอย่าง จำกัด" /></label
+          ><label
+            >ปี <span class="required">*</span
+            ><input
+              id="companyYear"
+              type="number"
+              min="2000"
+              max="2700"
+              placeholder="เช่น 2569" /></label
+          ><label
+            >รหัสบริษัท<input
+              id="companyCode"
+              maxlength="50"
+              placeholder="เช่น ABC-2569"
+          /></label>
+          <section class="cash-package-editor">
+            <div class="editor-heading">
+              <div>
+                <strong>รายการตรวจเพิ่มเติม (วางบิล)</strong
+                ><span>กำหนดชื่อแพ็กเกจและราคาสำหรับบริษัทและปีนี้</span>
+              </div>
+              <button
+                class="button secondary"
+                id="addBillingPackage"
+                type="button"
+              >
+                + เพิ่มรายการ
+              </button>
+            </div>
+            <div class="cash-package-rows" id="billingPackageRows"></div>
+            <div class="empty-inline compact" id="billingPackageEmpty">
+              ยังไม่มีรายการตรวจเพิ่มเติม (วางบิล)
+            </div>
+          </section>
+          <section class="cash-package-editor">
+            <div class="editor-heading">
+              <div>
+                <strong>รายการตรวจเพิ่มเติม (เงินสด)</strong
+                ><span>กำหนดชื่อแพ็กเกจและราคาสำหรับบริษัทและปีนี้</span>
+              </div>
+              <button
+                class="button secondary"
+                id="addCashPackage"
+                type="button"
+              >
+                + เพิ่มรายการ
+              </button>
+            </div>
+            <div class="cash-package-rows" id="cashPackageRows"></div>
+            <div class="empty-inline compact" id="cashPackageEmpty">
+              ยังไม่มีรายการตรวจเพิ่มเติม (เงินสด)
+            </div>
+          </section>
+          <label
+            >หมายเหตุ<textarea
+              id="companyNote"
+              rows="3"
+              maxlength="500"
+              placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"
+            ></textarea>
+          </label>
+          <label
+            >เงื่อนไขการรายงานผล<textarea
+              id="companyReportConditions"
+              rows="4"
+              maxlength="1500"
+              placeholder="เช่น ส่งผลตรวจทางอีเมลภายใน 7 วัน หรือนัดรับผลกับแพทย์"
+            ></textarea>
+          </label>
+          <section class="company-sales-editor">
+            <div>
+              <strong>เจ้าหน้าที่ขาย</strong>
+              <span>ผู้ประสานงานของบริษัทสำหรับปีนี้</span>
+            </div>
+            <div class="company-sales-fields">
+              <label>ชื่อเจ้าหน้าที่ขาย<input id="companySalesName" maxlength="150" placeholder="ชื่อ–นามสกุล"></label>
+              <label>เบอร์โทร<input id="companySalesPhone" type="tel" maxlength="30" placeholder="เช่น 08x-xxx-xxxx"></label>
+            </div>
+          </section>
+          <div class="import-status" id="companyStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="companyOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="saveCompany" type="button">
+            บันทึกข้อมูลรายปี
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="importOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>ข้อมูลจะผูกกับบริษัทและปีที่เลือก</p>
+            <h2>นำเข้าข้อมูลลูกค้า</h2>
+          </div>
+          <button class="icon-button" type="button" data-close="importOverlay">
+            ×
+          </button>
+        </header>
+        <div class="modal-body">
+          <div class="selected-company">
+            <span>บริษัท</span><strong id="importCompanyName">-</strong>
+          </div>
+          <label class="drop-zone"
+            ><strong>ไฟล์รายชื่อลูกค้า (Excel)</strong
+            ><span>รองรับ .xlsx และ .xls ตามเทมเพลต</span
+            ><input id="excelFile" type="file" accept=".xlsx,.xls"
+          /></label>
+          <div class="info-box">
+            <strong>ใช้รูปแบบ template_init_Type1.xlsx</strong><br />รองรับหัวคอลัมน์ตั้งแต่
+            DisplayOrder, CheckupDate, HN, Title, FirstName, LastName,
+            IdentificationType, IDCard, Gender, BirthDate(DD/MM/YYYY), Email,
+            PackageCode, PackageName, PhoneNumber, EmployeeCode, DepartmentName,
+            PositionName, Company และข้อมูลนัดหมายในไฟล์<br /><a
+              class="template-link"
+              href="templates/customer-import-template.xlsx"
+              download
+              >ดาวน์โหลดเทมเพลต Excel</a
+            >
+          </div>
+          <div class="warning-box">
+            เมื่อเลือกไฟล์ ระบบจะแสดงตัวอย่างข้อมูลที่อ่านได้ก่อน และจะส่งเฉพาะรายการที่มี ID / Passport ไปตรวจสอบกับ GetPatientData
+            <br><strong>ID / Passport ไม่บังคับ</strong> — รายการที่ไม่มี ID ยังนำเข้าได้ และหาก Patient API ไม่พร้อม ระบบจะแสดงข้อมูลที่อ่านได้เพื่อให้ตรวจสอบและยังอนุญาตให้นำเข้าต่อ
+          </div>
+          <div class="import-status" id="importStatus"></div>
+          <div class="import-preview-wrap" id="importPreviewWrap" hidden><div id="importPreview"></div></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="importOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="doImport" type="button">
+            นำเข้าข้อมูล
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="multiCompanyImportOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>สร้างหรืออัปเดตบริษัทและข้อมูลลูกค้าจากไฟล์เดียว</p>
+            <h2>นำเข้าข้อมูลหลายบริษัท</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="multiCompanyImportOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body">
+          <label class="drop-zone"
+            ><strong>ไฟล์หลายบริษัท (Excel)</strong
+            ><span>รองรับ .xlsx และ .xls ตามเทมเพลตใหม่</span
+            ><input id="multiCompanyExcelFile" type="file" accept=".xlsx,.xls"
+          /></label>
+          <div class="info-box">
+            <strong>รูปแบบเดียวกับเทมเพลตนำเข้ารายบริษัท</strong
+            ><br />ใช้ข้อมูลลูกค้า 38 คอลัมน์เดิมทั้งหมด และเพิ่ม
+            ScreeningYear กับ CompanyCode ท้ายตาราง เพื่อแยกบริษัท/ปี
+            <br /><a
+              class="template-link"
+              href="templates/customer-import-multi-company-template.xlsx"
+              download
+              >ดาวน์โหลดเทมเพลตหลายบริษัท</a
+            >
+          </div>
+          <div class="warning-box">
+            ระบบจะแทนข้อมูลลูกค้าเฉพาะบริษัท/ปีที่ปรากฏในไฟล์
+            และส่ง ID / Passport ตรวจสอบกับ Patient API ทันทีเมื่อเลือกไฟล์
+            <br /><strong>CompanyCode ต้องไม่ซ้ำกันระหว่างคนละบริษัท</strong>
+            ระบบจะหยุดนำเข้าหากพบรหัสชนกัน และสำรองฐานข้อมูลก่อนบันทึกทุกครั้ง
+          </div>
+          <div class="import-status" id="multiCompanyImportStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="multiCompanyImportOverlay"
+          >
+            ยกเลิก</button
+          ><button
+            class="button primary"
+            id="doMultiCompanyImport"
+            type="button"
+          >
+            นำเข้าหลายบริษัท
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="customerListOverlay" aria-hidden="true">
+      <article class="modal customer-list-modal">
+        <header class="modal-header">
+          <div>
+            <p id="customerListCompany">ข้อมูลที่นำเข้า</p>
+            <h2>ตรวจสอบข้อมูลลูกค้าทั้งหมด</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="customerListOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body">
+          <div class="customer-list-tools">
+            <div><div class="customer-list-meta" id="customerListMeta"></div><div class="customer-bulk-toolbar" id="customerBulkToolbar"><label><input id="selectAllCustomers" type="checkbox"> เลือกทั้งหมดที่แสดง</label><span id="selectedCustomerMeta">เลือก 0 รายการ</span><button class="button danger" id="deleteSelectedCustomers" type="button" disabled>ลบรายการที่เลือก</button></div></div>
+            <div class="customer-list-actions">
+              <button class="button secondary" id="exportCompanyCustomersExcel" data-permission="customerExport" type="button">Export Excel</button>
+              <button class="button primary" id="addCustomer" type="button">
+                + เพิ่มข้อมูลลูกค้า</button
+              ><label class="customer-list-search"
+                ><span aria-hidden="true">⌕</span
+                ><input
+                  id="customerListSearch"
+                  type="search"
+                  autocomplete="off"
+                  placeholder="ค้นหาข้อมูลลูกค้าจากทุกคอลัมน์"
+                /><button
+                  id="clearCustomerListSearch"
+                  type="button"
+                  aria-label="ล้างคำค้น"
+                >
+                  ×
+                </button></label
+              >
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="customer-list-table">
+              <thead>
+                <tr>
+                  <th class="customer-select-head">เลือก</th>
+                  <th>DisplayOrder</th>
+                  <th>CheckupDate</th>
+                  <th>CheckupEndDate</th>
+                  <th>HN</th>
+                  <th>Title</th>
+                  <th>FirstName</th>
+                  <th>LastName</th>
+                  <th>TitleEN</th>
+                  <th>FirstNameEN</th>
+                  <th>LastNameEN</th>
+                  <th>IdentificationType</th>
+                  <th>IDCard</th>
+                  <th>Password</th>
+                  <th>Gender</th>
+                  <th>MaritalStatus</th>
+                  <th>BirthDate(DD/MM/YYYY)</th>
+                  <th>Address</th>
+                  <th>Age</th>
+                  <th>Email</th>
+                  <th>PackageCode</th>
+                  <th>PackageName</th>
+                  <th>PhoneNumber</th>
+                  <th>Doctor Name</th>
+                  <th>Doctor Number</th>
+                  <th>Payor</th>
+                  <th>PayorAgreement</th>
+                  <th>PayorOffice</th>
+                  <th>LocationCode</th>
+                  <th>EmployeeCode</th>
+                  <th>DepartmentName</th>
+                  <th>PositionName</th>
+                  <th>Nationality</th>
+                  <th>Company/Year</th>
+                  <th class="customer-log-head">สถานะและ Log ล่าสุด</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="customerListRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="customerListOverlay"
+          >
+            ปิด
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="customerOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>จัดการข้อมูลลูกค้ารายคน</p>
+            <h2 id="customerModalTitle">เพิ่มข้อมูลลูกค้า</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="customerOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body form-stack customer-form-grid">
+          <label
+            >คำนำหน้า<input
+              id="customerTitle"
+              maxlength="30"
+              placeholder="เช่น นาย" /></label
+          ><label
+            >ชื่อ <span class="required">*</span
+            ><input id="customerFirst" maxlength="100" /></label
+          ><label>นามสกุล<input id="customerLast" maxlength="100" /></label
+          ><label>ID / Passport<input id="customerId" maxlength="50" /></label
+          ><label
+            >วันเกิด<input
+              id="customerBirth"
+              maxlength="20"
+              placeholder="DD/MM/YYYY" /></label
+          ><label
+            >เพศ<select id="customerSex">
+              <option value="">ไม่ระบุ</option>
+              <option value="M">ชาย</option>
+              <option value="F">หญิง</option>
+            </select></label
+          ><label>HN<input id="customerHN" maxlength="30" /></label
+          ><label>Prefix EN<input id="customerPrefixEN" maxlength="30" placeholder="เช่น Mr." /></label
+          ><label>First Name EN<input id="customerFirstNameEN" maxlength="100" /></label
+          ><label>Last Name EN<input id="customerLastNameEN" maxlength="100" /></label
+          ><label
+            >Package Code<input
+              id="customerPackageCode"
+              list="hisPackageCodeOptions"
+              maxlength="100"
+              autocomplete="off"
+              placeholder="พิมพ์ค้นหา Code จาก HIS" /><datalist
+              id="hisPackageCodeOptions"
+            ></datalist></label
+          ><label
+            >Package Name<input
+              id="customerPackageName"
+              maxlength="200"
+              readonly
+              placeholder="แสดงอัตโนมัติเมื่อเลือก Code"
+          /></label>
+          <div
+            class="import-status customer-form-status"
+            id="customerStatus"
+          ></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="customerOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="saveCustomer" type="button">
+            บันทึกข้อมูลลูกค้า
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="packageImportOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>อัปโหลดรายการตรวจเพิ่มคู่สัญญา</p>
+            <h2>นำเข้าแพ็กเกจ</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="packageImportOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body">
+          <label class="drop-zone"
+            ><strong>ไฟล์แพ็กเกจ (Excel)</strong
+            ><span>รองรับ .xlsx และ .xls</span
+            ><input id="packageFile" type="file" accept=".xlsx,.xls"
+          /></label>
+          <div class="info-box">
+            <strong>หัวคอลัมน์ที่ต้องมี</strong><br />packagecode, packagename,
+            price
+          </div>
+          <div class="info-box">
+            <strong>นำเข้าแบบรักษา Setup เดิม</strong><br />รายการ Code ใหม่จะถูกเพิ่ม ส่วน Code ที่มีอยู่แล้วจะคงชื่อ ราคา หมวดหลัก และหมวดย่อยที่ตั้งค่าไว้เดิม
+          </div>
+          <div class="import-status" id="packageImportStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="packageImportOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="doPackageImport" type="button">
+            นำเข้าแพ็กเกจ
+          </button>
+        </footer>
+      </article>
+    </div>
+
+    <div class="overlay" id="packageCategoryMasterOverlay" aria-hidden="true">
+      <div class="dialog wide-dialog">
+        <div class="dialog-head"><div><h2>จัดการหมวดรายการตรวจ</h2><p>Master กลางสำหรับหมวดหลักและหมวดย่อย · ปิดใช้งานแทนการลบเพื่อรักษาข้อมูลเดิม</p></div><button class="icon-button" type="button" data-close="packageCategoryMasterOverlay">×</button></div>
+        <div class="form-grid four">
+          <label>รหัสหมวดหลัก<input id="masterCategoryCode" placeholder="เช่น LAB"></label>
+          <label>ชื่อแสดงผล<input id="masterCategoryName" placeholder="เช่น LAB (ห้องปฏิบัติการ)"></label>
+          <label>ลำดับ<input id="masterCategorySort" type="number" value="0"></label>
+          <label class="check-label"><input id="masterCategoryActive" type="checkbox" checked> เปิดใช้งาน</label>
+        </div>
+        <div class="dialog-actions"><button class="button primary" id="saveMasterCategory" type="button">เพิ่มหมวดหลัก</button><span class="save-note" id="categoryMasterStatus"></span></div>
+        <div id="categoryMasterList" class="category-master-list"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="packageSetupOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div><p>Setup ภายในหน้าแพ็กเกจตรวจเพิ่มคู่สัญญา</p><h2>ตั้งค่ารายการตรวจ</h2></div>
+          <button class="icon-button" type="button" data-close="packageSetupOverlay">×</button>
+        </header>
+        <div class="modal-body form-stack">
+          <div class="info-box"><strong>ข้อมูลเดิมจะไม่ถูกลบ</strong><br />ใช้ส่วนนี้สำหรับเพิ่มรายการตรวจใหม่ทีละรายการ ส่วนรายการเดิมแก้ไขได้จากปุ่มแก้ไขในรายการด้านหลัง</div>
+          <label>Package / Order Code <span class="required">*</span><input id="setupPackageCode" maxlength="100" placeholder="เช่น CBC001" /></label>
+          <label>ชื่อรายการตรวจ <span class="required">*</span><input id="setupPackageName" maxlength="200" placeholder="เช่น Complete Blood Count (CBC)" /></label>
+          <label>ราคา <span class="required">*</span><input id="setupPackagePrice" type="number" min="0" step="0.01" value="0" /></label>
+          <label>หมวดหลัก <span class="required">*</span><select id="setupPackageCategory"><option value="">เลือกหมวดหลัก</option></select></label>
+          <label>หมวดย่อย <span class="required">*</span><select id="setupPackageSubcategory" disabled><option value="">เลือกหมวดหลักก่อน</option></select></label>
+          <p class="section-note">หมวดหลักและหมวดย่อยเป็นรายการควบคุม (Controlled List) เพื่อป้องกันชื่อซ้ำและสะกดไม่ตรงกัน</p>
+          <div class="import-status" id="packageSetupStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button class="button secondary" type="button" data-close="packageSetupOverlay">ยกเลิก</button>
+          <button class="button primary" id="savePackageSetup" type="button">+ เพิ่มรายการตรวจ</button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="packageEditOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>แก้ไขข้อมูลรายแพ็กเกจ</p>
+            <h2>แก้ไขแพ็กเกจตรวจเพิ่มคู่สัญญา</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="packageEditOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body form-stack">
+          <label
+            >Package Code <span class="required">*</span
+            ><input id="editPackageCode" maxlength="100" /></label
+          ><label
+            >Package Name <span class="required">*</span
+            ><input id="editPackageName" maxlength="200" /></label
+          ><label
+            >Price <span class="required">*</span
+            ><input id="editPackagePrice" type="number" min="0" step="0.01"
+          /></label>
+          <label>หมวดหลัก <span class="required">*</span><select id="editPackageCategory"><option value="">เลือกหมวดหลัก</option></select></label>
+          <label>หมวดย่อย <span class="required">*</span><select id="editPackageSubcategory" disabled><option value="">เลือกหมวดหลักก่อน</option></select></label>
+          <p class="section-note">ใช้รายการหมวดมาตรฐานเดียวกันทั้งระบบ ข้อมูลเดิมที่อยู่นอก Master จะยังคงแสดงเป็น “ข้อมูลเดิม” และไม่ถูกลบจนกว่าจะเปลี่ยนเอง</p>
+          <div class="import-status" id="packageEditStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="packageEditOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="savePackageEdit" type="button">
+            บันทึกการแก้ไข
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="hisPackageOverlay" aria-hidden="true">
+      <article class="modal modal-wide his-package-modal">
+        <header class="modal-header">
+          <div>
+            <p id="hisPackageModalMeta">รายละเอียดแพ็กเกจ</p>
+            <h2 id="hisPackageModalTitle">-</h2>
+          </div>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="hisPackageOverlay"
+          >
+            ×
+          </button>
+        </header>
+        <div class="modal-body">
+          <div class="his-package-form">
+            <label
+              >Package Code <span class="required">*</span
+              ><input id="hisEditCode" /></label
+            ><label>Package Name<input id="hisEditName" /></label
+            ><label
+              >Total price<input
+                id="hisEditPrice"
+                type="number"
+                min="0"
+                step="0.01"
+            /></label><label>ประเภทแพ็กเกจ<select id="hisEditType"><option value="">-- ยังไม่กำหนด --</option><option value="Mobile">Mobile</option><option value="Inhouse">Inhouse</option></select></label><label class="his-company-link-field">ผูกแพ็กเกจหลักกับบริษัท<select id="hisEditCompanies" multiple size="5"></select><small>เลือกได้หลายบริษัท/ปี · Ctrl/⌘ เพื่อเลือกหลายรายการ</small></label>
+          </div>
+          <section class="section">
+            <div class="editor-heading">
+              <div>
+                <strong>รายการภายในแพ็กเกจ</strong
+                ><span>แก้ไข Code, Name และ Quantity ของแต่ละรายการได้</span>
+              </div>
+              <button
+                class="button secondary"
+                id="addHisDetailItem"
+                type="button"
+              >
+                + เพิ่มรายการ
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="his-detail-table">
+                <thead>
+                  <tr>
+                    <th>No.</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Order Type</th>
+                    <th>Quantity</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="hisDetailRows"></tbody>
+              </table>
+            </div>
+            <div class="package-detail-empty" id="hisDetailEmpty">
+              ไม่มีรายการภายในแพ็กเกจ
+            </div>
+          </section>
+          <div class="import-status" id="hisPackageEditStatus"></div>
+          <section class="section his-log-section">
+            <h3>Log การแก้ไข</h3>
+            <div id="hisPackageLogRows"></div>
+          </section>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="hisPackageOverlay"
+          >
+            ปิด</button
+          ><button class="button primary" id="saveHisPackage" type="button">
+            บันทึกการแก้ไข
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="auth-screen hidden" id="customerPortalScreen">
+      <div class="customer-portal-shell">
+        <header class="customer-portal-head">
+          <img src="assets/vimut-logo.png" alt="โรงพยาบาลวิมุต" />
+          <div>
+            <p>CHECKUP CENTER</p>
+            <h1 data-i18n="portalTitle">ข้อมูลการตรวจสุขภาพของฉัน</h1>
+            <span data-i18n="portalSubtitle">ดูแพ็กเกจและเลือกรายการตรวจเพิ่มเติมระหว่างรอเรียก</span>
+          </div>
+          <nav class="customer-language" aria-label="Language">
+            <button type="button" data-lang="th" class="active">🇹🇭 ไทย</button>
+            <button type="button" data-lang="en">🇬🇧 EN</button>
+          </nav>
+          <button id="closeCustomerPortal" type="button">
+            กลับหน้าเจ้าหน้าที่
+          </button>
+        </header>
+        <section id="customerVerifyPanel" class="customer-verify-card">
+          <div class="customer-step">1</div>
+          <div>
+            <h2>ยืนยันตัวตน</h2>
+            <p>
+              กรอกข้อมูลให้ตรงกับรายชื่อที่บริษัทส่งมา
+              ระบบจะแสดงเฉพาะข้อมูลของคุณ
+            </p>
+          </div>
+          <form id="customerVerifyForm">
+            <div id="customerIdLoginFields" class="customer-login-fields">
+              <label>ID / Passport<input id="customerSelfId" autocomplete="off" inputmode="text" placeholder="กรอกเลขประจำตัวหรือ Passport" /></label>
+            </div>
+            <div id="customerNameLoginFields" class="customer-login-fields customer-name-login" hidden>
+              <label>ชื่อ<input id="customerSelfFirst" autocomplete="off" /></label>
+              <label>นามสกุล<input id="customerSelfLast" autocomplete="off" /></label>
+            </div>
+            <label>วันเกิด<input id="customerSelfBirth" type="date" required /></label>
+            <div class="customer-id-actions"><button class="button secondary customer-card-reader" id="readThaiIdCard" type="button">อ่านบัตรประชาชน</button><button class="customer-no-id-link" id="customerNoId" type="button">ไม่ทราบ ID / Passport</button></div>
+            <div class="customer-portal-status" id="customerVerifyStatus"></div>
+            <button class="button primary" type="submit">ดูข้อมูลของฉัน</button>
+          </form>
+          <small
+            >เพื่อความปลอดภัย เซสชันจะหมดอายุเมื่อไม่มีการใช้งาน 20 นาที</small
+          >
+        </section>
+        <section
+          id="customerProfilePanel"
+          class="customer-profile-panel"
+          hidden
+        >
+          <div class="customer-profile-toolbar">
+            <div>
+              <span>ยืนยันตัวตนแล้ว</span>
+              <h2 id="customerSelfName">-</h2>
+            </div>
+            <button
+              class="button secondary"
+              id="customerSelfLogout"
+              type="button"
+            >
+              ออกจากข้อมูลของฉัน
+            </button>
+          </div>
+          <div id="customerSelfSummary" class="customer-self-summary"></div>
+          <section class="customer-personal-editor">
+            <div><h3>ข้อมูลส่วนตัว</h3><p>ตรวจสอบและแก้ไขข้อมูลติดต่อของคุณ</p></div>
+            <form id="customerProfileForm">
+              <label>คำนำหน้า<input id="customerEditTitle" maxlength="30" /></label>
+              <label>ชื่อ<input id="customerEditFirst" maxlength="100" required /></label>
+              <label>นามสกุล<input id="customerEditLast" maxlength="100" required /></label>
+              <label>เบอร์โทร<input id="customerEditPhone" maxlength="30" inputmode="tel" /></label>
+              <label>อีเมล<input id="customerEditEmail" maxlength="160" type="email" /></label>
+              <button class="button secondary" type="submit">บันทึกข้อมูลส่วนตัว</button>
+              <div id="customerProfileStatus" class="customer-portal-status"></div>
+            </form>
+          </section>
+          <form id="customerSelectionForm">
+            <section class="customer-choice-section">
+              <h3>รายการตรวจเพิ่มเติม (วางบิล)</h3>
+              <p>รายการตามสิทธิ์บริษัท รอเจ้าหน้าที่ยืนยันก่อนรับบริการ</p>
+              <div
+                id="customerBillingChoices"
+                class="customer-choice-list"
+              ></div>
+            </section>
+            <section class="customer-choice-section">
+              <h3>รายการตรวจเพิ่มเติม (เงินสด)</h3>
+              <p>รายการที่อาจมีค่าใช้จ่าย กรุณาตรวจสอบราคาก่อนเลือก</p>
+              <div id="customerCashChoices" class="customer-choice-list"></div>
+            </section>
+            <section class="customer-choice-section">
+              <h3>แพ็กเกจตรวจเพิ่มคู่สัญญา</h3>
+              <label class="customer-package-search"
+                >ค้นหาแพ็กเกจ<input
+                  id="customerContractSearch"
+                  type="search"
+                  placeholder="พิมพ์ Code หรือชื่อแพ็กเกจ"
+              /></label>
+              <div
+                id="customerContractChoices"
+                class="customer-choice-list"
+              ></div>
+            </section>
+            <label class="customer-note"
+              >หมายเหตุถึงเจ้าหน้าที่<textarea
+                id="customerSelectionNote"
+                maxlength="500"
+                rows="3"
+                placeholder="ระบุข้อมูลเพิ่มเติม (ถ้ามี)"
+              ></textarea>
+            </label>
+            <div class="customer-selection-footer">
+              <div>
+                <div class="split-total-lines"><span><b>แพ็กเกจหลัก</b><strong id="customerPrimaryPackageTotal">฿0.00</strong></span><span><b>วางบิล</b><strong id="customerBillingTotal">฿0.00</strong></span><span><b>ชำระเอง</b><strong id="customerSelfPayTotal">฿0.00</strong></span><span class="grand"><b>ยอดรวมทั้งหมด</b><strong id="customerSelectionTotal">฿0.00</strong></span></div><span
+                  >ยอดเงินเป็นข้อมูลเบื้องต้น เจ้าหน้าที่จะยืนยันอีกครั้ง</span
+                >
+              </div>
+              <button class="button primary" type="submit">
+                ส่งรายการให้เจ้าหน้าที่ยืนยัน
+              </button>
+            </div>
+            <div
+              class="customer-portal-status"
+              id="customerSelectionStatus"
+            ></div>
+          </form>
+        </section>
+      </div>
+    </div>
+    <div class="auth-screen" id="loginScreen">
+      <div class="login-stage">
+      <div class="login-shell">
+        <aside class="login-brand-panel">
+          <img src="assets/vimut-logo.png" alt="โรงพยาบาลวิมุต" />
+          <div>
+            <p>HEALTH CHECK UP</p>
+            <h2>Smart Search</h2>
+            <span>ระบบบริหารจัดการข้อมูลตรวจสุขภาพองค์กร</span>
+          </div>
+          <div class="login-feature-list" aria-label="จุดเด่นระบบ">
+            <div><b>ปลอดภัย</b><span>จัดการข้อมูลตรวจสุขภาพด้วยสิทธิ์ผู้ใช้งาน</span></div>
+            <div><b>ค้นหาอัจฉริยะ</b><span>ค้นหาบุคคล บริษัท แพ็กเกจ และข้อมูลที่เกี่ยวข้องได้รวดเร็ว</span></div>
+            <div><b>บริหารงานตรวจสุขภาพ</b><span>รองรับโครงการ Booking, Check-in และ Worklist</span></div>
+          </div>
+          <small>CHECKUP CENTER · ViMUT HOSPITAL</small>
+        </aside>
+        <form class="login-card" id="loginForm">
+          <div class="login-kicker">SECURE ACCESS</div>
+          <h1>ยินดีต้อนรับ</h1>
+          <p class="login-subtitle">เข้าสู่ระบบเพื่อเริ่มใช้งาน</p>
+          <label
+            >ชื่อผู้ใช้<input
+              id="loginUsername"
+              autocomplete="username"
+              placeholder="กรอกชื่อผู้ใช้"
+              required /></label
+          ><label
+            >รหัสผ่าน<input
+              id="loginPassword"
+              type="password"
+              autocomplete="current-password"
+              placeholder="กรอกรหัสผ่าน"
+              required
+          /></label>
+          <div class="login-status" id="loginStatus"></div>
+          <button class="button primary login-submit" type="submit">
+            เข้าสู่ระบบ
+          </button>
+          <div class="login-divider"><span>หรือ</span></div>
+          <button
+            class="button customer-entry-button"
+            id="openCustomerPortal"
+            type="button"
+          >
+            สำหรับลูกค้า · ดูข้อมูลและเลือกรายการตรวจ</button
+          ><small class="login-security"
+            >ข้อมูลถูกจัดเก็บภายในระบบของโรงพยาบาล</small
+          >
+        </form>
+      </div>
+
+      </div>
+    </div>
+    <div class="overlay" id="userOverlay" aria-hidden="true">
+      <article class="modal">
+        <header class="modal-header">
+          <div>
+            <p>กำหนดบัญชีและ Role</p>
+            <h2 id="userModalTitle">เพิ่มผู้ใช้</h2>
+          </div>
+          <button class="icon-button" type="button" data-close="userOverlay">
+            ×
+          </button>
+        </header>
+        <div class="modal-body form-stack">
+          <label
+            >ชื่อที่แสดง <span class="required">*</span
+            ><input id="userDisplayName" maxlength="100" /></label
+          ><label
+            >ชื่อผู้ใช้ <span class="required">*</span
+            ><input
+              id="userUsername"
+              maxlength="50"
+              autocomplete="off" /></label
+          ><label
+            >รหัสผ่าน <span class="required" id="userPasswordRequired">*</span
+            ><input
+              id="userPassword"
+              type="password"
+              maxlength="100"
+              autocomplete="new-password"
+            /><small
+              >เว้นว่างไว้ หากแก้ไขผู้ใช้และไม่ต้องการเปลี่ยนรหัสผ่าน</small
+            ></label
+          ><label
+            >Role <span class="required">*</span
+            ><select id="userRole"></select></label
+          ><label class="inline-check"
+            ><input id="userActive" type="checkbox" checked />
+            เปิดใช้งานบัญชี</label
+          >
+          <div class="import-status" id="userStatus"></div>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="button secondary"
+            type="button"
+            data-close="userOverlay"
+          >
+            ยกเลิก</button
+          ><button class="button primary" id="saveUser" type="button">
+            บันทึกผู้ใช้
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="overlay" id="updateGuideOverlay" aria-hidden="true">
+      <article class="modal update-guide-modal">
+        <header class="modal-header"><div><p>Health Check Up Smart Search</p><h2>คู่มืออัปเดตระบบอย่างปลอดภัย</h2></div><button class="icon-button" type="button" data-close="updateGuideOverlay">×</button></header>
+        <div class="modal-body update-guide-body">
+          <div class="update-guide-alert"><strong>หลักสำคัญ</strong><span>ต้องสำรอง PostgreSQL สำเร็จก่อนทุกครั้ง และห้ามลบหรือเขียนทับไฟล์ <code>.env</code></span></div>
+          <ol class="update-step-list">
+            <li><span>1</span><div><h3>เตรียมพร้อมก่อนอัปเดต</h3><p>แจ้งเจ้าหน้าที่ให้งดบันทึกข้อมูล ตรวจว่าไม่มีงานค้าง และปิดโปรแกรมทุกเครื่อง</p></div></li>
+            <li><span>2</span><div><h3>เปิด Maintenance Mode</h3><p>กลับไปหน้าสถานะระบบ กด “เปิดโหมดปิดปรับปรุง” เพื่อป้องกันข้อมูลใหม่ระหว่างอัปเดต</p></div></li>
+            <li><span>3</span><div><h3>สำรองข้อมูลเพิ่มเติม</h3><p>เปิดไฟล์ <code>BACKUP-DATA.bat</code> และตรวจว่ามีไฟล์ <code>.backup</code> ใหม่ในโฟลเดอร์ <code>backups</code></p></div></li>
+            <li><span>4</span><div><h3>แตกไฟล์รุ่นใหม่ทับโฟลเดอร์เดิม</h3><p>เลือกแทนที่เฉพาะไฟล์โปรแกรม ห้ามลบ <code>.env</code>, <code>backups</code>, Log หรือข้อมูลตั้งค่าเดิม</p></div></li>
+            <li><span>5</span><div><h3>รันตัวติดตั้ง</h3><p>เปิด <code>ติดตั้งโปรแกรม.bat</code> ด้วยสิทธิ์ผู้ดูแลระบบ แล้วใส่รหัสผ่านบัญชี PostgreSQL <code>postgres</code></p></div></li>
+            <li><span>6</span><div><h3>รอการ Backup และ Migration</h3><p>ตัวติดตั้งจะ Backup อัตโนมัติ รักษา <code>.env</code> เดิม และอัปเดตเฉพาะโครงสร้างฐานข้อมูลที่ยังไม่เคยติดตั้ง</p></div></li>
+            <li><span>7</span><div><h3>ตรวจสอบหลังอัปเดต</h3><p>ตรวจเวอร์ชันโปรแกรม เวอร์ชันฐานข้อมูล สถานะ PostgreSQL, Backup ล่าสุด และ Revision ในหน้านี้</p></div></li>
+            <li><span>8</span><div><h3>ทดสอบข้อมูลเดิม</h3><p>ตรวจจำนวนบริษัท ลูกค้า สถานะมาตรวจ Log แพ็กเกจ HIS และ PDF จากนั้นทดลองบันทึกข้อมูลหนึ่งรายการ</p></div></li>
+            <li><span>9</span><div><h3>เปิดระบบกลับมาใช้งาน</h3><p>เมื่อทดสอบผ่าน ให้ปิด Maintenance Mode แล้วแจ้งเจ้าหน้าที่กลับมาใช้งานได้</p></div></li>
+          </ol>
+          <section class="update-recovery"><h3>กรณีอัปเดตไม่สำเร็จ</h3><p>หยุดใช้งานระบบและอย่าบันทึกข้อมูลเพิ่ม เปิด <code>RESTORE-DATA.bat</code> เลือกไฟล์ Backup ก่อนอัปเดต และยืนยัน Restore ระบบจะสร้าง Safety Backup ก่อนกู้คืนอีกครั้ง</p></section>
+          <section class="update-checklist"><h3>รายการตรวจสอบก่อนเปิดใช้งาน</h3><div><label><input type="checkbox"> เวอร์ชันโปรแกรมถูกต้อง</label><label><input type="checkbox"> PostgreSQL พร้อมใช้งาน</label><label><input type="checkbox"> พบ Backup ล่าสุด</label><label><input type="checkbox"> ข้อมูลบริษัทและลูกค้าครบ</label><label><input type="checkbox"> Log และ PDF เปิดได้</label><label><input type="checkbox"> ทดลองบันทึกสำเร็จ</label></div></section>
+        </div>
+        <footer class="modal-footer"><button class="button secondary" type="button" data-close="updateGuideOverlay">ปิดคู่มือ</button><button class="button primary" id="printUpdateGuide" type="button">พิมพ์ / บันทึก PDF</button></footer>
+      </article>
+    </div>
+    <div class="customer-dialog" id="customerIdentityDialog" hidden>
+      <article>
+        <h2>ยืนยันก่อนส่งรายการ</h2>
+        <p>
+          กรอกเลข 4 ตัวท้ายของ ID / Passport เพื่อยืนยันว่าเป็นรายการของคุณ
+          ระบบตรวจสอบภายในโดยไม่ใช้ OTP หรือแอปอื่น
+        </p>
+        <label
+          >เลข 4 ตัวท้าย<input
+            id="customerIdLast4Input"
+            inputmode="text"
+            autocomplete="off"
+            maxlength="4"
+            placeholder="••••"
+        /></label>
+        <div id="customerNameConfirmFields" hidden>
+          <label>ชื่อ<input id="customerConfirmFirst" autocomplete="off" /></label>
+          <label>นามสกุล<input id="customerConfirmLast" autocomplete="off" /></label>
+        </div>
+        <div id="customerIdentityStatus" class="customer-portal-status"></div>
+        <footer>
+          <button
+            class="button secondary"
+            id="cancelCustomerIdentity"
+            type="button"
+          >
+            ยกเลิก</button
+          ><button
+            class="button primary"
+            id="confirmCustomerIdentity"
+            type="button"
+          >
+            ยืนยันและส่งรายการ
+          </button>
+        </footer>
+      </article>
+    </div>
+    <div class="customer-dialog" id="customerNoIdDialog" hidden>
+      <article>
+        <h2>ยืนยันว่าไม่ทราบ ID / Passport</h2>
+        <p>ใช้ชื่อ–นามสกุลและวันเกิดได้เฉพาะเมื่อข้อมูล ID / Passport ในระบบว่าง และต้องพบข้อมูลตรงกันเพียงหนึ่งรายการ</p>
+        <label class="customer-confirm-check"><input id="customerNoIdConfirm" type="checkbox" /> ฉันตรวจสอบแล้วและไม่ทราบ ID / Passport จริง</label>
+        <footer><button class="button secondary" id="cancelCustomerNoId" type="button">ยกเลิก</button><button class="button primary" id="confirmCustomerNoId" type="button">ใช้ชื่อ–นามสกุลแทน</button></footer>
+      </article>
+    </div>
+    <div
+      class="customer-dialog customer-summary-dialog"
+      id="customerImageDialog"
+      hidden
+    >
+      <article>
+        <h2>สรุปรายการที่ส่งแล้ว</h2>
+        <p>บันทึกภาพนี้ไว้ในโทรศัพท์เพื่อนำมาแสดงต่อเจ้าหน้าที่</p>
+        <img id="customerSummaryImage" alt="ภาพสรุปรายการตรวจของลูกค้า" />
+        <footer>
+          <button
+            class="button secondary"
+            id="closeCustomerImage"
+            type="button"
+          >
+            กลับไปแก้ไขรายการ</button
+          ><a
+            class="button primary"
+            id="downloadCustomerImage"
+            download="health-check-summary.png"
+            >ดาวน์โหลดภาพลงโทรศัพท์</a
+          >
+        </footer>
+      </article>
+    </div>
+    <script src="assets/vendor/xlsx.full.min.js"></script>
+    <script src="assets/app.js?v=7.59.31"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+Health Check Up Smart Search v7.62.55 RC
+Installer psql NOTICE hotfix
+
+- Fixed Windows PowerShell 5.1 treating PostgreSQL NOTICE/WARNING stderr as installer errors.
+- Schema bootstrap and migrations now judge success by psql process exit code.
+- psql stderr is captured as plain log text; NOTICE does not stop installation.
+- Real psql non-zero exit codes still stop installation immediately.
+- Includes all v7.62.51 RC universal/compact GUI and auto-credential fixes.

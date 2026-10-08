@@ -1,0 +1,237 @@
+v7.63.96 - Corporate year editor: PDF attachments relocated to Docs tab; hospital/family program HIS tables before separate billing/cash package rows. Previous PDFs preserved, Production Only and Update Center unchanged.
+v7.63.95 - Full Page annual editor; primary circular PDF with versions; legacy PDFs as preserved attachments plus multiple new PDFs; Production Only and Update Center retained
+v7.63.94 - Edit Year: ordered 00–08 corporate letter form, de-duplicated annual fields, yearly program-to-PDF mapping, Production Only & Update Center retained
+v7.63.80 - Mapped HIS User Sync Filter: only active Role mappings with a selected HealthCheck Role are queried from HIS before LIMIT; mapping summary shows sync population and excluded users
+v7.63.79 - HIS User Sync Upsert Fix: deduplicate HIS/state usernames, preserve LOCAL credentials/roles, reconcile relational app_users by normalized username, and make repeated HIS sync idempotent
+v7.63.78 - HIS User Sync Query Fix: use text-safe lov.id ↔ usermas.lovcptypid join, retain current-date activeto filtering, and surface the actual PostgreSQL error when HIS user sync fails
+v7.63.77 - User Role Mapping & History Enhancement: map HIS usermas.lovcptypid via public.lov to HealthCheck roles, filter active users by activeto/current date, replace Query button with Mapping Role, and move user/role audit history into searchable paginated modal
+v7.63.76 - User Table Header Action Label Fix: remove overflow “จัดการ” header text from User table while keeping row action buttons intact
+v7.63.75 - User Management & HIS Query Enhancement: HIS User query preview, User table settings, bulk delete with safeguards, Operations Center icon
+v7.63.74 - Production Readiness Pack: UAT Checklist, Safe Load Benchmark, Backup Integrity, Rollback Drill, Security Audit/Hardening, Database Maintenance, Release Gate
+v7.63.73 - Production Operations Suite: Error Center, Audit, Job Queue/Retry, Health, Permission-aware operations, Performance Indexes, Backup/Rollback visibility, Notifications, HIS/patientlog auto-refresh, Regression Suite
+v7.63.72 - Production Combined Requirements Before Android
+04/10/2569
+- Project Booking: PackageName แสดง 1 บรรทัด พร้อม ellipsis/tooltip เพื่อลดความสูงของแถว
+- Project Booking: ย้ายปุ่มปิดให้อยู่ใน Header และเปลี่ยนเป็นสีแดง
+- Project Booking: คอลัมน์ Status อ่าน public.patientlog ด้วย HN+VN และเลือก tovalue จาก insdate ล่าสุด (id ล่าสุดใช้ตัดสินเมื่อเวลาเท่ากัน)
+- User & Role: ปรับหน้าเป็น 2 คอลัมน์ Role / User, ตัดแถวขั้นตอนเดิม, ย้ายปุ่มเพิ่มผู้ใช้ไปต่อจาก ดึงข้อมูลจาก HIS
+- User & Role: เพิ่ม Sync User จาก HIS usermas แบบ Read-only source; ผู้ใช้ใหม่ถูกนำเข้าแบบปิดใช้งานจนกำหนดรหัสผ่าน/Role
+- คง Production Only, APP_ENV=production, PORT=3000 และ Update Center installer structure
+
+v7.63.70 - Compact Multi-Project Booking + Batch EMR
+02/10/2569
+- ลดความสูงของแถวโครงการ/Booking ให้เป็น Compact layout ตาม mockup ที่อนุมัติ
+- ย้ายหมายเหตุออกจากกล่องแยก และแสดง inline ในบรรทัดเดียวกับข้อมูลแพ็กเกจ พร้อม tooltip เมื่อข้อความยาว
+- เพิ่ม checkbox เลือกหลายโครงการ, เลือกทั้งหมด, ตัวนับจำนวนโครงการและ Booking ที่เลือก
+- เพิ่มปุ่ม “เลือก Booking” สำหรับเลือก/ยกเลิก Booking ที่แสดงทั้งหมด
+- เพิ่มปุ่ม “รับ EMR” แบบหลายโครงการ โดยรวม Booking จากโครงการที่เลือกและประมวลผล EMR แบบต่อเนื่อง
+- เพิ่ม EMR progress ลงในการ์ดโครงการแบบ Compact และคงปุ่ม จัดการข้อมูล / แก้ไข / ลบโครงการ
+- คง Production Only, APP_ENV=production, PORT=3000 และโครงสร้าง Update Center เดิม
+
+v7.63.69 - Booking Header Palette Specificity Fix
+02/10/2569
+- แก้ CSS legacy selector ของ Project Booking ที่มี specificity สูงและทับสีหัวกลุ่ม unified ทำให้สีดูไม่เปลี่ยน
+- บังคับหัวกลุ่ม Booking ให้ใช้ palette เดียวกับหน้า ตรวจสอบข้อมูลลูกค้าทั้งหมด: HIS ฟ้า, ข้อมูลผู้เข้าตรวจฟ้าอ่อน, ชื่อผู้เข้าตรวจเขียวอ่อน, ข้อมูลส่วนบุคคลเหลืองอ่อน, สถานะม่วงอ่อน, จัดการชมพูอ่อน
+- ยกเลิก legacy first-nine sticky offset ใน unified table และคง sticky เฉพาะ Select/ลำดับ/HN/VN กับ สถานะ EMR/Actions
+- เปลี่ยน cache-busting เป็น v7.63.69 เพื่อให้ browser โหลด CSS ล่าสุด
+
+v7.63.56 (2026-10-01)
+- เพิ่มปุ่ม พิมพ์ใบนำทาง และ พิมพ์เอกสาร ในหน้าสรุปรายการรับการตรวจ (A4)
+- เมื่อมีใบนำทางมากกว่า 1 Template ปุ่มพิมพ์ใบนำทางเปิดหน้าต่างให้เลือก Template ก่อนพิมพ์
+- Template ที่ตั้งเป็นค่าเริ่มต้นจะถูกเลือกไว้ให้ แต่ผู้ใช้เปลี่ยนเป็นแบบอื่นได้
+
+v7.63.54 - Document Category + Multiple Navigation Sheet Templates
+01/10/2569
+- แยกใบนำทางออกจากเอกสารประเภทอื่นใน Document Designer
+- รองรับใบนำทางหลาย Template พร้อม Template Code, ค่าเริ่มต้น และสถานะเปิดใช้งาน
+- ปุ่มพิมพ์ใบนำทางเลือก Template ประเภท NAVIGATION ที่กำหนดเป็นค่าเริ่มต้น
+- รายการเอกสารแยกกลุ่ม ใบนำทาง / ใบรับรองแพทย์ / Claim / เอกสารทั่วไป
+- เอกสารเดิมและตำแหน่ง Field เดิมยังใช้งานต่อได้โดยไม่ต้อง migration ฐานข้อมูล
+
+v7.63.53 - TWAIN Memory + detailed ConditionCode + OCR viewport fit
+01/10/2569
+- Scan Agent เลือก Source ชื่อ Scan เป็นอันดับแรกและไม่เลือก WIA wrapper เป็น TWAIN
+- ใช้ TWAIN Buffered Memory Transfer เป็นหลัก พร้อม DAT_STATUS/ConditionCode เมื่อเกิด error
+- ไม่สลับไป WIA อัตโนมัติสำหรับ Kyocera เพื่อเลี่ยง WIA device busy
+- OCR workspace ปรับ 3 คอลัมน์ให้ fit viewport และย้าย horizontal scroll เข้า panel ที่จำเป็น
+- รองรับไฟล์ BMP จาก Scanner ใน OCR Batch Queue
+
+v7.63.52 - Scan Agent versioned install path / no overwrite lock
+- Installer no longer overwrites a running HealthCheckTwainAgent.exe.
+- Stops previous agent, installs into a versioned folder, registers protocol only after copy verification.
+- Installer uses CMD copy + reg.exe only; no PowerShell/compile/NuGet/Internet.
+
+v7.63.52  01/10/2569
+- Replaced on-device C# compilation with a prebuilt native Windows x86 TWAIN executable.
+- Scan Agent installation no longer calls csc.exe, NuGet, or Internet; installation is copy + HKCU protocol registration only.
+- TWAIN-first ADF/AutoFeed multi-page scan remains, with WIA fallback and local diagnostic log.
+- OCR self-service download now serves the prebuilt Scan Agent v7.63.52.
+
+v7.63.49 - TWAIN-first x86 Scan Agent + self-service installer download
+v7.63.44  30/09/2569
+- Fixed Update Center STOP hang by terminating only the Production server PID; the detached Updater Helper is no longer killed with the server process tree.
+- Added explicit helper/server PID logging and self-termination guard during STOP/ROLLBACK.
+- Fixed semantic version comparison in the updater so lower minor versions cannot be treated as newer.
+- Retains the v7.63.43 three-column Company | Year | Booking interface.
+
+v7.63.43  30/09/2569
+- Redesigned Company page into 3 columns: บริษัท | ปี | Booking.
+- Added company status/year status badges with automatic operational status calculation.
+- Added filters for status, year and sorting while keeping search/export/import/code change features.
+- Moved year edit/delete actions to the Year column and kept customer/PDF/import-file/Booking actions in Booking.
+
+v7.63.42  30/09/2569
+- Rename multi-company import button, dedicated Company Code editor, retain latest customer import Excel per company/year.
+v7.63.41  29/09/2569
+- Company code change via Excel: CurrentCompanyCode -> NewCompanyCode across all years
+- New companies can leave both code columns blank; system auto-generates CompanyCode
+- Export workbook now separates current/new company code and remains backward compatible with legacy CompanyCode
+
+v7.63.40  29/09/2569
+- Company folder import now updates an existing CompanyCode + Year while preserving customer lists.
+- Added Export ข้อมูลบริษัท in the company page; exported workbook can be edited and re-imported.
+- Removed the inline “นำเข้ารายชื่อต่อ” panel after company-folder import and return to the company page automatically.
+
+v7.63.39  29/09/2569
+- Company folder bulk import + follow-on customer upload + PDFPath support + Production installer entry point
+v7.63.38  25/09/2569
+- Clarified Update Center wording as the live Production Server.
+- Removed the ambiguous staging wording from the locked Update Center status.
+
+v7.63.37  25/09/2569
+- Patient Package: changed date filters to dd/mm/yyyy date range.
+- Added all-package selection and type-to-search by Package Code or Package Name.
+- Unified range filtering across suggestions, search, pagination, and Excel export.
+
+v7.63.36  25/09/2569
+- Fixed migration 0190 psql exit code 3 and made it transactional/idempotent.
+- Added production health preflight, content-based migration retry and database-safe rollback.
+- Added hard timeouts/process-tree termination and version-only npm ci skip.
+
+v7.63.35  24/09/2569
+- Production-only hard lock: APP_ENV=production, Port 3000, DB health_check_smart_search
+- Removed alternate-environment installers, bootstrap scripts, assets and legacy environment-selection logic
+- Removed non-production GetPackageList fallback; Production endpoint must be configured explicitly
+- Disabled legacy non-production HIS/API endpoint URLs during migration 0190
+- Renamed OCR intermediate audit terminology to OCR Review
+- Update Center preflight rejects packages without Production-only runtime lock and rejects wrong server .env
+
+v7.63.34  24/09/2569
+- Patient Package Year -> Month -> Day -> Package cascade fix
+- Package dropdown uses Package Code value correctly
+
+v7.63.45  30/09/2569
+- Company board toolbar compacted to one row; status explanation moved to info popover.
+- Update Center Preflight READY preserves staged package metadata for direct Install.
+- EMR / Worklist top navigation width normalized with the global header.
+- Attendance dashboard company/year filters initialize correctly on view open.
+- OCR demo seed data removed; added multi-file Batch Upload, OCR Queue, per-file statuses and sequential Run OCR All.
+
+v7.63.46 - OCR ADF / Global UI
+- ทำ Global Header ให้ Worklist/EMR ใช้ scale และพื้นที่เดียวกับหน้าหลัก
+- ย้ายคำอธิบายสถานะปีให้เปิดติดกับปุ่มข้อมูล (i)
+- OCR Batch UI ปรับเป็นรายการเอกสาร | Preview | Human Review พร้อม Bulk actions
+- Scanner Agent รองรับ WIA ADF/Feeder หลายหน้า, busy retry และส่งทุกหน้าเข้า Batch Queue
+- คง Dashboard filter และ Update Center READY metadata fixes จาก v7.63.45
+
+- v7.63.47: Fix WIA ADF E_INVALIDARG/parameter incorrect with one-page transfer + format fallback; fix Worklist/EMR workspace horizontal overflow.
+
+- v7.63.48: WIA fresh-connect scanner selection/retry; remove CommonDialog device lock and run Scan Agent in STA.
+
+2026-10-01 v7.63.50 - Offline Native TWAIN x86 Scan Agent; no NuGet/Internet; self-service installer.
+
+
+v7.63.55 (2026-10-01)
+- Document Designer: hide native Choose File / No file chosen control and restore uniform action buttons.
+- Document Designer: keep Field Palette inside the left panel with controlled internal scrolling.
+- Document Designer: fit palette, PDF canvas, and properties to viewport without content spilling below panel.
+- Retains v7.63.54 document categories and multiple navigation-sheet templates.
+
+v7.63.57 (2026-10-01)
+- Integrated OCR Document into the main application shell: OCR menu now opens an in-app OCR workspace and browser URL no longer exposes ocr-review-mockup.html.
+- Added protected /ocr route and redirect from the legacy standalone .html URL.
+- Consolidated duplicate OCR controls: one OCR settings entry, one add-document action, and explicit OCR scopes (current document / selected / all).
+- OCR Setup no longer duplicates visible Mode/Document selectors; the setup tab shows their current values and keeps Export/Read Zones there.
+- Review Only mode hides OCR run actions and supports manual review without automatic OCR.
+- A4 summary action footer is forced into a single horizontal row with compact buttons and horizontal fallback scrolling on narrow screens.
+
+v7.63.58 - OCR Native Ordered Workspace
+- OCR is rendered as a native application view inside app.html; no iframe or standalone OCR page is used by the application menu.
+- OCR navigation validates the current server session before opening; expired sessions return to the main login screen.
+- Legacy /ocr and /ocr-review-mockup.html routes redirect back into the main application OCR view.
+- OCR workspace reorganized into compact controls, progress, batch queue, and 22/36/42 document/preview/review columns with panel-local scrolling.
+- A4 summary footer is intentionally unchanged from v7.63.57 because it is already confirmed fixed.
+
+v7.63.61 (2026-10-01)
+- Reorganized OCR workspace to the approved mockup and added compact Project Booking selection/EMR progress controls.
+- Added selected/total ratio, Refresh and Move Booking actions; preserved A4 summary unchanged.
+
+v7.63.62 (2026-10-02)
+- OCR workspace now follows normal browser document flow so the right-side page scrollbar can reach content below the fold.
+- OCR top Mode/Document/Setup/Scanner controls wrap cleanly instead of overlapping at narrower widths.
+- Review content is no longer clipped by a fixed 100vh workspace; preview/list keep bounded internal scrolling where useful.
+- Project Booking row actions are compacted to one 27px row and the unused vertical action-cell space is removed.
+
+v7.63.63 (2026-10-02)
+- Fixed Project Booking sticky action column so each action cell remains aligned with its own patient row while scrolling horizontally/vertically.
+- Removed the remaining phantom/unused vertical space in the action column by keeping the table cell as a real table-cell and moving flex layout into an inner wrapper.
+- Added “แก้ข้อมูลบุคคล” after the EMR action; it opens the existing customer edit form and respects customerEdit permission.
+- Increased the sticky action-column width to fit ตรวจสอบ HN / VN / ดูผล EMR / แก้ข้อมูลบุคคล in one compact row.
+- Kept OCR/A4 behavior from v7.63.62 unchanged.
+v7.63.64 - Unified Company / Project Booking patient table
+- ใช้ Column Schema ชุดเดียวกัน 100% ระหว่างหน้าบริษัทและ Project Booking
+- ยึดรูปแบบ Booking: คอลัมน์ซ้าย/ขวา Sticky และคอลัมน์กลางเลื่อนแนวนอน
+- เพิ่มคอลัมน์ที่ขาด รวม VN, ข้อมูลบุคคล, ติดต่อ, Package, Payor, Workflow และสถานะ EMR
+- เพิ่มปุ่มตั้งค่าคอลัมน์ ใช้ค่าร่วมกันทั้งสองหน้า พร้อม Preset และจำค่าใน Browser
+- แก้ Booking row ให้ VN อยู่ในคอลัมน์ VN จริง ไม่เลื่อนข้อมูลผิดคอลัมน์
+
+v7.63.65 - Compact Sticky Patient Columns
+- ปรับ Sticky ซ้ายเหลือ เลือก / ลำดับ / HN / VN และจัดให้เป็นบล็อกต่อเนื่อง
+- ปรับ Sticky ขวาเหลือ สถานะ EMR / จัดการ; Status / EMR / Book / Send เลื่อนไปกับข้อมูลกลาง
+- ใช้ offset จาก Column Schema แบบคงที่แทน getBoundingClientRect เพื่อลดอาการเหลื่อม/กระโดดเมื่อ scroll, zoom หรือซ่อนคอลัมน์
+- ใช้พฤติกรรมเดียวกันทั้ง Project Booking และหน้าบริษัท > ตรวจสอบข้อมูลลูกค้าทั้งหมด
+v7.63.66 - Sticky Legacy Conflict Fix
+- Reset old Booking nth-child sticky rules that still pinned the first 9 columns.
+- Reset old Customer display-order sticky rule.
+- Keep only Select / Row / HN / VN sticky left and EMR Summary / Actions sticky right.
+- Fix grouped/header/body alignment while horizontal scrolling.
+
+v7.63.67 - Grouped Sticky Header Alignment Fix
+- ฟิกหัวกลุ่มซ้าย "ข้อมูลหลัก / HIS" ให้ติดพร้อมคอลัมน์ เลือก / ลำดับ / HN / VN
+- ย้าย DisplayOrder / CheckupDate / CheckupEndDate ไปอยู่กลุ่ม "ข้อมูลผู้เข้าตรวจ" และให้เลื่อนกับพื้นที่กลาง
+- รวม สถานะ EMR / จัดการ ไว้ใต้หัวกลุ่ม "จัดการ" และฟิกด้านขวาทั้งหัวกลุ่ม/หัวคอลัมน์/ข้อมูล
+- แยกตำแหน่ง sticky ของหัวกลุ่มและหัวคอลัมน์เป็น 2 ชั้น เพื่อไม่ให้หัวตารางบังกันเมื่อเลื่อน
+- เขียน left/right sticky offset ลง DOM โดยตรงเพื่อกัน CSS legacy/zoom/scrollbar แทรกค่า
+- ใช้พฤติกรรมเดียวกันทั้ง Project Booking และหน้าบริษัท > ตรวจสอบข้อมูลลูกค้าทั้งหมด
+
+v7.63.68 - Booking Sticky Right + Column Color Parity
+- ฟิกคอลัมน์ขวา สถานะ EMR / ปุ่มดำเนินการ ใน Project Booking ให้ sticky ที่ขอบขวาแบบบังคับทั้ง header และ body
+- ทำสีคอลัมน์/หัวกลุ่มใน Project Booking ให้ใช้ palette เดียวกับหน้า ตรวจสอบข้อมูลลูกค้าทั้งหมด
+- ลบข้อความหัวคอลัมน์ย่อย “จัดการ” ออกจากทั้งสองหน้า โดยคงหัวกลุ่มและปุ่มดำเนินการทั้งหมดไว้
+- เปลี่ยน cache-busting ของ style.css/app.js เป็น v7.63.68 เพื่อให้ browser โหลด CSS sticky/color ล่าสุดจริง
+v7.63.71 - 2026-10-02
+- Added a wide blocking live-progress window for multi-project EMR receiving with overall/project/booking progress and detailed live logs.
+- Prevents duplicate clicks while batch EMR is running; close controls remain disabled until completion.
+- Reduced the compact project EMR summary width and moved full detail to tooltip so inline remarks have more room.
+
+
+v7.63.81 - 2026-10-05
+- Changed the built-in administrator default password baseline from the legacy default to the new administrator credential requested for Production.
+- Added a one-time startup migration that upgrades only accounts still using the legacy default hash; custom administrator passwords are preserved.
+- Updated installer repair logic and server/client fallback admin creation to the same new password hash.
+- Removed the legacy plaintext default password from distributable runtime source.
+v7.63.82  06/10/2569
+- เพิ่มรหัสเข้าใช้ครั้งแรกกลางสำหรับ User ที่ Sync จาก HIS โดยเก็บเฉพาะ Password Hash
+- ผู้ดูแลสามารถเลือกรายชื่อหลายคนแล้วรีเซ็ตเป็นรหัสเริ่มต้นได้
+- บังคับตั้งรหัสผ่านส่วนตัวก่อนสร้าง Session และก่อนเข้าเมนูทุกครั้งที่ถูกรีเซ็ต
+- เก็บ firstLoginAt, passwordChangedAt และ Audit Log ของการตั้ง/รีเซ็ต/เปลี่ยนรหัส
+- คงรหัสบัญชี admin จาก v7.63.81 และระบบ Mapping/Sync User จาก HIS เดิม
+v7.63.83  06/10/2569
+- แก้หน้าต่างบังคับเปลี่ยนรหัสผ่านครั้งแรกถูกหน้า Login ทับ ด้วย stacking layer เฉพาะที่สูงกว่าหน้า Login
+- คงการป้องกันไม่ให้เข้าเมนูก่อนตั้งรหัสผ่านส่วนตัวจาก v7.63.82
+
+v7.63.92 - 2026-10-08
+- Integrated latest supplied server.js, app.js and app.html into v7.63.91 production installer base.
+- Added Booking search field and confirmed-case Today rail.
+- Corrected search bridge so new API results render without a duplicate stale-query request.
+- Updated release, package version, cache keys and source checksums; kept Production Only and Update Center helpers.

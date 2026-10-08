@@ -1,0 +1,10 @@
+Health Check Up Smart Search v7.62.57 RC
+
+- Worklist historical actions: รับ EMR / ส่ง EMR / ดูเล่ม based on case state, not selected date.
+- Bulk Worklist: รับ EMR, ส่ง EMR, Charge Close with progress and per-item failures.
+- Worklist registration staff uses checkup_visits.updated_by first, audit fallback for old data.
+- HIS opdvisit batch endpoint: VN -> registereddate, chargecloseddate, lovvisithstscode with Cancelled override.
+- Booking CheckupDate/CheckupEndDate/Status refresh from HIS in batches.
+- Physical Exam from HIS section with ปกติทั้งหมด and ใช้ข้อมูล Physical Exam จาก HIS.
+- Health-book approval ownership lock: after approval only the approving user can edit; enforced in UI and PATCH API.
+- Includes v7.62.56 HIS fast-path and v7.62.55 relational app_state cutover.

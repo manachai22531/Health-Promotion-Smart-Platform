@@ -1,0 +1,10 @@
+const fs=require('fs');
+const assert=require('assert');
+const app=fs.readFileSync('assets/app.js','utf8');
+const html=fs.readFileSync('app.html','utf8');
+const server=fs.readFileSync('server.js','utf8');
+assert(app.includes('#bookingOverlay.open,#detailOverlay.open,#customerListOverlay.open'));
+assert(app.includes('.app-view.workspace-fullpage.active'));
+assert(/assets\/app\.js\?v=7\.63\.\d+-/.test(html));
+assert(/const RELEASE_NAME = 'v7\.63\.\d+-production'/.test(server));
+console.log('v7.63.27 all full-page detection regression: PASS');

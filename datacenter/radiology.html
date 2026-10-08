@@ -1,0 +1,833 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radiology Result Checker v1.4</title>
+<script src="/assets/vendor/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f3fbfd;--card:#fff;--line:#cfe3ec;--txt:#11324d;--muted:#5e7b8e;--blue:#049bb8;--green:#087a53;--red:#b42318;--amber:#a15c00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,"Segoe UI",Tahoma,sans-serif;color:var(--txt)}
+.wrap{max-width:1550px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.radiology-connection-only{margin-bottom:10px}h1{margin:0;font-size:24px;color:#064b82}.sub{color:var(--muted);margin-top:5px}.dc-module-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}.dc-module-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;margin-bottom:14px}.dc-module-card strong{color:#064b82}.dc-module-card .hint{margin-top:4px}.dc-module-card .conn{max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 28px rgba(20,70,95,.08)}
+.conn{padding:7px 11px;border-radius:999px;background:#eef2f7;font-size:12px;font-weight:800}.tabs{display:flex;gap:8px;margin-bottom:14px}
+button,.btn{border:0;border-radius:10px;padding:10px 15px;font-weight:800;cursor:pointer}.tab,.secondary{background:#e9eef6;color:#2d3950}.tab.active{background:#049bb8;color:#fff}.primary{background:#049bb8;color:#fff}.success{background:#e8f7f1;color:#087a53}.danger{background:#fff0f0;color:#b42318}.disabled{opacity:.45;cursor:not-allowed}
+.panel{display:none}.panel.active{display:block}.setup,.upload{padding:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.field label{display:block;font-size:12px;color:#5e697b;font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px;border:1px solid #cfd7e4;border-radius:10px;font-size:14px}
+.password-wrap{display:flex;gap:8px}.password-wrap input{flex:1}.password-wrap button{padding:0 13px;background:#eef2f7}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.statusbox{margin-top:12px;padding:13px;border-radius:10px;background:#f6f8fb;white-space:pre-wrap;font-size:13px;line-height:1.45}
+.okbox{background:#eaf8f1;color:#086b4b;border:1px solid #c7ecdc}.errorbox{background:#fff1f1;color:#8f1d1d;border:1px solid #ffd2d2}
+.info{background:#eef5ff;color:#284d8a;border:1px solid #d7e7ff}.hint{font-size:12px;color:#667085;margin-top:10px;line-height:1.5}
+.drop{border:2px dashed #b8c6da;border-radius:15px;padding:25px;text-align:center;background:#fbfcff}input[type=file]{display:none}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:14px 0}.stat{padding:14px}.stat small{color:var(--muted)}.stat b{display:block;font-size:24px;margin-top:5px}
+.tbl{overflow:auto;max-height:62vh}.tablecard{overflow:hidden}table{border-collapse:separate;border-spacing:0;width:100%;min-width:1600px}
+th{position:sticky;top:0;z-index:2;background:#f8fafc;text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:12px;color:#596579}
+td{padding:12px;border-bottom:1px solid #edf0f5;font-size:13px;vertical-align:top}.empty{text-align:center;padding:45px;color:#788395}
+.report{max-width:390px;white-space:pre-wrap}.pill{display:inline-block;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.normal{background:#e9f9f1;color:#087a53}.abnormal{background:#fff0f0;color:#b42318}.other{background:#eef2f7;color:#596579}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.top{flex-direction:column;align-items:flex-start}.wrap{padding:14px}}
+
+.tabbar{display:flex;gap:8px;margin:18px 0 8px;flex-wrap:wrap}
+.tabbtn{border:1px solid #d8dee8;background:#fff;padding:10px 16px;border-radius:10px;font-weight:800;cursor:pointer}
+.tabbtn.active{background:#111827;color:#fff}
+.tabpane{display:none}
+.tabpane.active{display:block}
+
+.result-tabs{display:flex;gap:8px;margin:0 0 14px}
+.result-tab{background:#e9eef6;color:#2d3950;border-radius:10px;padding:10px 16px;font-weight:800}
+.result-tab.active{background:#2563eb;color:#fff}
+.result-panel{display:none}
+.result-panel.active{display:block}
+.lab-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.labtable{overflow:auto;max-height:62vh}
+.labtable table{min-width:1450px}
+
+.lab-summary{white-space:pre-wrap;min-width:360px;line-height:1.45}
+.lab-detail-box{margin-top:8px;border:1px solid #e6ebf2;border-radius:10px;overflow:hidden;background:#fbfcfe}
+.lab-detail-title{padding:8px 10px;font-weight:800;font-size:12px;background:#f2f6fb;border-bottom:1px solid #e6ebf2}
+.lab-detail-table{width:100%;min-width:680px!important;border-collapse:collapse}
+.lab-detail-table th,.lab-detail-table td{position:static!important;padding:7px 9px;font-size:12px;border-bottom:1px solid #edf1f5}
+.lab-detail-table th{background:#f8fafc;color:#596579}
+.flag-abnormal{color:#b42318;font-weight:800}
+.flag-normal{color:#087a53;font-weight:800}
+
+.dc-wait{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:rgba(15,45,67,.42);backdrop-filter:blur(3px)}.dc-wait[hidden]{display:none}.dc-wait>div{min-width:280px;max-width:90vw;padding:24px 30px;border-radius:20px;background:#fff;border:1px solid #c9e2eb;box-shadow:0 24px 70px rgba(4,38,61,.28);text-align:center;font-weight:800;color:#073f67}.dc-wait i{display:block;width:46px;height:46px;margin:0 auto 14px;border:5px solid #dcecf2;border-top-color:#0aa4b5;border-radius:50%;animation:dcspin .85s linear infinite}@keyframes dcspin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body><div id="dcWait" class="dc-wait" hidden><div><i></i><span>Processing...</span><small style="display:block;margin-top:6px;color:#6c8798;font-weight:500">Please wait. Actions are locked to prevent duplicate requests.</small></div></div><script>(function(){const nativeFetch=window.fetch.bind(window);let depth=0;window.fetch=async function(...args){let started=false;const timer=setTimeout(()=>{if(depth++===0){const el=document.getElementById('dcWait');if(el)el.hidden=false}started=true},180);try{return await nativeFetch(...args)}finally{clearTimeout(timer);if(started){depth=Math.max(0,depth-1);if(!depth){const el=document.getElementById('dcWait');if(el)el.hidden=true}}}}})();</script>
+<div class="wrap">
+  <div class="dc-module-head"><div><h1>Radiology/LAB Checker</h1><div class="sub">xrayresult + labresult + patient</div></div></div>
+  <section class="card dc-module-card"><div><strong>Radiology/LAB Search</strong><div class="hint">Database connection is managed in System & API.</div></div><div id="conn" class="conn">Database: checking...</div></section>
+
+  <section id="database" class="panel" hidden>
+    <div class="card setup">
+      <h2 style="margin-top:0">Database Setup</h2>
+      <div class="hint">Test Connection และ Test xrayresult จะใช้ค่าที่เห็นในช่องตอนนี้เท่านั้น ไม่ดึง Password เก่าจาก config.json</div>
+
+      <div class="grid" style="margin-top:15px">
+        <div class="field"><label>Host / IP</label><input id="host" value="awshisprddb1001.cfkq1mnkaccw.ap-northeast-2.rds.amazonaws.com"></div>
+        <div class="field"><label>Port</label><input id="port" type="number" value="5432"></div>
+        <div class="field"><label>Database Name</label><input id="databaseName" value="vimut_gorilla"></div>
+        <div class="field"><label>Username</label><input id="user" value="hisreport"></div>
+        <div class="field">
+          <label>Password</label>
+          <div class="password-wrap">
+            <input id="password" type="password" autocomplete="off" placeholder="พิมพ์ Password ที่ใช้ใน DBeaver">
+            <button id="togglePassword" type="button">👁️</button>
+          </div>
+        </div>
+        <div class="field"><label>SSL</label><select id="ssl"><option value="false">No</option><option value="true">Yes</option></select></div>
+      </div>
+
+      <div class="actions">
+        <button id="testdb" class="secondary">1. Test Connection</button>
+        <button id="testxray" class="secondary">2. Test xrayresult</button>
+        <button id="testpatient" class="secondary">2.1 Test patient</button>
+        <button id="savedb" class="primary disabled" disabled>3. Save Configuration</button>
+      </div>
+
+      <div id="targetbox" class="statusbox info">Target ยังไม่ได้ทดสอบ</div>
+      <div id="dbstatus" class="statusbox">ยังไม่ได้ทดสอบ</div>
+
+      <div class="hint">
+        ลำดับที่แนะนำ: กรอก Password → กด Test Connection → ถ้าผ่าน กด Test xrayresult → ถ้าผ่านทั้งสองอย่าง ปุ่ม Save จะเปิดใช้งาน
+      </div>
+    </div>
+  </section>
+
+  
+<section id="checker" class="panel active">
+  <div class="result-tabs">
+    <button id="radiologyResultTab" class="result-tab active" type="button">🩻 Radiology Result</button>
+    <button id="labResultTab" class="result-tab" type="button">🧪 Lab Result</button>
+  </div>
+
+  <div id="radiologyResultPanel" class="result-panel active">
+
+    <div class="card upload">
+      <div class="drop">
+        <div style="font-size:34px">📄</div>
+        <div style="font-size:18px;font-weight:800">อัปโหลด Excel / CSV ที่มี HN และ VN</div>
+        <div style="max-width:520px;margin:16px auto 6px;text-align:left">
+          <label for="itemcode" style="font-weight:800;display:block;margin-bottom:6px">Item Code ที่ต้องการค้นหา</label>
+          <input id="itemcode" type="text" placeholder="เช่น BME20005DF_IBE" autocomplete="off" style="width:100%;box-sizing:border-box">
+          <div class="hint">ระบบจะ Query เฉพาะ Item Code ที่พิมพ์ในช่องนี้เท่านั้น ไม่ได้ล็อกโค้ดไว้ในโปรแกรม</div>
+        </div>
+        <div class="actions" style="justify-content:center">
+          <label for="file" class="btn primary">เลือกไฟล์</label><input id="file" type="file" accept=".xlsx,.xls,.csv">
+          <button id="check" class="primary" disabled>ตรวจสอบจากฐานข้อมูล</button>
+          <button id="exportExcel" class="success" disabled>Export Excel</button>
+        </div>
+        <div id="fileinfo" class="hint"></div>
+        <div id="bulkstatus" class="statusbox">ยังไม่ได้ตรวจสอบ</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="card stat"><small>รายการทั้งหมด</small><b id="sAll">0</b></div>
+      <div class="card stat"><small>คนที่ Match</small><b id="sExact">0</b></div>
+      <div class="card stat"><small>Normal</small><b id="sNormal">0</b></div>
+      <div class="card stat"><small>Abnormal</small><b id="sAbnormal">0</b></div>
+      <div class="card stat"><small>ยังไม่มีผล</small><b id="sNo">0</b></div>
+    </div>
+
+    <div class="card tablecard"><div class="tbl"><table>
+      <thead><tr>
+        <th>HN</th><th>VN</th><th>ชื่อ-นามสกุล</th><th>เพศ</th><th>วันเกิด</th><th>อายุ</th>
+        <th>Request ID</th><th>รายการตรวจ</th><th>Item Code</th><th>Accession No.</th>
+        <th>วันที่ Execute</th><th>วันที่ลงผล</th><th>Original Report</th><th>คำแปล/สรุปไทย</th><th>Result Status</th><th>Severity</th>
+      </tr></thead>
+      <tbody id="tbody"><tr><td colspan="16" class="empty">ยังไม่มีข้อมูล</td></tr></tbody>
+    </table></div></div>
+  
+  </div>
+
+
+    <div id="labResultPanel" class="result-panel">
+      <div class="card upload">
+        <h2 style="margin-top:0">🧪 Lab Result</h2>
+        <div class="hint">ใช้ HN / VN จากไฟล์ Excel หรือ CSV ชุดเดียวกับ Radiology</div>
+        <div class="actions">
+          <button id="runLab" class="primary" disabled>ค้นหา Lab Result</button>
+          <button id="exportLab" class="success" disabled>Export Lab Excel</button>
+        </div>
+        <div id="labStatus" class="statusbox">ยังไม่ได้ตรวจสอบ Lab</div>
+      </div>
+
+      <div class="card tablecard" style="margin-top:14px">
+        <div class="labtable">
+          <table style="min-width:1900px">
+            <thead><tr>
+              <th>HN</th>
+              <th>VN</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>เพศ</th>
+              <th>วันเกิด</th>
+              <th>อายุ</th>
+              <th>รายการ Lab</th>
+              <th>Result Summary</th>
+              <th>Detail Code</th>
+              <th>รายการย่อย</th>
+              <th>Result</th>
+              <th>Unit</th>
+              <th>Reference Range</th>
+              <th>Flag</th>
+              <th>Comment</th>
+              <th>วันที่ลงผล</th>
+              <th>วันที่เก็บ</th>
+              <th>วันที่รับ</th>
+              <th>วันที่ Review</th>
+            </tr></thead>
+            <tbody id="labBody">
+              <tr><td colspan="19" class="empty">ยังไม่มีข้อมูล Lab</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+</section>
+
+</div>
+
+<script>
+let liveTestPassed=false, xrayTestPassed=false, inputPairs=[], rows=[];
+const $=id=>document.getElementById(id);
+
+const ADMIN_MODE = false;
+
+function applyAppMode(){
+  const dbTab=document.querySelector('.tab[data-tab="database"]');
+  const checkerTab=document.querySelector('.tab[data-tab="checker"]');
+
+  if(!ADMIN_MODE){
+    if(dbTab) dbTab.style.display='none';
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    if(checkerTab) checkerTab.classList.add('active');
+    if($('checker')) $('checker').classList.add('active');
+    if($('conn')) $('conn').textContent='Database: Connected';
+  }
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  $(b.dataset.tab).classList.add('active');
+});
+
+function cfg(){
+  return {
+    host:$('host').value.trim(),
+    port:Number($('port').value||5432),
+    database:$('databaseName').value.trim(),
+    user:$('user').value.trim(),
+    password:$('password').value,
+    ssl:$('ssl').value==='true'
+  };
+}
+
+function resetTests(){
+  liveTestPassed=false;
+  xrayTestPassed=false;
+  $('savedb').disabled=true;
+  $('savedb').classList.add('disabled');
+  $('dbstatus').className='statusbox';
+  $('dbstatus').textContent='ค่ามีการเปลี่ยน กรุณา Test Connection ใหม่';
+}
+['host','port','databaseName','user','password','ssl'].forEach(id=>$(id).addEventListener('input',resetTests));
+$('ssl').addEventListener('change',resetTests);
+
+$('togglePassword').onclick=()=>{
+  const p=$('password');
+  p.type=p.type==='password'?'text':'password';
+  $('togglePassword').textContent=p.type==='password'?'👁️':'🙈';
+};
+
+function showTarget(j){
+  const t=j?.target||{};
+  $('targetbox').textContent=
+`ค่าที่ Backend ได้รับจริง:
+Host: ${t.host||'-'}
+Port: ${t.port||'-'}
+Database: ${t.database||'-'}
+Username: ${t.user||'-'}
+SSL: ${String(!!t.ssl)}
+Password length: ${t.password_length ?? 0} ตัวอักษร
+(ไม่แสดง Password จริง)`;
+}
+
+$('testdb').onclick=async()=>{
+  $('dbstatus').className='statusbox';
+  $('dbstatus').textContent='กำลัง Test Connection...';
+  try{
+    const r=await fetch('/api/datacenter/radiology/config/test-live',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cfg())
+    });
+    const j=await r.json();
+    showTarget(j);
+    if(!j.ok){
+      liveTestPassed=false; xrayTestPassed=false;
+      $('dbstatus').className='statusbox errorbox';
+      $('dbstatus').textContent=
+`❌ Connection ไม่ผ่าน
+Code: ${j.code||'-'}
+Error: ${j.error||'-'}
+Detail: ${j.detail||'-'}
+Hint: ${j.hint||'-'}`;
+      return;
+    }
+    liveTestPassed=true;
+    $('dbstatus').className='statusbox okbox';
+    $('dbstatus').textContent=
+`✅ Connection ผ่าน
+Database จริง: ${j.info.database}
+User จริง: ${j.info.username}
+Server: ${j.info.server_address}:${j.info.server_port}
+Server time: ${j.info.server_time}
+
+ต่อไปกด "2. Test xrayresult"`;
+  }catch(e){
+    $('dbstatus').className='statusbox errorbox';
+    $('dbstatus').textContent='❌ '+e.message;
+  }
+};
+
+$('testxray').onclick=async()=>{
+  $('dbstatus').className='statusbox';
+  $('dbstatus').textContent='กำลัง Test xrayresult...';
+  try{
+    const r=await fetch('/api/datacenter/radiology/config/test-xray-live',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cfg())
+    });
+    const j=await r.json();
+    showTarget(j);
+    if(!j.ok){
+      xrayTestPassed=false;
+      $('dbstatus').className='statusbox errorbox';
+      $('dbstatus').textContent=
+`❌ อ่าน xrayresult ไม่ผ่าน
+Code: ${j.code||'-'}
+Error: ${j.error||'-'}
+Detail: ${j.detail||'-'}
+Hint: ${j.hint||'-'}`;
+      return;
+    }
+    liveTestPassed=true;
+    xrayTestPassed=true;
+    $('dbstatus').className='statusbox okbox';
+    $('dbstatus').textContent=
+`✅ xrayresult ใช้งานได้
+Row count: ${j.xrayresult.row_count}
+Min ID: ${j.xrayresult.min_id}
+Max ID: ${j.xrayresult.max_id}
+
+พร้อม Save Configuration`;
+    $('savedb').disabled=false;
+    $('savedb').classList.remove('disabled');
+  }catch(e){
+    $('dbstatus').className='statusbox errorbox';
+    $('dbstatus').textContent='❌ '+e.message;
+  }
+};
+
+
+$('testpatient').onclick=async()=>{
+  $('dbstatus').className='statusbox';
+  $('dbstatus').textContent='กำลัง Test patient...';
+  try{
+    const j=await fetch('/api/datacenter/radiology/patient/test').then(r=>r.json());
+    if(!j.ok){
+      $('dbstatus').className='statusbox errorbox';
+      $('dbstatus').textContent=`❌ อ่าน patient ไม่ผ่าน
+Code: ${j.code||'-'}
+Error: ${j.error||'-'}
+Detail: ${j.detail||'-'}
+Hint: ${j.hint||'-'}`;
+      return;
+    }
+    $('dbstatus').className='statusbox okbox';
+    $('dbstatus').textContent=`✅ patient ใช้งานได้
+Row count: ${j.patient.row_count}
+Min ID: ${j.patient.min_id}
+Max ID: ${j.patient.max_id}
+
+Join: xrayresult.patientid = patient.id`;
+  }catch(e){
+    $('dbstatus').className='statusbox errorbox';
+    $('dbstatus').textContent='❌ '+e.message;
+  }
+};
+
+$('savedb').onclick=async()=>{
+  if(!liveTestPassed || !xrayTestPassed) return;
+  try{
+    const j=await fetch('/api/datacenter/radiology/config/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cfg())
+    }).then(r=>r.json());
+    if(!j.ok) throw new Error(j.error||'Save failed');
+    $('dbstatus').className='statusbox okbox';
+    $('dbstatus').textContent='✅ บันทึก Database Configuration แล้ว';
+    $('conn').textContent=`Database: ${j.config.database}@${j.config.host}`;
+  }catch(e){
+    $('dbstatus').className='statusbox errorbox';
+    $('dbstatus').textContent='❌ '+e.message;
+  }
+};
+
+function key(o,names){
+  const k=Object.keys(o).find(x=>names.includes(String(x).trim().toUpperCase()));
+  return k?String(o[k]??'').trim():'';
+}
+$('file').onchange=async e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+    inputPairs=data.map(o=>({
+      hn:key(o,['HN','H.N.','PATIENTHN']),
+      vn:key(o,['VN','V.N.','VISITNO'])
+    })).filter(x=>x.hn||x.vn);
+    $('fileinfo').textContent=`${file.name} • พบ ${inputPairs.length} แถว`;
+    $('check').disabled=!(inputPairs.length && $('itemcode').value.trim());
+  }catch(e){
+    $('bulkstatus').className='statusbox errorbox';
+    $('bulkstatus').textContent=e.message;
+  }
+};
+
+$('itemcode').addEventListener('input',()=>{
+  $('check').disabled=!(inputPairs.length && $('itemcode').value.trim());
+});
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function dateFmt(v){if(!v)return'-';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('th-TH')}
+function dateOnly(v){if(!v)return'-';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleDateString('th-TH')}
+function stat(r){return String(r.result_status||'').trim()||'No Result'}
+function pill(s){
+  if(s==='Normal') return `<span class="pill normal">🟢 Normal</span>`;
+  if(s==='Abnormal'||s==='Critical') return `<span class="pill abnormal">🔴 ${esc(s)}</span>`;
+  return `<span class="pill other">⚪ ${esc(s)}</span>`;
+}
+
+function thaiSummary(text,s,severity){
+  const t=String(text||'').toLowerCase();
+  const out=[];
+  const pairs=[
+    ['no active chest disease','ไม่พบโรคทรวงอกที่กำลังดำเนินอยู่'],
+    ['no active pulmonary disease','ไม่พบโรคปอดที่กำลังดำเนินอยู่'],
+    ['no significant abnormality','ไม่พบความผิดปกติสำคัญ'],
+    ['normal heart size','ขนาดหัวใจปกติ'],
+    ['normal ecg','คลื่นไฟฟ้าหัวใจปกติ'],
+    ['atrial fibrillation','พบภาวะหัวใจห้องบนสั่นพลิ้ว (Atrial Fibrillation)'],
+    ['cardiomegaly','พบหัวใจโต'],
+    ['fatty liver','พบไขมันพอกตับ'],
+    ['nodule','พบ/สงสัยก้อนขนาดเล็ก'],
+    ['mass','พบก้อน'],
+    ['pleural effusion','พบสารน้ำในช่องเยื่อหุ้มปอด'],
+    ['fracture','พบกระดูกหัก'],
+    ['stone','พบนิ่ว'],
+    ['recommend follow-up','แนะนำติดตามตรวจเพิ่มเติม']
+  ];
+  pairs.forEach(([a,b])=>{if(t.includes(a))out.push(b)});
+  if(!out.length){
+    if(!text) out.push('ยังไม่มีผลอ่าน');
+    else if(s==='Normal') out.push('HIS ระบุผลเป็น Normal');
+    else if(s==='Abnormal') out.push('HIS ระบุผลเป็น Abnormal กรุณาอ่านรายงานต้นฉบับ');
+    else if(String(s).includes('Attention')) out.push('HIS ระบุว่าต้องติดตาม/ทบทวนผล');
+    else out.push('กรุณาอ่านรายงานต้นฉบับเพิ่มเติม');
+  }
+  if(severity) out.push('Severity: '+severity);
+  return [...new Set(out)].join(' • ');
+}
+
+function render(){
+  $('tbody').innerHTML=rows.length?rows.map(r=>`<tr>
+    <td>${esc(r.input_hn||r.hn||'-')}</td>
+    <td>${esc(r.input_vn||r.vn||'-')}</td>
+    <td>${esc(r.patient_name||'-')}</td>
+    <td>${esc(r.gender||'-')}</td>
+    <td>${esc(dateOnly(r.birthdate))}</td>
+    <td>${esc(r.age_years??'-')}</td>
+    <td>${esc(r.xrayrequestid||'-')}</td>
+    <td>${esc(r.itemname||'-')}</td>
+    <td>${esc(r.itemcode||'-')}</td>
+    <td>${esc(r.accessionno||'-')}</td>
+    <td>${esc(dateFmt(r.executeddate))}</td>
+    <td>${esc(dateFmt(r.resultentereddatetime))}</td>
+    <td class="report">${esc(r.textualnotag||'-')}</td>
+    <td>${esc(thaiSummary(r.textualnotag,stat(r),r.severity))}</td>
+    <td>${pill(stat(r))}</td>
+    <td>${esc(r.severity||'-')}</td>
+  </tr>`).join(''):`<tr><td colspan="16" class="empty">ไม่พบข้อมูล</td></tr>`;
+  $('sAll').textContent=rows.length;
+  $('sNormal').textContent=rows.filter(r=>stat(r)==='Normal').length;
+  $('sAbnormal').textContent=rows.filter(r=>stat(r)==='Abnormal').length;
+  $('sNo').textContent=rows.filter(r=>!r.xrayresult_id).length;
+  $('exportExcel').disabled=!rows.length;
+}
+
+$('check').onclick=async()=>{
+  const itemcode=$('itemcode').value.trim();
+  if(!itemcode){
+    $('bulkstatus').className='statusbox errorbox';
+    $('bulkstatus').textContent='❌ กรุณาระบุ Item Code';
+    return;
+  }
+  $('bulkstatus').className='statusbox';
+  $('bulkstatus').textContent='กำลังตรวจสอบ...';
+  try{
+    const j=await fetch('/api/datacenter/radiology/radiology/check',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pairs:inputPairs,itemcode:$('itemcode').value.trim()})
+    }).then(r=>r.json());
+    if(!j.ok) throw new Error(j.error||'Query failed');
+    rows=[];
+    const errors=[];
+    j.results.forEach(g=>{
+      if(g.match_type==='ERROR'){
+        errors.push(`HN ${g.input.hn} / VN ${g.input.vn}: ${g.code||''} ${g.error||''}`);
+      }else if(g.rows?.length){
+        g.rows.forEach(r=>rows.push({...r,input_hn:g.input.hn,input_vn:g.input.vn}));
+      }
+    });
+    $('sExact').textContent=j.diagnostics.exactCount||0;
+    $('bulkstatus').className=errors.length?'statusbox errorbox':'statusbox okbox';
+    $('bulkstatus').textContent=
+`Item Code: ${j.itemcode||itemcode}
+Input: ${j.diagnostics.inputRows}
+Match: ${j.diagnostics.exactCount}
+ไม่พบ: ${j.diagnostics.noResultCount}
+Error: ${j.diagnostics.errorCount}
+รายการตรวจทั้งหมด: ${j.diagnostics.itemCount}`+
+(errors.length?`\n\nตัวอย่าง Error:\n${errors.slice(0,5).join('\n')}`:'');
+    render();
+  }catch(e){
+    $('bulkstatus').className='statusbox errorbox';
+    $('bulkstatus').textContent='❌ '+e.message;
+  }
+};
+
+
+$('exportExcel').onclick=()=>{
+  if(!rows.length) return;
+
+  const data = rows.map(r=>({
+    HN: r.input_hn||r.hn||'',
+    VN: r.input_vn||r.vn||'',
+    Patient_ID: r.patient_id||'',
+    Patient_Name: r.patient_name||'',
+    Gender: r.gender||'',
+    Birthdate: dateOnly(r.birthdate),
+    Age_Years: r.age_years??'',
+    Request_ID: r.xrayrequestid||'',
+    ItemName: r.itemname||'',
+    ItemCode: r.itemcode||'',
+    Accession_No: r.accessionno||'',
+    Execute_Date: dateFmt(r.executeddate),
+    Result_Date: dateFmt(r.resultentereddatetime),
+    Original_Report: r.textualnotag||'',
+    Thai_Summary: thaiSummary(r.textualnotag,stat(r),r.severity),
+    Result_Status: stat(r),
+    Severity: r.severity||''
+  }));
+
+  const wb = XLSX.utils.book_new();
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [
+    {wch:16},{wch:18},{wch:12},{wch:32},{wch:14},{wch:16},{wch:10},
+    {wch:12},{wch:34},{wch:18},{wch:16},{wch:20},{wch:20},{wch:70},{wch:48},{wch:20},{wch:14}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Radiology Results');
+
+  const summaryRows = [
+    ['Radiology Result Checker v1.16'],
+    [],
+    ['Item Code ที่ค้นหา', $('itemcode').value.trim()],
+    [],
+    ['รายการ','จำนวน'],
+    ['HN/VN ที่อัปโหลด', inputPairs.length],
+    ['รายการตรวจทั้งหมด', rows.length],
+    ['Normal', rows.filter(r=>stat(r)==='Normal').length],
+    ['Abnormal', rows.filter(r=>stat(r)==='Abnormal').length],
+    ['Require Attention', rows.filter(r=>String(stat(r)).includes('Attention')).length],
+    ['Critical', rows.filter(r=>stat(r)==='Critical').length],
+    ['ยังไม่มีผลอ่าน', rows.filter(r=>!r.xrayresult_id).length],
+    [],
+    ['หมายเหตุ','Result Status/Severity ใช้ข้อมูลจาก HIS/LOV โดยตรง ส่วนคำแปลไทยเป็นเครื่องมือช่วยอ่าน ไม่ใช่การวินิจฉัยทางการแพทย์']
+  ];
+  const sws = XLSX.utils.aoa_to_sheet(summaryRows);
+  sws['!cols']=[{wch:28},{wch:90}];
+  XLSX.utils.book_append_sheet(wb, sws, 'Summary');
+
+  const now = new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const stamp=`${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+  XLSX.writeFile(wb, `Radiology_Results_${stamp}.xlsx`);
+};
+
+async function loadCfg(){
+  try{
+    if(ADMIN_MODE){
+      const j=await fetch('/api/datacenter/radiology/config').then(r=>r.json());
+      const c=j.config;
+      if(c){
+        $('host').value=c.host||$('host').value;
+        $('port').value=c.port||5432;
+        $('databaseName').value=c.database||$('databaseName').value;
+        $('user').value=c.user||$('user').value;
+        $('ssl').value=String(!!c.ssl);
+        $('conn').textContent=`Database: ${c.database}@${c.host}`;
+      }
+    }else{
+      const j=await fetch('/api/datacenter/radiology/status').then(r=>r.json());
+      $('conn').textContent=j.configured ? 'Database: Connected' : 'Database: Not configured';
+    }
+  }catch{}
+}
+applyAppMode();
+loadCfg();
+render();
+
+
+
+let labRows = [];
+
+function getInputPairs(){
+  try { return Array.isArray(inputPairs) ? inputPairs : []; }
+  catch(e){ return []; }
+}
+
+function syncLabButton(){
+  const b=$('runLab');
+  if(b) b.disabled=getInputPairs().length===0;
+}
+
+$('radiologyResultTab').onclick=()=>{
+  $('radiologyResultTab').classList.add('active');
+  $('labResultTab').classList.remove('active');
+  $('radiologyResultPanel').classList.add('active');
+  $('labResultPanel').classList.remove('active');
+};
+
+$('labResultTab').onclick=()=>{
+  $('labResultTab').classList.add('active');
+  $('radiologyResultTab').classList.remove('active');
+  $('labResultPanel').classList.add('active');
+  $('radiologyResultPanel').classList.remove('active');
+  syncLabButton();
+};
+
+function labEsc(v){
+  return String(v??'')
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'","&#039;");
+}
+function labFmt(v){
+  if(!v) return '-';
+  const d=new Date(v);
+  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString('th-TH');
+}
+function labDate(v){
+  if(!v) return '-';
+  const d=new Date(v);
+  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleDateString('th-TH');
+}
+function cleanLabSummary(v){
+  if(!v) return '-';
+  return String(v)
+    .replace(/&lt;br\s*\/?&gt;/gi,'\n')
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/&nbsp;/gi,' ')
+    .replace(/<[^>]+>/g,'')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function abnormalFlag(v){
+  return v===true || String(v).toLowerCase()==='true' || String(v)==='1';
+}
+function flatLabRows(){
+  const flat=[];
+  labRows.filter(r=>r.status==='MATCH').forEach(r=>{
+    const details=Array.isArray(r.details)?r.details:[];
+    if(details.length){
+      details.forEach((d,idx)=>{
+        flat.push({
+          ...r,
+          detail:d,
+          showHead:idx===0
+        });
+      });
+    }else{
+      flat.push({
+        ...r,
+        detail:null,
+        showHead:true
+      });
+    }
+  });
+  return flat;
+}
+function renderLabRows(){
+  const flat=flatLabRows();
+
+  if(!flat.length){
+    $('labBody').innerHTML='<tr><td colspan="19" class="empty">ไม่พบผล Lab</td></tr>';
+    return;
+  }
+
+  $('labBody').innerHTML=flat.map(x=>{
+    const d=x.detail;
+    return `
+      <tr>
+        <td>${labEsc(x.hn||'-')}</td>
+        <td>${labEsc(x.vn||'-')}</td>
+        <td>${labEsc(x.patient_name||'-')}</td>
+        <td>${labEsc(x.gender||'-')}</td>
+        <td>${labEsc(labDate(x.birthdate))}</td>
+        <td>${labEsc(x.age_years??'-')}</td>
+        <td>${x.showHead ? labEsc(x.itemname||'-') : ''}</td>
+        <td class="lab-summary">${x.showHead ? labEsc(cleanLabSummary(x.resultsummary||'-')) : ''}</td>
+        <td>${labEsc(d?.code||'-')}</td>
+        <td>${labEsc(d?.name||'-')}</td>
+        <td><b>${labEsc(d?.resultvalue??'-')}</b></td>
+        <td>${labEsc(d?.unit||'-')}</td>
+        <td>${labEsc(d?.reference_range||'-')}</td>
+        <td>${d ? (abnormalFlag(d.isabnormal)
+          ? '<span class="flag-abnormal">Abnormal</span>'
+          : '<span class="flag-normal">Normal</span>') : '-'}</td>
+        <td>${labEsc(d?.comments||'-')}</td>
+        <td>${labEsc(labFmt(x.resultentereddatetime))}</td>
+        <td>${labEsc(labFmt(x.collecteddate))}</td>
+        <td>${labEsc(labFmt(x.accepteddate))}</td>
+        <td>${labEsc(labFmt(x.revieweddate))}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+$('runLab').onclick=async()=>{
+  const pairs=getInputPairs();
+  if(!pairs.length){
+    $('labStatus').className='statusbox errorbox';
+    $('labStatus').textContent='กรุณาเลือกไฟล์ HN/VN ก่อน';
+    return;
+  }
+  $('labStatus').className='statusbox';
+  $('labStatus').textContent='กำลังค้นหาผล Lab...';
+  try{
+    const r=await fetch('/api/datacenter/radiology/lab/bulk',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pairs})
+    });
+    const j=await r.json();
+    if(!r.ok || !j.ok) throw new Error(j.error||'Lab query failed');
+
+    labRows=j.results||[];
+    renderLabRows();
+    $('exportLab').disabled=!labRows.some(x=>x.status==='MATCH');
+
+    const d=j.diagnostics||{};
+    $('labStatus').className='statusbox okbox';
+    $('labStatus').textContent=
+`✅ ตรวจ Lab สำเร็จ
+Input: ${d.inputRows||pairs.length}
+พบคน: ${d.exactCount||0}
+จำนวน Lab: ${d.itemCount||0}
+ผลย่อย: ${d.detailCount||0}
+ไม่พบผล: ${d.noResultCount||0}
+Error: ${d.errorCount||0}`;
+  }catch(e){
+    $('labStatus').className='statusbox errorbox';
+    $('labStatus').textContent='❌ '+e.message;
+  }
+};
+
+$('exportLab').onclick=()=>{
+  const exportRows=[];
+
+  labRows.filter(r=>r.status==='MATCH').forEach(r=>{
+    const details=Array.isArray(r.details)?r.details:[];
+
+    if(details.length){
+      details.forEach(d=>{
+        exportRows.push({
+          HN:r.hn||'',
+          VN:r.vn||'',
+          Patient_Name:r.patient_name||'',
+          Gender:r.gender||'',
+          Birthdate:r.birthdate||'',
+          Age_Years:r.age_years??'',
+          Lab_Item:r.itemname||'',
+          Result_Summary:cleanLabSummary(r.resultsummary||''),
+          Detail_Code:d.code||'',
+          Detail_Name:d.name||'',
+          Result:d.resultvalue??'',
+          Unit:d.unit||'',
+          Reference_Range:d.reference_range||'',
+          Abnormal:d.isabnormal??'',
+          Comment:d.comments||'',
+          Result_Date:r.resultentereddatetime||'',
+          Collected_Date:r.collecteddate||'',
+          Accepted_Date:r.accepteddate||'',
+          Reviewed_Date:r.revieweddate||''
+        });
+      });
+    }else{
+      exportRows.push({
+        HN:r.hn||'',
+        VN:r.vn||'',
+        Patient_Name:r.patient_name||'',
+        Gender:r.gender||'',
+        Birthdate:r.birthdate||'',
+        Age_Years:r.age_years??'',
+        Lab_Item:r.itemname||'',
+        Result_Summary:cleanLabSummary(r.resultsummary||''),
+        Detail_Code:'',
+        Detail_Name:'',
+        Result:'',
+        Unit:'',
+        Reference_Range:'',
+        Abnormal:'',
+        Comment:'',
+        Result_Date:r.resultentereddatetime||'',
+        Collected_Date:r.collecteddate||'',
+        Accepted_Date:r.accepteddate||'',
+        Reviewed_Date:r.revieweddate||''
+      });
+    }
+  });
+
+  if(!exportRows.length) return;
+
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(exportRows);
+
+  ws['!cols']=[
+    {wch:16},{wch:18},{wch:32},{wch:12},{wch:16},{wch:10},
+    {wch:34},{wch:60},{wch:18},{wch:34},{wch:18},{wch:14},
+    {wch:28},{wch:12},{wch:28},{wch:22},{wch:22},{wch:22},{wch:22}
+  ];
+
+  XLSX.utils.book_append_sheet(wb,ws,'Lab Results + Detail');
+  XLSX.writeFile(wb,'Lab_Results_Combined.xlsx');
+};
+
+$('file').addEventListener('change',()=>setTimeout(syncLabButton,250));
+setInterval(syncLabButton,1000);
+syncLabButton();
+
+</script>
+</body></html>

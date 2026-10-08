@@ -1,0 +1,10 @@
+const fs=require('fs');
+const assert=require('assert');
+const css=fs.readFileSync('assets/style.css','utf8');
+const html=fs.readFileSync('app.html','utf8');
+const server=fs.readFileSync('server.js','utf8');
+assert(css.includes('body{zoom:1.1;width:100%;min-height:100vh;margin:0}'));
+assert(!css.includes('width:90.9090909%'),'desktop UI must not reserve blank side gutters');
+assert(/assets\/app\.js\?v=7\.63\.\d+-/.test(html));
+assert(/const RELEASE_NAME = 'v7\.63\.\d+-production'/.test(server));
+console.log('v7.63.25 full-width UI regression: PASS');

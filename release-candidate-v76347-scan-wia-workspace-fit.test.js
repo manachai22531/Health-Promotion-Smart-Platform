@@ -1,0 +1,15 @@
+const fs=require('fs'),assert=require('assert'),path=require('path');
+const root=__dirname;
+const css=fs.readFileSync(path.join(root,'assets/style.css'),'utf8');
+const ps=fs.readFileSync(path.join(root,'tools/ocr-scan-agent/scan-agent.ps1'),'utf8');
+const server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+assert(css.includes('v7.63.47 — Worklist/EMR use the same application scale'));
+assert(css.includes('zoom:1!important;'));
+assert(css.includes('max-width:100%!important;'));
+assert(!css.slice(css.indexOf('v7.63.47 — Worklist/EMR')).includes('width:110%!important'));
+assert(ps.includes('Set-WiaProperty $device.Properties 3096 1'));
+assert(!ps.includes('Set-WiaProperty $device.Properties 3096 0'));
+assert(ps.includes('0x80070057'));
+assert(ps.includes("Mime='image/bmp'"));
+assert(server.includes("const RELEASE_NAME = 'v7.63.47-production'"));
+console.log('v7.63.47 scan WIA/workspace-fit regression passed');

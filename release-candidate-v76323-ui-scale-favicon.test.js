@@ -1,0 +1,12 @@
+const fs=require('fs');
+const assert=require('assert');
+const html=fs.readFileSync('app.html','utf8');
+const css=fs.readFileSync('assets/style.css','utf8');
+const server=fs.readFileSync('server.js','utf8');
+assert(/assets\/app-capybara\.ico\?v=7\.63\.\d+/.test(html));
+assert(html.includes('rel="shortcut icon"'));
+assert(css.includes('body{zoom:1.1;width:100%'));
+assert(css.includes('@media (min-width:900px)'));
+assert(/const RELEASE_NAME = 'v7\.63\.\d+-production'/.test(server));
+assert(/assets\/app\.js\?v=7\.63\.\d+-/.test(html));
+console.log('v7.63.23 UI scale/favicon regression: PASS');

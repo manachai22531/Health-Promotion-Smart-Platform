@@ -1,0 +1,15 @@
+'use strict';
+const fs=require('fs');
+const assert=require('assert');
+const rel=fs.readFileSync(__dirname+'/relational-store.js','utf8');
+const css=fs.readFileSync(__dirname+'/assets/style.css','utf8');
+const html=fs.readFileSync(__dirname+'/app.html','utf8');
+assert(rel.includes('const canonicalIdentity = value => text(value).toLowerCase().replace(/[^a-z0-9]/g'), 'canonical identity normalizer missing');
+assert(rel.includes("regexp_replace(LOWER(BTRIM(COALESCE(identification_number,''))),'[^a-z0-9]','','g')=$1"), 'normalized existing-customer lookup missing');
+assert(rel.includes('customerIdentityCache'), 'identity cache missing');
+assert(rel.includes('membershipResult.rows[0]?.id'), 'actual membership id preservation missing');
+assert(css.includes('v7.63.00: customer-list no-overlap + centered header alignment'), 'v7.63.00 UI patch missing');
+assert(css.includes('#customerListOverlay .customer-list-table thead th'), 'header centering rule missing');
+assert(css.includes('grid-template-rows:14px 24px 29px 28px'), 'selection layout rows missing');
+assert(html.includes('7.63.01-selection-head-layout'), 'style cache-buster missing');
+console.log('v7.63.00 identity/UI static regression: PASS');

@@ -1,0 +1,12 @@
+const fs=require('fs'); const assert=require('assert');
+const ps=fs.readFileSync('tools/ocr-scan-agent/scan-agent.ps1','utf8');
+const cmd=fs.readFileSync('tools/ocr-scan-agent/INSTALL-SCAN-AGENT.cmd','utf8');
+const server=fs.readFileSync('server.js','utf8');
+assert(ps.includes('WIA.DeviceManager'));
+assert(!ps.includes('ShowSelectDevice'));
+assert(ps.includes('Acquire-WiaPageFresh'));
+assert(ps.includes('attempt -le 8'));
+assert(ps.includes('FinalReleaseComObject'));
+assert(cmd.includes(' -STA -NoProfile'));
+assert(server.includes("const RELEASE_NAME = 'v7.63.48-production'"));
+console.log('v7.63.48 WIA fresh-connect regression passed');
