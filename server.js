@@ -943,6 +943,11 @@ async function ensureDatabase() {
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`);
 
+  // The application creates several tables below with foreign keys to the
+  // normalized company schema. Bootstrap that schema first so a brand-new
+  // database can start without requiring a separate installer step.
+  await ensureRelationalSchema(pool);
+
 await pool.query(`DO $$ DECLARE legacy_audit text := 'ocr_' || 'sta' || 'ging_audit'; BEGIN
   IF to_regclass('public.' || legacy_audit) IS NOT NULL AND to_regclass('public.ocr_review_audit') IS NULL THEN
     EXECUTE format('ALTER TABLE %I RENAME TO ocr_review_audit', legacy_audit);
@@ -1428,7 +1433,6 @@ END $$`);
     identification_masked TEXT NOT NULL DEFAULT '', http_status INTEGER NOT NULL DEFAULT 0,
     result_status TEXT NOT NULL DEFAULT '', has_hn BOOLEAN NOT NULL DEFAULT false, status_detail TEXT NOT NULL DEFAULT '', client_address TEXT NOT NULL DEFAULT ''
   )`);
-  await ensureRelationalSchema(pool);
   await pool.query(`DELETE FROM company_year_import_files f WHERE NOT EXISTS (SELECT 1 FROM company_years cy WHERE cy.id=f.company_id)`);
   await pool.query(`DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='company_year_import_files_company_fk') THEN ALTER TABLE company_year_import_files ADD CONSTRAINT company_year_import_files_company_fk FOREIGN KEY(company_id) REFERENCES company_years(id) ON DELETE CASCADE; END IF; END $$;`);
   await ensureScalableSchema(pool);
