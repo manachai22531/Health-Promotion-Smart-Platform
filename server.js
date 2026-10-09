@@ -32,6 +32,7 @@ const SCHEMA_VERSION = '0211';
 const RUNTIME_ENVIRONMENT = 'production';
 const PRODUCTION_PORT = 3000;
 const PRODUCTION_DATABASE = 'health_check_smart_search';
+const renderDeployment = String(process.env.RENDER_DEPLOYMENT || '').trim().toLowerCase() === 'true';
 function configuredDatabaseName(){
   if(process.env.PGDATABASE)return String(process.env.PGDATABASE).trim();
   if(process.env.DATABASE_URL){try{return decodeURIComponent(new URL(process.env.DATABASE_URL).pathname.replace(/^\//,''))}catch(_){return ''}}
@@ -44,11 +45,13 @@ function enforceProductionOnlyRuntime(){
   const configuredDatabase=configuredDatabaseName();
   const errors=[];
   if(configuredEnvironment!==RUNTIME_ENVIRONMENT)errors.push(`APP_ENV must be ${RUNTIME_ENVIRONMENT}`);
-  if(configuredPort!==PRODUCTION_PORT)errors.push(`PORT must be ${PRODUCTION_PORT}`);
+  if(!renderDeployment&&configuredPort!==PRODUCTION_PORT)errors.push(`PORT must be ${PRODUCTION_PORT}`);
   if(configuredDatabase&&configuredDatabase!==PRODUCTION_DATABASE)errors.push(`PGDATABASE must be ${PRODUCTION_DATABASE}`);
   if(errors.length){console.error('[PRODUCTION-ONLY] Refusing to start: '+errors.join(' | '));process.exit(1)}
   process.env.APP_ENV=RUNTIME_ENVIRONMENT;
-  process.env.PORT=String(PRODUCTION_PORT);
+  // Render supplies its own internal listener port (normally 10000). Keep
+  // the strict port lock for every other production installation.
+  process.env.PORT=String(renderDeployment?configuredPort:PRODUCTION_PORT);
 }
 enforceProductionOnlyRuntime();
 function isNonProductionUrl(value){
