@@ -252,7 +252,10 @@ function lanBasicAccess(req, res, next) {
   // to the server computer without stopping the Node process.
   const address = normalizeClientAddress(req.socket.remoteAddress || '');
   const loopback = address === '127.0.0.1' || address === '::1';
-  if (loopback || runtimeLanEnabled) return next();
+  // Render probes this non-sensitive version endpoint from its private
+  // network. Keep the regular LAN boundary in place for every other route.
+  const renderHealthCheck = renderDeployment && req.path === '/api/version';
+  if (loopback || runtimeLanEnabled || renderHealthCheck) return next();
   res.status(503).type('text/plain; charset=utf-8').send('Local Network Server is currently OFF. Please use the application on the server computer.');
 }
 
