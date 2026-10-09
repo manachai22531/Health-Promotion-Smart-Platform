@@ -1,0 +1,13 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const root=__dirname,html=fs.readFileSync(path.join(root,'app.html'),'utf8'),app=fs.readFileSync(path.join(root,'assets','app.js'),'utf8'),css=fs.readFileSync(path.join(root,'assets','style.css'),'utf8'),pdf=fs.readFileSync(path.join(root,'corporate-circular-pdf.js'),'utf8'),server=fs.readFileSync(path.join(root,'server.js'),'utf8');
+test('annual editor has independent saves for 00-10 and docs',()=>{for(const key of ['00','01','02','03','04','05','06','07','08','09','10','docs'])assert.match(html,new RegExp(`data-save-company-section="${key}"`));assert.match(app,/saveAnnualCompanySectionV76400/)});
+test('contacts are a repeatable block at end of company section',()=>{assert.match(html,/id="companyContactRows"/);assert.match(html,/id="addCompanyContact"/);assert.match(app,/readCompanyContactsV76400/);assert.match(pdf,/o\.contacts=/)});
+test('company payor fields use HIS master catalog and dependent plan',()=>{assert.match(html,/companyPayorMasterOptions/);assert.match(html,/company-payor-code/);assert.match(app,/\/api\/his-payors\?type=/);assert.match(server,/app\.get\('\/api\/his-payors'/)});
+test('subsidiaries are numbered under section 1',()=>{assert.match(app,/subsidiary-index">1\.\$\{index\+1\}<\/span>/);assert.match(pdf,/subsidiaryNumber=index=>`1\.\$\{index\+1\}`/);assert.match(pdf,/drawCompanySectionContinuation/)});
+test('employee program wording and program matrix are present',()=>{assert.match(html,/โปรแกรมพนักงาน \/ โปรแกรมครอบครัว/);assert.match(pdf,/drawPrograms\('โปรแกรมพนักงาน'/);assert.match(html,/data-circular-number="09"/);assert.match(html,/data-circular-number="10"/)});
+test('pdf ordering merges attachments after generated circular/matrix',()=>{assert.match(server,/buildCircularWithCompanyAttachments/);assert.match(server,/mergeCircularAndAttachments\(main/);assert.match(pdf,/drawProgramMatrixPages/)});
+test('duplicate contract appendix page title is removed',()=>{assert.doesNotMatch(pdf,/เอกสารแนบท้ายสัญญาการตรวจสุขภาพประจำปี/);assert.match(pdf,/รายละเอียดเอกสารเวียน \(ต่อ\)/)});
+test('annual editor has resizable middle/right columns and expanded preview',()=>{assert.match(html,/companyYearColumnResizer/);assert.match(app,/initCompanyYearColumnResizer/);assert.match(css,/company-year-v76395-resizer/);assert.match(css,/#companyCircularPdfFrame\{display:block;width:100%/)});
+
+test('installer verifies PDF runtime dependencies before skipping npm ci',()=>{const install=fs.readFileSync(path.join(root,'tools','install.ps1'),'utf8');assert.match(install,/node_modules\\pdf-lib/);assert.match(install,/node_modules\\@pdf-lib\\fontkit/)});

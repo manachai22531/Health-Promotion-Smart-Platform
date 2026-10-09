@@ -1,6 +1,6 @@
 {
   "name": "health-check-smart-search-postgresql",
-  "version": "7.63.97",
+  "version": "7.64.00",
   "private": true,
   "scripts": {
     "start": "node server.js",
@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run typecheck && node --check server.js && node --check relational-store.js && node --test *.test.js",
     "smoke": "node tools/smoke-test.js",
-    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/flow-v76384.js && node --check relational-store.js && node --check tools/app-update-helper.js && node --test release-candidate-v76344-update-helper-survival.test.js release-candidate-v76380-mapped-his-user-sync-filter.test.js release-candidate-v76381-admin-password-baseline.test.js release-candidate-v76382-first-login-password.test.js release-candidate-v76383-first-login-overlay.test.js release-candidate-v76384-checkup-flow.test.js release-candidate-v76385-multi-customer-import.test.js release-candidate-v76386-today-flow.test.js release-candidate-v76387-split-search.test.js release-candidate-v76388-auto-age.test.js release-candidate-v76389-no-finalize-button.test.js release-candidate-v76390-detail-confirm-flow.test.js release-candidate-v76391-worklist-layout.test.js release-candidate-v76392-release-integration.test.js release-candidate-v76394-annual-circular-sections.test.js release-candidate-v76395-fullpage-primary-documents.test.js release-candidate-v76396-programs-docs-tab.test.js release-candidate-v76397-unified-company-pdf.test.js"
+    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/flow-v76384.js && node --check relational-store.js && node --check tools/app-update-helper.js && node --test release-candidate-v76344-update-helper-survival.test.js release-candidate-v76380-mapped-his-user-sync-filter.test.js release-candidate-v76381-admin-password-baseline.test.js release-candidate-v76382-first-login-password.test.js release-candidate-v76383-first-login-overlay.test.js release-candidate-v76384-checkup-flow.test.js release-candidate-v76385-multi-customer-import.test.js release-candidate-v76386-today-flow.test.js release-candidate-v76387-split-search.test.js release-candidate-v76388-auto-age.test.js release-candidate-v76389-no-finalize-button.test.js release-candidate-v76390-detail-confirm-flow.test.js release-candidate-v76391-worklist-layout.test.js release-candidate-v76392-release-integration.test.js release-candidate-v76394-annual-circular-sections.test.js release-candidate-v76395-fullpage-primary-documents.test.js release-candidate-v76396-programs-docs-tab.test.js release-candidate-v76397-unified-company-pdf.test.js release-candidate-v76398-installer-path.test.js release-candidate-v76399-matrix-appendix.test.js release-candidate-v76400-annual-editor-consolidated.test.js"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

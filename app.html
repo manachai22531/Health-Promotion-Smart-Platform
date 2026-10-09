@@ -7,7 +7,7 @@
 <title>Health Check Up Smart Search</title>
 <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
 <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
-<link href="assets/style.css?v=7.63.97-annual-multicompany-primary-pdf" rel="stylesheet"/>
+<link href="assets/style.css?v=7.64.00-annual-editor-consolidated" rel="stylesheet"/>
 </head>
 <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
 <div class="app-version-corner">Version <b data-app-version="">-</b></div>
@@ -1545,18 +1545,22 @@ Content-Type: application/json
  <button type="button" data-company-section="01"><span>01</span> ข้อมูลบริษัท</button>
  <button type="button" data-company-section="02"><span>02</span> ระยะเวลาในการตรวจ</button>
  <button type="button" data-company-section="03"><span>03</span> แพทย์ + พยาบาล</button>
- <button type="button" data-company-section="04"><span>04</span> โปรแกรมโรงพยาบาล / ครอบครัว</button>
+ <button type="button" data-company-section="04"><span>04</span> โปรแกรมพนักงาน / ครอบครัว</button>
  <button type="button" data-company-section="05"><span>05</span> ต้อนรับและการเงิน</button>
  <button type="button" data-company-section="06"><span>06</span> การรายงานผล</button>
  <button type="button" data-company-section="07"><span>07</span> บัญชีลูกหนี้</button>
  <button type="button" data-company-section="08"><span>08</span> เจ้าหน้าที่ขาย</button>
+ <button type="button" data-company-section="09"><span>09</span> ตารางโปรแกรม</button>
+ <button type="button" data-company-section="10"><span>10</span> รายการตรวจเพิ่มเติม</button>
  <button type="button" data-company-section="docs"><span>+</span> เอกสารแนบ</button>
 </nav>
-<div class="company-year-v76394-form">
-<div class="company-year-v76394-info">ข้อมูลรายปีและเอกสารเวียนใช้ข้อมูลชุดเดียวกัน · เรียงหัวข้อตามเอกสารเวียนต้นฉบับ 00–08 · บันทึกแยกตามบริษัทและปี</div>
+<div class="company-year-v76394-form" id="companyYearForm">
+<div class="company-year-v76394-info">หัวข้อ 00–08 เป็นข้อมูลหนังสือเวียน · 09 ตารางเปรียบเทียบโปรแกรมตรวจ (แนบท้าย PDF) · 10 รายการตรวจเพิ่มเติมสำหรับงานรับบริการ</div>
 <datalist id="companyHisPackageOptions"></datalist>
+<datalist id="companyPayorMasterOptions"></datalist>
+<datalist id="companyPayorPlanOptions"></datalist>
 <section class="company-year-v76394-section" data-circular-number="00">
-<header><span class="company-year-v76394-number">00</span><div><strong>ข้อมูลหัวหนังสือ</strong><small>วันที่ เลขที่หนังสือ เรื่อง และหน่วยงานที่รับหนังสือ</small></div></header>
+<header><span class="company-year-v76394-number">00</span><div><strong>ข้อมูลหัวหนังสือ</strong><small>วันที่ เลขที่หนังสือ เรื่อง และหน่วยงานที่รับหนังสือ</small></div><button class="button secondary company-section-save" data-save-company-section="00" type="button">บันทึกหัวข้อ 00</button></header>
 <div class="company-year-v76394-fields three">
 <label>วันที่เอกสาร<input id="letter_documentDate" type="date"/></label>
 <label>เลขที่หนังสือ<input id="letter_documentNo" maxlength="1500" placeholder="เช่น CORP/2569/001"/></label>
@@ -1565,7 +1569,7 @@ Content-Type: application/json
 <label class="company-circular-check"><input id="letter_walkIn" type="checkbox" checked/> Walk in ที่โรงพยาบาลวิมุต</label>
 </div></section>
 <section class="company-year-v76394-section" data-circular-number="01">
-<header class="annual-company-header"><span class="company-year-v76394-number">01</span><div><strong>ข้อมูลบริษัท</strong><small>บริษัทหลักและบริษัทลูกในเอกสารเวียนประจำปีเดียวกัน</small></div><button class="button secondary" id="addCircularSubsidiary" type="button">+ เพิ่มบริษัทลูก</button></header>
+<header class="annual-company-header"><span class="company-year-v76394-number">01</span><div><strong>ข้อมูลบริษัท</strong><small>บริษัทหลัก บริษัทลูก Payor และผู้ประสานงานในเอกสารเวียนประจำปีเดียวกัน</small></div><div class="company-section-actions"><button class="button secondary" id="addCircularSubsidiary" type="button">+ เพิ่มบริษัทลูก</button><button class="button secondary company-section-save" data-save-company-section="01" type="button">บันทึกหัวข้อ 01</button></div></header>
 <div class="annual-company-primary-label">บริษัทหลัก · ข้อมูลบริษัทและปีเดิมของระบบ</div>
 <div class="company-year-v76394-fields three">
 <label>ชื่อบริษัท <span class="required">*</span><input id="companyName" maxlength="150" required placeholder="ชื่อบริษัท"/></label>
@@ -1575,35 +1579,41 @@ Content-Type: application/json
 <label>เลขที่ผู้เสียภาษี<input id="letter_taxId" maxlength="1500"/></label>
 <label>จำนวนพนักงาน<input id="letter_employeeCount" maxlength="1500" inputmode="numeric"/></label>
 <label class="wide">ที่อยู่บริษัท<textarea id="letter_address" rows="2" maxlength="3500"></textarea></label>
-<label>ผู้ประสานงานบริษัท<input id="letter_contactPerson" maxlength="1500"/></label>
-<label>เบอร์ติดต่อ<input id="letter_contactPhone" maxlength="1500"/></label>
-<label>Payor Code<input id="letter_payorCode" maxlength="1500"/></label>
-<label>Payor Plan<input id="letter_payorPlan" maxlength="1500"/></label>
+<label>Payor Code<input id="letter_payorCode" class="company-payor-code" list="companyPayorMasterOptions" maxlength="1500" autocomplete="off" placeholder="ค้นหารหัสหรือชื่อ Payor จาก HIS Master"/></label>
+<label>Payor Plan<input id="letter_payorPlan" class="company-payor-plan" list="companyPayorPlanOptions" maxlength="1500" autocomplete="off" placeholder="เลือก Plan ที่สัมพันธ์กับ Payor"/></label>
+<label class="wide company-payor-master-status" id="companyPayorMasterStatus">Payor Code / Plan ใช้ Master HIS ชุดเดียวกับหน้า Booking</label>
+<input id="letter_contactPerson" type="hidden"/><input id="letter_contactPhone" type="hidden"/>
 </div>
 <div id="circularSubsidiaryRows" class="annual-company-subsidiary-list" aria-label="บริษัทลูกในเอกสารเวียน"></div>
 <p class="annual-company-info">ข้อมูลบริษัทลูกใช้ประกอบเอกสารเวียนนี้เท่านั้น ไม่เปลี่ยนข้อมูลบริษัทหลักหรือทะเบียนบริษัทเดิม</p>
+<section class="annual-company-contacts" aria-label="ผู้ประสานงานบริษัท">
+  <div class="editor-heading"><div><strong>ผู้ประสานงานบริษัท</strong><span>อยู่ท้ายหัวข้อข้อมูลบริษัท · เพิ่มได้มากกว่า 1 คน</span></div><button class="button secondary" id="addCompanyContact" type="button">+ เพิ่มผู้ประสานงาน</button></div>
+  <div class="annual-company-contact-heading" aria-hidden="true"><span>#</span><span>ชื่อผู้ประสานงาน</span><span>เบอร์ติดต่อ</span><span>อีเมล</span><span>รายละเอียด / บริษัทที่ดูแล</span><span>ลบ</span></div>
+  <div id="companyContactRows" class="annual-company-contact-rows"></div>
+  <p id="companyContactEmpty" class="annual-program-empty">ยังไม่มีผู้ประสานงาน</p>
+</section>
 </section>
 <section class="company-year-v76394-section" data-circular-number="02">
-<header><span class="company-year-v76394-number">02</span><div><strong>ระยะเวลาในการตรวจ</strong><small>ใช้ช่วงวันที่ตรวจของบริษัท/ปีเดิมในการออก PDF โดยอัตโนมัติ</small></div></header>
+<header><span class="company-year-v76394-number">02</span><div><strong>ระยะเวลาในการตรวจ</strong><small>ใช้ช่วงวันที่ตรวจของบริษัท/ปีเดิมในการออก PDF โดยอัตโนมัติ</small></div><button class="button secondary company-section-save" data-save-company-section="02" type="button">บันทึกหัวข้อ 02</button></header>
 <div class="company-year-v76394-fields two">
 <label>วันที่เริ่มตรวจ<input id="companyCheckupStartDate" type="date"/></label>
 <label>วันที่สิ้นสุดตรวจ<input id="companyCheckupEndDate" type="date"/></label>
 </div></section>
 <section class="company-year-v76394-section" data-circular-number="03">
-<header><span class="company-year-v76394-number">03</span><div><strong>แพทย์ + พยาบาล</strong><small>เงื่อนไขการให้บริการและสิทธิประโยชน์ตามต้นฉบับ</small></div></header>
+<header><span class="company-year-v76394-number">03</span><div><strong>แพทย์ + พยาบาล</strong><small>เงื่อนไขการให้บริการและสิทธิประโยชน์ตามต้นฉบับ</small></div><button class="button secondary company-section-save" data-save-company-section="03" type="button">บันทึกหัวข้อ 03</button></header>
 <div class="company-year-v76394-fields two">
 <label class="company-circular-check"><input id="letter_hearResults" type="checkbox"/> ตรวจแบบฟังผล</label>
 <label class="company-circular-check"><input id="letter_mealCoupon" type="checkbox"/> คูปองอาหาร</label>
 <label class="wide">รายละเอียดแพทย์และพยาบาลเพิ่มเติม<textarea id="letter_doctorDetails" rows="2" maxlength="3500"></textarea></label>
 </div></section>
 <section class="company-year-v76394-section" data-circular-number="04">
-<header><span class="company-year-v76394-number">04</span><div><strong>โปรแกรมที่โรงพยาบาล / โปรแกรมครอบครัว</strong><small>กำหนดโปรแกรมโรงพยาบาลและครอบครัวก่อน · รายการวางบิล/เงินสดอยู่ด้านล่างและทำงานแยกจากเอกสารเวียน</small></div></header>
+<header><span class="company-year-v76394-number">04</span><div><strong>โปรแกรมพนักงาน / โปรแกรมครอบครัว</strong><small>กำหนดโปรแกรมพนักงานและครอบครัวก่อน · รายการวางบิล/เงินสดอยู่ด้านล่างและทำงานแยกจากเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="04" type="button">บันทึกหัวข้อ 04</button></header>
 <div class="annual-program-editor-grid" id="annualProgramEditor">
   <section class="annual-program-panel" data-program-kind="hospital">
-    <div class="editor-heading"><div><strong>โปรแกรมที่โรงพยาบาล</strong><span>ค้นหาจาก Package HIS หรือกรอกโปรแกรมเอง · ใช้สำหรับเอกสารเวียน</span></div><button class="button secondary annual-program-add" data-add-annual-program="hospital" type="button">+ เพิ่มโปรแกรม</button></div>
+    <div class="editor-heading"><div><strong>โปรแกรมพนักงาน</strong><span>ค้นหาจาก Package HIS หรือกรอกโปรแกรมเอง · ใช้สำหรับเอกสารเวียน</span></div><button class="button secondary annual-program-add" data-add-annual-program="hospital" type="button">+ เพิ่มโปรแกรม</button></div>
     <div class="annual-program-table-heading" aria-hidden="true"><span>ชื่อโปรแกรม / Package HIS</span><span>ราคา/หน่วย</span><span>จำนวน</span><span>รวม</span><span>ลบ</span></div>
     <div id="annualHospitalProgramRows" class="annual-program-rows"></div>
-    <p id="annualHospitalProgramEmpty" class="annual-program-empty">ยังไม่มีโปรแกรมที่โรงพยาบาล</p>
+    <p id="annualHospitalProgramEmpty" class="annual-program-empty">ยังไม่มีโปรแกรมพนักงาน</p>
   </section>
   <section class="annual-program-panel" data-program-kind="family">
     <div class="editor-heading"><div><strong>โปรแกรมครอบครัว</strong><span>เพิ่มแพ็กเกจสำหรับครอบครัวได้หลายรายการ</span></div><button class="button secondary annual-program-add" data-add-annual-program="family" type="button">+ เพิ่มโปรแกรม</button></div>
@@ -1613,40 +1623,58 @@ Content-Type: application/json
   </section>
 </div>
 <textarea id="letter_hospitalPrograms" hidden aria-hidden="true"></textarea><textarea id="letter_familyPrograms" hidden aria-hidden="true"></textarea>
-<div class="annual-program-divider"><strong>รายการตรวจเพิ่มเติม (งานรับบริการ)</strong><small>แยกจากรายการโปรแกรมในเอกสารเวียน · ยังคงการวางบิลและชำระเงินตามเดิม</small></div>
-<section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (วางบิล)</strong><span>Package HIS · เรียกเก็บจากบริษัท</span></div><button class="button secondary" id="addBillingPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="billingPackageRows"></div><div class="empty-inline compact" id="billingPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (วางบิล)</div></section>
-<section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (เงินสด)</strong><span>Package HIS · ผู้รับบริการชำระเงิน</span></div><button class="button secondary" id="addCashPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="cashPackageRows"></div><div class="empty-inline compact" id="cashPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (เงินสด)</div></section>
 </section>
 <section class="company-year-v76394-section" data-circular-number="05">
-<header><span class="company-year-v76394-number">05</span><div><strong>ต้อนรับและการเงิน</strong><small>การแสดงสิทธิ์เพื่อรับการตรวจ และข้อกำหนดการรับบริการ</small></div></header>
+<header><span class="company-year-v76394-number">05</span><div><strong>ต้อนรับและการเงิน</strong><small>การแสดงสิทธิ์เพื่อรับการตรวจ และข้อกำหนดการรับบริการ</small></div><button class="button secondary company-section-save" data-save-company-section="05" type="button">บันทึกหัวข้อ 05</button></header>
 <div class="company-year-v76394-fields"><label>การแสดงสิทธิ์ / ต้อนรับและการเงิน<textarea id="letter_proofDetails" rows="3" maxlength="3500"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="06">
-<header><span class="company-year-v76394-number">06</span><div><strong>การรายงานผล</strong><small>แก้ไขเงื่อนไขการรายงานผลของปีนี้ที่เดียว และนำไปออกเอกสารเวียน</small></div></header>
+<header><span class="company-year-v76394-number">06</span><div><strong>การรายงานผล</strong><small>แก้ไขเงื่อนไขการรายงานผลของปีนี้ที่เดียว และนำไปออกเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="06" type="button">บันทึกหัวข้อ 06</button></header>
 <div class="company-year-v76394-fields"><label>เงื่อนไขการรายงานผล<textarea id="companyReportConditions" maxlength="1500" rows="3" placeholder="เช่น ส่งผลตรวจทางอีเมลภายใน 7 วัน"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="07">
-<header><span class="company-year-v76394-number">07</span><div><strong>บัญชีลูกหนี้</strong><small>รายละเอียดการเรียกเก็บเงินและเครดิตตามเอกสารเวียน</small></div></header>
+<header><span class="company-year-v76394-number">07</span><div><strong>บัญชีลูกหนี้</strong><small>รายละเอียดการเรียกเก็บเงินและเครดิตตามเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="07" type="button">บันทึกหัวข้อ 07</button></header>
 <div class="company-year-v76394-fields"><label>รายละเอียดบัญชีลูกหนี้ / เงื่อนไขการชำระเงิน<textarea id="letter_debtorDetails" maxlength="3500" rows="3"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="08">
-<header><span class="company-year-v76394-number">08</span><div><strong>เจ้าหน้าที่ขาย</strong><small>ใช้ชื่อและเบอร์โทรของเจ้าหน้าที่ขายปีนี้โดยตรง ไม่ต้องกรอกซ้ำ</small></div></header>
+<header><span class="company-year-v76394-number">08</span><div><strong>เจ้าหน้าที่ขาย</strong><small>ใช้ชื่อและเบอร์โทรของเจ้าหน้าที่ขายปีนี้โดยตรง ไม่ต้องกรอกซ้ำ</small></div><button class="button secondary company-section-save" data-save-company-section="08" type="button">บันทึกหัวข้อ 08</button></header>
 <div class="company-year-v76394-fields two"><label>ชื่อเจ้าหน้าที่ขาย<input id="companySalesName" maxlength="150" placeholder="ชื่อ–นามสกุล"/></label><label>เบอร์โทร<input id="companySalesPhone" maxlength="30" type="tel"/></label><label class="wide">หมายเหตุเฉพาะเอกสารเวียน (ถ้ามี)<textarea id="letter_salesDetails" maxlength="3500" rows="2"></textarea></label></div>
 </section>
+<section class="company-year-v76394-section" data-circular-number="09" id="companyProgramMatrixSection">
+ <header><span class="company-year-v76394-number">09</span><div><strong>ตารางโปรแกรม</strong><small>สร้างตารางเปรียบเทียบรายการตรวจตามเอกสารตัวอย่าง · เลือก ✓, ไม่รวม (เทา) หรือช่องว่างแยกแต่ละโปรแกรมได้</small></div><button class="button secondary company-section-save" data-save-company-section="09" type="button">บันทึกหัวข้อ 09</button></header>
+ <div class="company-matrix-toolbar"><button type="button" class="button secondary" id="matrixLoadExample">ใช้ตารางตัวอย่าง 32 รายการ</button><button type="button" class="button secondary" id="matrixAddProgram">+ เพิ่มโปรแกรม</button><button type="button" class="button secondary" id="matrixAddRow">+ เพิ่มรายการตรวจ</button></div>
+ <p class="company-matrix-help">แก้ชื่อโปรแกรม ราคาต่อคน ชื่อรายการตรวจภาษาอังกฤษ/ไทย และสถานะของแต่ละโปรแกรมได้ • ตารางนี้จะถูกสร้างเป็นหน้าแนบท้ายเอกสารเวียน ก่อน PDF ที่อัปโหลด</p>
+ <div class="company-matrix-scroll"><table class="company-matrix-table" id="companyProgramMatrixTable"><thead id="companyProgramMatrixHead"></thead><tbody id="companyProgramMatrixBody"></tbody><tfoot id="companyProgramMatrixFoot"></tfoot></table></div>
+ <label class="company-matrix-note">หมายเหตุใต้ตาราง (ถ้ามี)<textarea id="companyProgramMatrixNote" rows="2" maxlength="1000" placeholder="เช่น พนักงานใช้สิทธิ์ฉีดวัคซีนตามเงื่อนไขบริษัท"></textarea></label>
+ <p id="companyMatrixStatus" class="import-status" aria-live="polite"></p>
+</section>
+<section class="company-year-v76394-section" data-circular-number="10" id="companyAdditionalPackagesSection">
+ <header><span class="company-year-v76394-number">10</span><div><strong>รายการตรวจเพิ่มเติม</strong><small>งานรับบริการ · แยกรายการที่บริษัทวางบิล และรายการที่ผู้รับบริการชำระเงิน</small></div><button class="button secondary company-section-save" data-save-company-section="10" type="button">บันทึกหัวข้อ 10</button></header>
+ <section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (วางบิล)</strong><span>Package HIS · เรียกเก็บจากบริษัท</span></div><button class="button secondary" id="addBillingPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="billingPackageRows"></div><div class="empty-inline compact" id="billingPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (วางบิล)</div></section>
+ <section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (เงินสด)</strong><span>Package HIS · ผู้รับบริการชำระเงิน</span></div><button class="button secondary" id="addCashPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="cashPackageRows"></div><div class="empty-inline compact" id="cashPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (เงินสด)</div></section>
+</section>
 <section class="company-year-v76394-section company-year-v76394-secondary" id="companyYearAttachmentsSection">
-<header><span class="company-year-v76394-number">+</span><div><strong>เอกสารแนบ</strong><small>อัปโหลด PDF เพิ่มเติมและเข้าถึงไฟล์เดิมจากหน้านี้ โดยไม่ทับ PDF เอกสารหลัก</small></div></header>
+<header><span class="company-year-v76394-number">+</span><div><strong>เอกสารแนบ</strong><small>อัปโหลด PDF เพิ่มเติมและเข้าถึงไฟล์เดิมจากหน้านี้ โดยไม่ทับ PDF เอกสารหลัก</small></div><button class="button secondary company-section-save" data-save-company-section="docs" type="button">บันทึกและอัปเดตตัวอย่าง</button></header>
 <div class="company-year-v76395-document-card"><div class="company-year-v76395-document-label"><strong>เอกสารแนบ — PDF เดิมและไฟล์ที่อัปโหลดเพิ่มเติม</strong><span>PDF เดิมยังอยู่ ไม่ถูกลบหรือย้ายทับ</span></div><input id="companyAttachmentFile" type="file" accept=".pdf,application/pdf" multiple aria-label="เลือกเอกสารแนบ PDF"/><button class="button secondary" id="uploadCompanyAttachments" type="button">อัปโหลดเอกสารแนบ</button><div class="company-year-v76395-file-list" id="companyAttachmentList"></div><p class="company-year-v76395-help">รองรับหลายไฟล์ PDF ไม่เกิน 20 MB ต่อไฟล์ · ต้องบันทึกข้อมูลปีอย่างน้อยหนึ่งครั้ง</p></div>
 <div class="company-year-v76394-fields"><label>หมายเหตุข้อมูลรายปี<textarea id="companyNote" maxlength="500" rows="2" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></label><label>รายละเอียดเอกสารแนบท้าย (ถ้ามี)<textarea id="letter_appendixDetails" maxlength="3500" rows="2"></textarea></label></div>
 </section>
 </div>
-<div class="company-year-v76395-right"><section class="company-year-v76395-document-hub" id="companyYearDocumentHub" hidden aria-hidden="true">
+<div class="company-year-v76395-resizer" id="companyYearColumnResizer"
+     role="separator" tabindex="0" aria-orientation="vertical"
+     aria-label="ลากเพื่อปรับความกว้างพื้นที่แก้ไขข้อมูลรายปี"
+     aria-controls="companyYearForm companyYearPdfPreview"
+     aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+     title="ลากซ้ายหรือขวาเพื่อปรับความกว้าง • ปุ่มลูกศรปรับครั้งละ 24px • ดับเบิลคลิกเพื่อคืนค่าเดิม">
+  <span aria-hidden="true" class="company-year-v76395-resizer-grip"></span>
+</div>
+<div class="company-year-v76395-right" id="companyYearPdfPreview"><section class="company-year-v76395-document-hub" id="companyYearDocumentHub" hidden aria-hidden="true">
 <header><div><strong>เอกสารหลักของบริษัท / ปี</strong><small>สร้างจากข้อมูล 00–08 · จัดการไฟล์แนบที่แท็บเอกสารแนบด้านซ้าย</small></div></header>
 <div class="company-year-v76395-document-card main"><div class="company-year-v76395-document-label"><strong>เอกสารหลัก — PDF ที่สร้างจากระบบ</strong><span id="companyMainPdfStatus">ยังไม่มี PDF หลัก</span></div><div id="companyMainPdfCurrent" class="company-year-v76395-file-list"></div><button class="button primary" id="companyGeneratePrimaryPdf" type="button">สร้าง PDF และบันทึกเป็นเอกสารหลัก</button><details><summary>ประวัติ PDF เอกสารหลัก</summary><div id="companyMainPdfHistory" class="company-year-v76395-file-list"></div></details></div>
 
 <p id="companyDocumentHubStatus" class="import-status" aria-live="polite"></p>
 </section>
 <aside class="company-circular-preview" id="companyCircularEditor" data-permission="companyEdit">
-<header class="company-circular-head"><div><strong>ตัวอย่างเอกสารเวียน PDF</strong><span>แสดงเอกสาร A4 · เมื่อบันทึกจะตั้งเป็นเอกสารหลักโดยอัตโนมัติ</span></div><button class="button secondary" id="previewCircularPdf" type="button">ดูตัวอย่าง PDF</button></header>
+<header class="company-circular-head"><div><strong>ตัวอย่างเอกสารเวียน PDF + เอกสารแนบ</strong><span>เอกสารเวียน 00–08 → ตารางโปรแกรม 09 → PDF เอกสารแนบ ตามลำดับ · กดบันทึกแต่ละหัวข้อเพื่ออัปเดตตัวอย่าง</span></div><button class="button secondary" id="previewCircularPdf" type="button">รีเฟรชตัวอย่าง PDF</button></header>
 <div id="companyCircularSaved" class="annual-pdf-saved-hint">ยังไม่บันทึกเอกสาร</div>
 <div class="company-circular-summary" id="companyCircularSummary" hidden></div>
 <div id="companyCircularInlinePreview" class="company-circular-inline-preview" hidden><iframe id="companyCircularPdfFrame" title="ตัวอย่าง PDF เอกสารเวียน" loading="lazy"></iframe></div>
@@ -2404,7 +2432,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div aria-hidden="true" class="legacy-pdf-compat" hidden=""><button data-patient-pdf="opd-claim-th"></button><button data-patient-pdf="opd-claim-en"></button><button data-patient-pdf="medical-certificate-th"></button><button data-patient-pdf="medical-certificate-en"></button><button data-patient-pdf="medical-5-diseases-th"></button><button data-patient-pdf="medical-5-diseases-en"></button></div>
 <div aria-hidden="true" hidden="" id="pdfFormSetupOverlay"><input id="pdfSetupX" type="number"/><input id="pdfSetupY" type="number"/><input id="pdfSetupSize" type="number"/><input id="pdfSetupTemplate" type="file"/><select id="pdfSetupForm"></select><select id="pdfSetupField"></select><div id="pdfSetupFieldList"></div><span id="pdfSetupStatus"></span><button id="openPdfFormSetup"></button><button id="savePdfSetupField"></button><button id="uploadPdfSetupTemplate"></button></div>
 <script src="assets/vendor/xlsx.full.min.js"></script>
-<script src="assets/app.js?v=7.63.97-annual-multicompany-primary-pdf"></script>
+<script src="assets/app.js?v=7.64.00-annual-editor-consolidated"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
 <script src="assets/flow-v76384.js?v=7.63.94-worklist-confirmation-emr-layout"></script>
 </body>

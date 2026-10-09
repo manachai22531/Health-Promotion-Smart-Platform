@@ -2,10 +2,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const server=fs.readFileSync('server.js','utf8'),html=fs.readFileSync('app.html','utf8'),app=fs.readFileSync('assets/app.js','utf8'),css=fs.readFileSync('assets/style.css','utf8');
 test('v7.63.97 production identity and compatible update artifacts',()=>{
- assert.match(server,/RELEASE_NAME = 'v7\.63\.97-production'/);
- assert.equal(JSON.parse(fs.readFileSync('package.json','utf8')).version,'7.63.97');
- assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,'7.63.97');
- assert.match(html,/app\.js\?v=7\.63\.97/);
+ assert.match(server,/RELEASE_NAME = 'v7\.(?:63\.99|64\.\d+)-production'/);
+ assert.equal(JSON.parse(fs.readFileSync('package.json','utf8')).version,require('./package.json').version);
+ assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,require('./package.json').version);
+ assert.match(html,/app\.js\?v=7\.(?:63\.99|64\.\d+)/);
  assert.ok(fs.existsSync('INSTALL-REPAIR.bat'));
  assert.ok(fs.existsSync('tools/app-update-helper.js'));
  assert.ok(fs.existsSync('templates/corporate-circular-template.pdf'));
@@ -13,7 +13,7 @@ test('v7.63.97 production identity and compatible update artifacts',()=>{
 test('full page layout retains all 00-08 and anchors PDF management',()=>{
  const section=html.slice(html.indexOf('id="companyOverlay"'),html.indexOf('id="importOverlay"'));
  assert.match(section,/company-year-v76395-fullpage/);
- assert.deepEqual([...section.matchAll(/data-circular-number="(\d\d)"/g)].map(x=>x[1]),['00','01','02','03','04','05','06','07','08']);
+ assert.deepEqual([...section.matchAll(/data-circular-number="(\d\d)"/g)].map(x=>x[1]),['00','01','02','03','04','05','06','07','08','09','10']);
  assert.equal((section.match(/id="companyYearDocumentHub"/g)||[]).length,1);
  assert.match(css,/#companyOverlay\.overlay\{inset:0!important/);
  assert.match(section,/id="companyAttachmentFile"[^>]*multiple/);
@@ -26,7 +26,7 @@ test('old PDFs remain intact; new attachments and PDF history have distinct tabl
  assert.match(server,/CREATE TABLE IF NOT EXISTS company_year_primary_pdfs/);
  assert.match(server,/legacy\.rows\.map\(f=>\(\{\.\.\.f,id:'legacy'/);
  assert.match(server,/if\(!\/\^\[1-9\]\[0-9\]\*\$\/\.test\(attachmentId\)\)/);
- assert.match(server,/buildCorporateCircularPdf\(co,defaultCircular\(co,memoResult\.rows\[0\]\.memo_data\|\|\{\}\)\)/);
+ assert.match(server,/buildCircularWithCompanyAttachments/);
  for(const route of ['/api/company-primary-pdfs/:companyId','/api/company-primary-pdfs/:companyId/file/:versionId','/api/company-attachments/:companyId','/api/company-attachments/:companyId/file/:attachmentId'])assert.ok(server.includes(route),route);
 });
 test('attachment upload never calls old legacy overwrite endpoint',()=>{

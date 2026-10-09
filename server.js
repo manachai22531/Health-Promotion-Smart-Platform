@@ -14,6 +14,7 @@ const { spawn } = require('child_process');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const { normalizeCircular, defaultCircular, buildCorporateCircularPdf } = require('./corporate-circular-pdf');
+const {mergeCircularAndAttachments} = require('./company-circular-attachment-merge');
 const { Pool } = require('pg');
 const QRCode = require('qrcode');
 const bwipjs = require('bwip-js');
@@ -25,7 +26,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.63.97-production';
+const RELEASE_NAME = 'v7.64.00-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0211';
 
@@ -51,8 +52,6 @@ function enforceProductionOnlyRuntime(){
   if(configuredDatabase&&configuredDatabase!==PRODUCTION_DATABASE)errors.push(`PGDATABASE must be ${PRODUCTION_DATABASE}`);
   if(errors.length){console.error('[PRODUCTION-ONLY] Refusing to start: '+errors.join(' | '));process.exit(1)}
   process.env.APP_ENV=RUNTIME_ENVIRONMENT;
-  // Render health checks use its internal port. Keep the strict port lock for
-  // every other production installation.
   process.env.PORT=String(renderDeployment?configuredPort:PRODUCTION_PORT);
 }
 enforceProductionOnlyRuntime();
@@ -951,9 +950,9 @@ async function ensureDatabase() {
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`);
 
-  // The application creates several tables below with foreign keys to the
-  // normalized company schema. Bootstrap that schema first so a brand-new
-  // database can start without requiring a separate installer step.
+  // Tables created below reference the normalized company schema. Bootstrap
+  // it first so a brand-new PostgreSQL database can start without an
+  // installer-specific preflight step.
   await ensureRelationalSchema(pool);
 
 await pool.query(`DO $$ DECLARE legacy_audit text := 'ocr_' || 'sta' || 'ging_audit'; BEGIN
@@ -2766,11 +2765,22 @@ app.put('/api/company-circulars/:companyId',localOnly,staffPermissionRequired('c
     res.set('Cache-Control','no-store').json({ok:true,companyId:co.id,updatedAt:result.rows[0].updated_at});
   }catch(error){res.status(400).json({error:'บันทึกหนังสือเวียนไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}
 });
+// The same PDF composition is used by live preview, on-demand download and the
+// versioned primary PDF. Legacy uploads are read-only and never overwritten.
+async function buildCircularWithCompanyAttachments(co,memo){
+  const main = await buildCorporateCircularPdf(co,defaultCircular(co,memo||{}));
+  const [legacy,added] = await Promise.all([
+    pool.query('SELECT file_name,file_data FROM company_year_documents WHERE company_id=$1',[co.id]),
+    pool.query('SELECT file_name,file_data FROM company_year_attachments WHERE company_year_id=$1 ORDER BY id ASC',[co.id])
+  ]);
+  return mergeCircularAndAttachments(main,[...legacy.rows,...added.rows]);
+}
 app.post('/api/company-circulars/:companyId/preview',localOnly,staffPermissionRequired('companyView'),async(req,res)=>{
   try{
     const co=await circularCompany(req.params.companyId);
     if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});
-    const bytes=await buildCorporateCircularPdf(co,defaultCircular(co,req.body?.item||{}));
+    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,req.body?.item||{});
+    res.set('X-Merged-Attachments',String(attachmentCount));
     res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-preview.pdf"','Cache-Control':'private, no-store'});
     res.send(bytes);
   }catch(error){res.status(400).json({error:'ดูตัวอย่างเอกสารเวียนไม่ได้',detail:String(error.message||error).slice(0,350)})}
@@ -2780,13 +2790,26 @@ app.get('/api/company-circulars/:companyId/pdf',localOnly,staffPermissionRequire
     const co=await circularCompany(req.params.companyId);
     if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});
     const row=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];
-    const bytes=await buildCorporateCircularPdf(co,defaultCircular(co,row?.memo_data||{}));
+    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,row?.memo_data||{});
+    res.set('X-Merged-Attachments',String(attachmentCount));
     const fileName=`Corporate-Circular_${String(co.code||'company').replace(/[^A-Za-z0-9_-]/g,'_')}_${String(co.year||'year').replace(/[^0-9]/g,'')}.pdf`;
     res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,'Cache-Control':'private, no-store'});
     res.send(bytes);
   }catch(error){console.error('[COMPANY CIRCULAR PDF]',error);res.status(500).json({error:'สร้างหนังสือเวียน PDF ไม่สำเร็จ',detail:String(error.message||error).slice(0,350)})}
 });
 // v7.63.95: primary circular documents are separate from all user-uploaded attachments.
+// Live preview includes attachments currently stored, even if the last saved
+// primary PDF was generated before the latest attachment upload.
+app.get('/api/company-primary-pdfs/:companyId/preview',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{
+  try{
+    const co=await circularCompany(req.params.companyId);
+    if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปี'});
+    const row=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];
+    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,row?.memo_data||{});
+    res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-with-attachments-preview.pdf"','Cache-Control':'private, no-store','X-Merged-Attachments':String(attachmentCount)});
+    res.send(bytes);
+  }catch(error){console.error('[COMPANY COMBINED PDF PREVIEW]',error);res.status(422).json({error:'ไม่สามารถสร้างตัวอย่าง PDF ที่รวมเอกสารแนบ',detail:String(error.message||error).slice(0,350)})}
+});
 // Batch main-document metadata for company search and customer views; never return PDF bytes here.
 app.get('/api/company-primary-pdfs',localOnly,staffPermissionRequired('companyPdfView'),async(_req,res)=>{
   try{const result=await pool.query('SELECT DISTINCT ON (company_year_id) company_year_id,id,file_name,file_size,created_at FROM company_year_primary_pdfs ORDER BY company_year_id,id DESC');res.set('Cache-Control','no-store').json({ok:true,items:result.rows});}
@@ -2807,13 +2830,14 @@ app.post('/api/company-primary-pdfs/:companyId',localOnly,staffPermissionRequire
     // Regenerate ONLY from previously saved annual data and corporate circular memo.
     const memoResult=await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id]);
     if(!memoResult.rows.length)return res.status(409).json({error:'กรุณาบันทึกข้อมูลเอกสารเวียนก่อนสร้าง PDF หลัก'});
-    const bytes=Buffer.from(await buildCorporateCircularPdf(co,defaultCircular(co,memoResult.rows[0].memo_data||{})));
+    const merged=await buildCircularWithCompanyAttachments(co,memoResult.rows[0].memo_data||{});
+    const bytes=Buffer.from(merged.bytes);
     if(bytes.length<5||bytes.subarray(0,5).toString()!=='%PDF-')throw new Error('รูปแบบ PDF ไม่ถูกต้อง');
     const fileName=`Corporate_Circular_${String(co.code||'Company').replace(/[^A-Za-z0-9_-]/g,'_')}_${String(co.year||'Year').replace(/[^0-9]/g,'')}_${Date.now()}.pdf`;
     const actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
     const saved=(await pool.query('INSERT INTO company_year_primary_pdfs(company_year_id,file_name,file_data,file_size,created_by) VALUES($1,$2,$3,$4,$5) RETURNING id,file_name,file_size,created_at,created_by',[co.id,fileName,bytes,bytes.length,actor])).rows[0];
-    res.set('Cache-Control','no-store').status(201).json({ok:true,item:saved});
-  }catch(error){console.error('[PRIMARY CIRCULAR PDF]',error);res.status(500).json({error:'สร้าง PDF หลักไม่สำเร็จ',detail:String(error.message||error).slice(0,300)});}
+    res.set('Cache-Control','no-store').status(201).json({ok:true,item:saved,mergedAttachments:merged.attachmentCount,pageCount:merged.pageCount||null});
+  }catch(error){console.error('[PRIMARY CIRCULAR PDF]',error);res.status(422).json({error:'สร้าง PDF หลักไม่สำเร็จ กรุณาตรวจสอบเอกสารแนบ',detail:String(error.message||error).slice(0,350)});}
 });
 app.get('/api/company-primary-pdfs/:companyId/file/:versionId',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{
   try {

@@ -7,7 +7,7 @@ const server=fs.readFileSync('server.js','utf8');
 const updater=require('./tools/app-update-helper');
 
 test('v7.63.44+ release identity is production only',()=>{
-  assert.match(server,/RELEASE_NAME = 'v7\.63\.(?:4[4-9]|[5-9]\d)-production'/);
+  assert.match(server,/RELEASE_NAME = 'v7\.(?:63\.\d+|64\.\d+)-production'/);
   assert.match(server,/const RUNTIME_ENVIRONMENT = 'production'/);
 });
 

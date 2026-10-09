@@ -11,8 +11,8 @@ const NEW_HASH = '85dd2de461d3cc8e';
 const OLD_HASH = '3f708bf99ab7e362';
 
 test('release keeps the v7.63.81 administrator password baseline', () => {
-  assert.match(read('VERSION.txt').trim(), /^v7\.63\.(?:8[1-9]|9\d)$/);
-  assert.match(require('./package.json').version, /^7\.63\.(?:8[1-9]|9\d)$/);
+  assert.match(read('VERSION.txt').trim(), /^v7\.(?:63\.(?:8[1-9]|9\d)|64\.\d+)$/);
+  assert.match(require('./package.json').version, /^7\.(?:63\.(?:8[1-9]|9\d)|64\.\d+)$/);
 });
 
 test('runtime source no longer contains the legacy plaintext default password', () => {

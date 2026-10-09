@@ -5,16 +5,16 @@ const Module=require('node:module'),originalLoad=Module._load;
 let pdf;try{Module._load=function(name,...args){if(name==='pdf-lib')return {PDFDocument:{},rgb:()=>({})};if(name==='@pdf-lib/fontkit')return {};return originalLoad.call(this,name,...args)};pdf=require('./corporate-circular-pdf')}finally{Module._load=originalLoad}
 const section=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
 test('v7.63.97 release and migration preservation',()=>{
- assert.equal(require('./package.json').version,'7.63.97');
- assert.match(fs.readFileSync('server.js','utf8'),/RELEASE_NAME = 'v7\.63\.97-production'/);
- assert.match(html,/app\.js\?v=7\.63\.97/);
+ assert.match(require('./package.json').version,/^7\.(?:63\.99|64\.\d+)$/);
+ assert.match(fs.readFileSync('server.js','utf8'),/RELEASE_NAME = 'v7\.(?:63\.99|64\.\d+)-production'/);
+ assert.match(html,/app\.js\?v=7\.(?:63\.99|64\.\d+)/);
  assert.match(fs.readFileSync('server.js','utf8'),/const SCHEMA_VERSION = '0211'/);
  assert.ok(fs.existsSync('tools/app-update-helper.js'));
  assert.ok(fs.existsSync('INSTALL-REPAIR.bat'));
 });
 test('00-08 unchanged, separate docs nav and upload now lives in Docs section',()=>{
  const body=section('id="companyOverlay"','id="importOverlay"');
- assert.deepEqual([...body.matchAll(/data-circular-number="(\d\d)"/g)].map(m=>m[1]),['00','01','02','03','04','05','06','07','08']);
+ assert.deepEqual([...body.matchAll(/data-circular-number="(\d\d)"/g)].map(m=>m[1]),['00','01','02','03','04','05','06','07','08','09','10']);
  assert.match(body,/data-company-section="docs"/);
  const docs=section('id="companyYearAttachmentsSection"','<div class="company-year-v76395-right">');
  for(const id of ['companyAttachmentFile','uploadCompanyAttachments','companyAttachmentList'])assert.ok(docs.includes(`id="${id}"`),id);
@@ -23,16 +23,15 @@ test('00-08 unchanged, separate docs nav and upload now lives in Docs section',(
  assert.ok(hub.includes('id="companyMainPdfCurrent"'));
  assert.match(app,/key==='docs'\?\$\('#companyYearAttachmentsSection'\)/);
 });
-test('04 hospital/family program tables are above billing and cash tables',()=>{
- const part=section('data-circular-number="04"','data-circular-number="05"');
- assert.ok(part.indexOf('id="annualProgramEditor"')<part.indexOf('id="billingPackageRows"'));
- assert.ok(part.indexOf('id="billingPackageRows"')<part.indexOf('id="cashPackageRows"'));
- for(const id of ['annualHospitalProgramRows','annualFamilyProgramRows','addBillingPackage','addCashPackage','companyHisPackageOptions']){
-   assert.ok((id==='companyHisPackageOptions'?html:part).includes(`id="${id}"`),id);
- }
+test('04 programs and 10 additional HIS billing/cash lists are independent',()=>{
+ const programs=section('data-circular-number="04"','data-circular-number="05"');
+ const extras=section('data-circular-number="10"','id="companyYearAttachmentsSection"');
+ assert.ok(programs.indexOf('id="annualHospitalProgramRows"')<programs.indexOf('id="annualFamilyProgramRows"'));
+ assert.doesNotMatch(programs,/id="billingPackageRows"/);
+ assert.ok(extras.indexOf('id="billingPackageRows"')<extras.indexOf('id="cashPackageRows"'));
+ for(const id of ['addBillingPackage','addCashPackage']) assert.ok(extras.includes(`id="${id}"`),id);
  assert.match(app,/function findCompanyHisPackage/);
  assert.match(app,/function updateAnnualProgramRowV76396/);
- assert.match(app,/function renderAnnualProgramsV76396/);
  assert.match(css,/annual-program-row/);
 });
 test('HIS package price and quantity preserved for PDF memo after normalize and restore',()=>{

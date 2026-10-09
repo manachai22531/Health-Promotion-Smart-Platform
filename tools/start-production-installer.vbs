@@ -1,7 +1,7 @@
 Option Explicit
 On Error Resume Next
 
-Dim fso, shellApp, shell, scriptDir, rootDir, guiPath, logPath, args
+Dim fso, shellApp, shell, scriptDir, rootDir, guiPath, logPath, args, safeWorkDir
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shellApp = CreateObject("Shell.Application")
 Set shell = CreateObject("WScript.Shell")
@@ -10,6 +10,14 @@ scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
 rootDir = fso.GetParentFolderName(scriptDir)
 guiPath = fso.BuildPath(scriptDir, "production-installer-gui.ps1")
 logPath = fso.BuildPath(rootDir, "installer-launcher.log")
+' Windows can return an unusable 8.3 alias for the profile-based Downloads folder
+' after elevation. PowerShell must not inherit that folder as its working directory.
+safeWorkDir = shell.ExpandEnvironmentStrings("%SystemRoot%")
+If Not fso.FolderExists(safeWorkDir) Then safeWorkDir = "C:\Windows"
+If Not fso.FolderExists(safeWorkDir) Then
+  MsgBox "Windows system folder is unavailable. Cannot safely launch the installer.", vbCritical, "Health Check Up Smart Search"
+  WScript.Quit 3
+End If
 
 If Not fso.FileExists(guiPath) Then
   MsgBox "Installer files are incomplete." & vbCrLf & vbCrLf & _
@@ -20,7 +28,7 @@ End If
 
 args = "-NoProfile -ExecutionPolicy Bypass -STA -File """ & guiPath & """"
 Err.Clear
-shellApp.ShellExecute "powershell.exe", args, rootDir, "runas", 1
+shellApp.ShellExecute "powershell.exe", args, safeWorkDir, "runas", 1
 
 If Err.Number <> 0 Then
   Dim ts

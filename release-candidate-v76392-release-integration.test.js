@@ -6,12 +6,12 @@ const {dependencySignature}=require('./tools/app-update-helper');
 test('v7.63.94 production release and merged UI',()=>{
   const root='.';
   const server=fs.readFileSync('server.js','utf8'),html=fs.readFileSync('app.html','utf8'),js=fs.readFileSync('assets/app.js','utf8'),css=fs.readFileSync('assets/style.css','utf8');
-  assert.match(server,/RELEASE_NAME = 'v7\.63\.\d+-production'/);
+  assert.match(server,/RELEASE_NAME = 'v7\.(?:63|64)\.\d+-production'/);
   assert.match(server,/const RUNTIME_ENVIRONMENT = 'production'/);
-  assert.match(JSON.parse(fs.readFileSync('package.json','utf8')).version,/^7\.63\.\d+$/);
+  assert.match(JSON.parse(fs.readFileSync('package.json','utf8')).version,/^7\.(?:63|64)\.\d+$/);
   assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,JSON.parse(fs.readFileSync('package.json','utf8')).version);
   assert.match(html,/id="searchBooking"/);
-  assert.match(html,/assets\/app\.js\?v=7\.63\.\d+/);
+  assert.match(html,/assets\/app\.js\?v=7\.(?:63|64)\.\d+/);
   assert.match(js,/searchV76225\(rows\)/);
   assert.match(server,/req\.query\.booking/);
   assert.match(html,/today-registration-count/);

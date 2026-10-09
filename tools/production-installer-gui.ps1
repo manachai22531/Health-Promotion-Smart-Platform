@@ -162,10 +162,47 @@ $timer.Add_Tick({
  if($script:worker -and $script:worker.HasExited){$timer.Stop();$InstallButton.IsEnabled=$true;$PgPasswordBox.IsEnabled=$true;Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue;if($script:worker.ExitCode -eq 0){$Progress.Value=100;$StatusText.Text='Production installation completed successfully.';$FooterText.Text='Production is ready at http://localhost:3000';Show-Result $true 'Backup, deployment, migration, start and health check completed successfully.'}else{if(-not $script:lastError){$script:lastError='The installer worker exited with an error. Review the log for the final details.'};$StatusText.Text='Installation stopped. Review the log.';$FooterText.Text='Production installation stopped safely. Existing backups were retained.';Show-Result $false $script:lastError};$script:worker=$null}
 })
 
+# Keep all installer callbacks inside a try/catch. PowerShell surfaces uncaught
+# WPF button errors at $window.ShowDialog(), hiding the real failure location.
 $InstallButton.Add_Click({
- $answer=[Windows.MessageBox]::Show("Install or upgrade PRODUCTION now?`n`nA source backup and database backup will be created first. This package can deploy Production only.",'Production confirmation','YesNo','Warning');if($answer -ne 'Yes'){return}
- Remove-Item $logFile,$statusFile -Force -ErrorAction SilentlyContinue;foreach($stage in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')){Set-StepState $stage 'PENDING'};$Progress.Value=2;$StatusText.Text='Starting Production installer...';$FooterText.Text='Installation is running. Do not close this window.';$InstallButton.IsEnabled=$false;$PgPasswordBox.IsEnabled=$false;$CopyErrorButton.IsEnabled=$false;$script:lastError='';$script:lastStatusCount=0
- $credentialPath=Save-CredentialFile;$workerPath=Join-Path $PSScriptRoot 'production-installer-worker.ps1';$arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',('"{0}"' -f $workerPath),'-LogFile',('"{0}"' -f $logFile),'-StatusFile',('"{0}"' -f $statusFile));if($credentialPath){$arguments+=@('-PgCredentialFile',('"{0}"' -f $credentialPath))};$script:worker=Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -ArgumentList ($arguments -join ' ') -WorkingDirectory $sourceRoot -WindowStyle Hidden -PassThru;$timer.Start()
+  try {
+    $answer=[Windows.MessageBox]::Show("Install or upgrade PRODUCTION now?`n`nA source backup and database backup will be created first. This package can deploy Production only.",'Production confirmation','YesNo','Warning')
+    if($answer -ne 'Yes'){return}
+    Remove-Item $logFile,$statusFile -Force -ErrorAction SilentlyContinue
+    foreach($stage in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')){Set-StepState $stage 'PENDING'}
+    $Progress.Value=2;$StatusText.Text='Starting Production installer...';$FooterText.Text='Installation is running. Do not close this window.'
+    $InstallButton.IsEnabled=$false;$PgPasswordBox.IsEnabled=$false;$CopyErrorButton.IsEnabled=$false
+    $script:lastError='';$script:lastStatusCount=0
+    $credentialPath=Save-CredentialFile
+    $workerPath=Join-Path $PSScriptRoot 'production-installer-worker.ps1'
+    if(-not(Test-Path -LiteralPath $sourceRoot -PathType Container)){throw "Installer source folder is not accessible: $sourceRoot. Extract the ZIP to C:\HealthCheckInstaller and retry."}
+    if(-not(Test-Path -LiteralPath $workerPath -PathType Leaf)){throw "Installer worker script is missing: $workerPath. Extract the entire ZIP and retry."}
+    if(-not(Test-Path -LiteralPath $runtimeRoot -PathType Container)){throw "Installer temporary folder does not exist: $runtimeRoot"}
+    $powershellExe=Join-Path $PSHOME 'powershell.exe'
+    if(-not(Test-Path -LiteralPath $powershellExe -PathType Leaf)){throw "Windows PowerShell executable not found: $powershellExe"}
+    $arguments=@('-NoProfile','-ExecutionPolicy','Bypass','-File',('"{0}"' -f $workerPath),'-LogFile',('"{0}"' -f $logFile),'-StatusFile',('"{0}"' -f $statusFile))
+    if($credentialPath){$arguments+=@('-PgCredentialFile',('"{0}"' -f $credentialPath))}
+    # Use a verified scratch directory, not an elevated session's possibly-invalid
+    # shortened C:\Users\... alias. The worker resolves source files via $PSScriptRoot.
+    $script:worker=Start-Process -FilePath $powershellExe -ArgumentList ($arguments -join ' ') -WorkingDirectory $runtimeRoot -WindowStyle Hidden -PassThru -ErrorAction Stop
+    $timer.Start()
+  } catch {
+    $message="Cannot launch Production installer: $($_.Exception.Message)"
+    $script:lastError=$message;$CopyErrorButton.IsEnabled=$true
+    $InstallButton.IsEnabled=$true;$PgPasswordBox.IsEnabled=$true
+    $StatusText.Text='Could not start the installer. Production files were not changed.'
+    $FooterText.Text='Extract the ZIP to C:\HealthCheckInstaller and retry if the downloaded folder path is inaccessible.'
+    try {Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue} catch {}
+    try {[System.IO.File]::AppendAllText($logFile,"[$(Get-Date -Format 's')] $message`r`n",[System.Text.Encoding]::UTF8)} catch {}
+    Show-Result $false $message
+  }
 })
+
 $window.Add_Closing({if($script:worker -and -not $script:worker.HasExited){$_.Cancel=$true;Show-Result $false 'Production installation is still running. This window will remain open until the worker finishes.'}else{Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue}})
-$window.ShowDialog()|Out-Null
+try { $window.ShowDialog() | Out-Null } catch {
+  $message="Installer window error: $($_.Exception.Message)"
+  try {[System.IO.File]::AppendAllText($logFile,"[$(Get-Date -Format 's')] $message`r`n",[System.Text.Encoding]::UTF8)} catch {}
+  Write-Host $message -ForegroundColor Red
+  [Windows.MessageBox]::Show("$message`n`nTry extracting the ZIP to C:\HealthCheckInstaller and run INSTALL-REPAIR.bat as administrator.",'HealthCheck Installer Error','OK','Error') | Out-Null
+  exit 1
+}

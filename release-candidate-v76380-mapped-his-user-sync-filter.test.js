@@ -13,10 +13,10 @@ test('v7.63.80 mapped-sync feature remains production/update-center compatible i
   assert.equal(lock.version,pkg.version);
   assert.equal(lock.packages[''].version,pkg.version);
   assert.equal(read('VERSION.txt').trim(),`v${pkg.version}`);
-  assert.match(server,/RELEASE_NAME = 'v7\.63\.\d+-production'/);
+  assert.match(server,/RELEASE_NAME = 'v7\.(?:63|64)\.\d+-production'/);
   assert.match(server,/RUNTIME_ENVIRONMENT = 'production'/);
   assert.match(server,/PRODUCTION_PORT = 3000/);
-  assert.match(html,/assets\/app\.js\?v=7\.63\.\d+-/);
+  assert.match(html,/assets\/app\.js\?v=7\.(?:63|64)\.\d+-/);
   for(const f of ['server.js','package.json','VERSION.txt','INSTALL-REPAIR.bat']) assert.ok(fs.existsSync(path.join(root,f)),`${f} missing`);
 });
 

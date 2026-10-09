@@ -814,7 +814,7 @@ function Invoke-NpmCiChecked {
 }
 
 Write-Step 'Install application dependencies'
-if (-not (Test-Path (Join-Path $appRoot 'node_modules\express')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\qrcode')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\bwip-js'))) {
+if (-not (Test-Path (Join-Path $appRoot 'node_modules\express')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\qrcode')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\bwip-js')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\pdf-lib')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\@pdf-lib\fontkit'))) {
   Invoke-NpmCiChecked -WorkingDirectory $appRoot
 } else {
   Write-Host 'Application dependencies are already installed.'

@@ -5,23 +5,24 @@ const Module=require('node:module'),original=Module._load;
 let pdf;try{Module._load=(name,...args)=>{if(name==='pdf-lib')return {PDFDocument:{},rgb:()=>({})};if(name==='@pdf-lib/fontkit')return {};return original(name,...args)};pdf=require('./corporate-circular-pdf')}finally{Module._load=original}
 const section=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
 test('v7.63.97 Production release, Windows installer and Update Center helpers preserved',()=>{
- assert.equal(require('./package.json').version,'7.63.97');assert.match(server,/RELEASE_NAME = 'v7\.63\.97-production'/);
+ assert.match(require('./package.json').version,/^7\.(?:63\.9[789]|64\.\d+)$/);assert.match(server,/RELEASE_NAME = 'v7\.(?:63\.9[789]|64\.\d+)-production'/);
  for(const f of ['INSTALL-REPAIR.bat','tools/app-update-helper.js','templates/corporate-circular-template.pdf'])assert.ok(fs.existsSync(f));
 });
 test('annual editor uses 00-08 order and subsidiary cards for multiple companies',()=>{
  const view=section('id="companyOverlay"','id="importOverlay"');
- assert.deepEqual([...view.matchAll(/data-circular-number="(\d\d)"/g)].map(m=>m[1]),['00','01','02','03','04','05','06','07','08']);
+ assert.deepEqual([...view.matchAll(/data-circular-number="(\d\d)"/g)].map(m=>m[1]),['00','01','02','03','04','05','06','07','08','09','10']);
  assert.ok(view.includes('id="addCircularSubsidiary"'));assert.ok(view.includes('id="circularSubsidiaryRows"'));
  assert.match(app,/readCircularSubsidiariesV76397\(\)/);assert.match(app,/renderCircularSubsidiariesV76397\(data\.additionalCompanies\|\|\[\]\)/);
 });
-test('documents stored in circular memo preserve subsidiaries and PDF backend outputs appendix',()=>{
+test('documents stored in circular memo preserve subsidiaries and PDF backend numbers section 1.x',()=>{
  const entry={name:'สาขา 2',nameEn:'Subsidiary B',taxId:'10000000',code:'SUB-B',address:'กรุงเทพฯ',employeeCount:'200'};
  const normalized=pdf.normalizeCircular({additionalCompanies:[entry],hospitalPrograms:[]});
  assert.equal(normalized.additionalCompanies.length,1);assert.equal(normalized.additionalCompanies[0].nameEn,'Subsidiary B');
  assert.equal(pdf.defaultCircular({name:'บริษัทแม่',year:2569},normalized).additionalCompanies[0].code,'SUB-B');
  assert.throws(()=>pdf.normalizeCircular({additionalCompanies:{}}));
  assert.throws(()=>pdf.normalizeCircular({additionalCompanies:Array(21).fill(entry)}));
- const renderer=fs.readFileSync('corporate-circular-pdf.js','utf8');assert.match(renderer,/บริษัทในเครือ/);assert.match(renderer,/additionalCompanies/);
+ const renderer=fs.readFileSync('corporate-circular-pdf.js','utf8');assert.match(renderer,/drawCompanyGroupOne/);assert.match(renderer,/drawCompanySectionContinuation/);
+ assert.equal(pdf.subsidiaryNumber(0),'1.1');assert.equal(pdf.subsidiaryNumber(2),'1.3');
 });
 test('hospital/family programs stack vertically and Package Code box removed',()=>{
  const area=section('id="annualProgramEditor"','id="letter_hospitalPrograms"');

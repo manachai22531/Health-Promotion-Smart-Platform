@@ -1,3 +1,4 @@
+v7.63.98 - Windows installer safe working-directory and actionable WPF launcher errors; no application feature changes.
 v7.63.96 - Corporate year editor: PDF attachments relocated to Docs tab; hospital/family program HIS tables before separate billing/cash package rows. Previous PDFs preserved, Production Only and Update Center unchanged.
 v7.63.95 - Full Page annual editor; primary circular PDF with versions; legacy PDFs as preserved attachments plus multiple new PDFs; Production Only and Update Center retained
 v7.63.94 - Edit Year: ordered 00–08 corporate letter form, de-duplicated annual fields, yearly program-to-PDF mapping, Production Only & Update Center retained
@@ -235,3 +236,5 @@ v7.63.92 - 2026-10-08
 - Added Booking search field and confirmed-case Today rail.
 - Corrected search bridge so new API results render without a duplicate stale-query request.
 - Updated release, package version, cache keys and source checksums; kept Production Only and Update Center helpers.
+
+v7.64.00 - Annual Full Page consolidated: section saves, HIS Payor, repeatable contacts, subsidiary 1.x numbering, resizable preview, matrix and attachment merge.

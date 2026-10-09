@@ -1618,27 +1618,81 @@ let skipCircularAutoSaveV76393=false;
 let circularPreviewUrlV76393=null;
 // v7.63.97: subsidiary companies are document-only information, not extra master company records.
 const circularSubsidiaryKeysV76397=['name','nameEn','taxId','code','address','contact','phone','employeeCount','payorCode','payorPlan'];
+const companyContactKeysV76400=['name','phone','email','note'];
+function companyPayorCodeV76400(value=''){return String(value||'').trim().split(/\s+(?:-|·)\s+/)[0].trim()}
 function circularSubsidiaryRowV76397(data={},index=0){
  const values=Object.fromEntries(circularSubsidiaryKeysV76397.map(k=>[k,esc(data[k]||'')]));
- return `<article class="annual-company-subsidiary" data-circular-subsidiary><header><strong>บริษัทลูก <span class="subsidiary-index">${index+1}</span></strong><button class="button danger" data-remove-circular-subsidiary type="button">ลบบริษัทลูก</button></header><div class="company-year-v76394-fields three">
+ return `<article class="annual-company-subsidiary" data-circular-subsidiary><header><strong>บริษัทลูก <span class="subsidiary-index">1.${index+1}</span></strong><button class="button danger" data-remove-circular-subsidiary type="button">ลบบริษัทลูก</button></header><div class="company-year-v76394-fields three">
  <label>ชื่อบริษัทลูก (ไทย) <span class="required">*</span><input data-subsidiary-field="name" maxlength="150" value="${values.name}" placeholder="ชื่อบริษัทลูก"/></label>
  <label>ชื่อบริษัทลูก (อังกฤษ)<input data-subsidiary-field="nameEn" maxlength="150" value="${values.nameEn}"/></label>
  <label>รหัสบริษัทลูก<input data-subsidiary-field="code" maxlength="50" value="${values.code}"/></label>
  <label>เลขที่ผู้เสียภาษี<input data-subsidiary-field="taxId" maxlength="50" value="${values.taxId}"/></label>
  <label>จำนวนพนักงาน<input data-subsidiary-field="employeeCount" maxlength="30" inputmode="numeric" value="${values.employeeCount}"/></label>
- <label>ผู้ประสานงาน<input data-subsidiary-field="contact" maxlength="150" value="${values.contact}"/></label>
- <label>เบอร์โทร<input data-subsidiary-field="phone" maxlength="60" value="${values.phone}"/></label>
- <label>Payor Code<input data-subsidiary-field="payorCode" maxlength="100" value="${values.payorCode}"/></label>
- <label>Payor Plan<input data-subsidiary-field="payorPlan" maxlength="100" value="${values.payorPlan}"/></label>
+ <label>Payor Code<input class="company-payor-code" data-subsidiary-field="payorCode" list="companyPayorMasterOptions" maxlength="100" autocomplete="off" value="${values.payorCode}" placeholder="ค้นหา Payor จาก HIS Master"/></label>
+ <label>Payor Plan<input class="company-payor-plan" data-subsidiary-field="payorPlan" list="companyPayorPlanOptions" maxlength="100" autocomplete="off" value="${values.payorPlan}" placeholder="Plan ของ Payor"/></label>
  <label class="wide">ที่อยู่บริษัทลูก<textarea data-subsidiary-field="address" maxlength="600" rows="2">${values.address}</textarea></label>
+ <input type="hidden" data-subsidiary-field="contact" value="${values.contact}"/><input type="hidden" data-subsidiary-field="phone" value="${values.phone}"/>
  </div></article>`;
 }
 function renderCircularSubsidiariesV76397(items=[]){const root=$('#circularSubsidiaryRows');if(!root)return;root.innerHTML=(Array.isArray(items)?items:[]).slice(0,20).map(circularSubsidiaryRowV76397).join('')}
-function readCircularSubsidiariesV76397(){return [...document.querySelectorAll('#circularSubsidiaryRows [data-circular-subsidiary]')].map(el=>Object.fromEntries(circularSubsidiaryKeysV76397.map(k=>[k,el.querySelector(`[data-subsidiary-field="${k}"]`)?.value.trim()||'']))).filter(c=>Object.values(c).some(Boolean)).slice(0,20)}
+function readCircularSubsidiariesV76397(){return [...document.querySelectorAll('#circularSubsidiaryRows [data-circular-subsidiary]')].map(el=>{const row=Object.fromEntries(circularSubsidiaryKeysV76397.map(k=>[k,el.querySelector(`[data-subsidiary-field="${k}"]`)?.value.trim()||'']));row.payorCode=companyPayorCodeV76400(row.payorCode);row.payorPlan=companyPayorCodeV76400(row.payorPlan);return row}).filter(c=>Object.values(c).some(Boolean)).slice(0,20)}
+function companyContactRowV76400(data={},index=0){const values=Object.fromEntries(companyContactKeysV76400.map(k=>[k,esc(data[k]||'')]));return `<div class="annual-company-contact-row" data-company-contact><span class="contact-index">${index+1}</span><input data-contact-field="name" maxlength="150" value="${values.name}" placeholder="ชื่อผู้ประสานงาน"/><input data-contact-field="phone" maxlength="60" value="${values.phone}" placeholder="เบอร์ติดต่อ"/><input data-contact-field="email" maxlength="180" value="${values.email}" placeholder="อีเมล"/><input data-contact-field="note" maxlength="250" value="${values.note}" placeholder="รายละเอียด / บริษัทที่ดูแล"/><button class="annual-program-remove" data-remove-company-contact type="button" aria-label="ลบผู้ประสานงาน">×</button></div>`}
+function renderCompanyContactsV76400(items=[]){const root=$('#companyContactRows');if(!root)return;root.innerHTML=(Array.isArray(items)?items:[]).slice(0,30).map(companyContactRowV76400).join('');refreshCompanyContactsV76400()}
+function refreshCompanyContactsV76400(){const root=$('#companyContactRows'),empty=$('#companyContactEmpty');if(empty&&root)empty.hidden=!!root.children.length;root?.querySelectorAll('.contact-index').forEach((el,i)=>el.textContent=i+1)}
+function readCompanyContactsV76400(){return [...document.querySelectorAll('#companyContactRows [data-company-contact]')].map(el=>Object.fromEntries(companyContactKeysV76400.map(k=>[k,el.querySelector(`[data-contact-field="${k}"]`)?.value.trim()||'']))).filter(x=>x.name||x.phone||x.email||x.note).slice(0,30)}
 $('#addCircularSubsidiary')?.addEventListener('click',()=>{if(!guard(editingCompanyId?'companyEdit':'companyCreate'))return;const root=$('#circularSubsidiaryRows');if(root.children.length>=20)return alert('เพิ่มบริษัทลูกได้ไม่เกิน 20 รายการต่อเอกสาร');root.insertAdjacentHTML('beforeend',circularSubsidiaryRowV76397({},root.children.length));root.lastElementChild?.querySelector('input')?.focus()});
-$('#circularSubsidiaryRows')?.addEventListener('click',e=>{if(!e.target.closest('[data-remove-circular-subsidiary]'))return;e.target.closest('[data-circular-subsidiary]')?.remove();document.querySelectorAll('.subsidiary-index').forEach((el,i)=>el.textContent=i+1)});
+$('#circularSubsidiaryRows')?.addEventListener('click',e=>{if(!e.target.closest('[data-remove-circular-subsidiary]'))return;e.target.closest('[data-circular-subsidiary]')?.remove();document.querySelectorAll('.subsidiary-index').forEach((el,i)=>el.textContent=`1.${i+1}`)});
+$('#addCompanyContact')?.addEventListener('click',()=>{const root=$('#companyContactRows');if(!root)return;if(root.children.length>=30)return alert('เพิ่มผู้ประสานงานได้ไม่เกิน 30 คน');root.insertAdjacentHTML('beforeend',companyContactRowV76400({},root.children.length));refreshCompanyContactsV76400();root.lastElementChild?.querySelector('[data-contact-field="name"]')?.focus()});
+$('#companyContactRows')?.addEventListener('click',e=>{if(!e.target.closest('[data-remove-company-contact]'))return;e.target.closest('[data-company-contact]')?.remove();refreshCompanyContactsV76400()});
+
+// v7.64.00 — Payor/Plan fields use the same HIS master catalog as Booking.
+let companyPayorMasterTimerV76400=null;
+async function fillCompanyPayorDatalistV76400(input){if(!input)return;const isPlan=input.classList.contains('company-payor-plan'),row=input.closest('[data-circular-subsidiary]'),payorInput=isPlan?(row?.querySelector('.company-payor-code')||$('#letter_payorCode')):input,payorCode=companyPayorCodeV76400(payorInput?.value||''),q=companyPayorCodeV76400(input.value||'');if(isPlan&&!payorCode)return;const url=`/api/his-payors?type=${isPlan?'plan':'payor'}&q=${encodeURIComponent(q)}${isPlan?`&payorCode=${encodeURIComponent(payorCode)}`:''}&limit=300`;try{const r=await fetch(url,{cache:'no-store'}),j=await r.json();if(!r.ok)throw new Error(j.error||'โหลด Payor Master ไม่สำเร็จ');const list=document.getElementById(isPlan?'companyPayorPlanOptions':'companyPayorMasterOptions');if(list)list.innerHTML=(j.items||[]).map(x=>`<option value="${esc(x.code)}" label="${esc(x.name||'')}"></option>`).join('');const st=$('#companyPayorMasterStatus');if(st)st.textContent=`HIS Master: Payor ${Number(j.counts?.payor||0).toLocaleString('th-TH')} · Plan ${Number(j.counts?.plan||0).toLocaleString('th-TH')}`;}catch(error){const st=$('#companyPayorMasterStatus');if(st)st.textContent='อ่าน HIS Payor Master ไม่สำเร็จ: '+(error.message||error)}}
+$('#companyOverlay')?.addEventListener('focusin',e=>{const input=e.target.closest('.company-payor-code,.company-payor-plan');if(input)fillCompanyPayorDatalistV76400(input)});
+$('#companyOverlay')?.addEventListener('input',e=>{const input=e.target.closest('.company-payor-code,.company-payor-plan');if(!input)return;clearTimeout(companyPayorMasterTimerV76400);companyPayorMasterTimerV76400=setTimeout(()=>fillCompanyPayorDatalistV76400(input),220)});
+// v7.63.99 — editable matrix appendix (Section 09); not the billing/cash packages (Section 10).
+const COMPANY_MATRIX_SAMPLE_V76399=[
+ ['1','Physical examination','ตรวจร่างกายทั่วไปโดยแพทย์'],['1','Vital sign','ตรวจวัดสัญญาณชีพ'],['1','BMI','ตรวจวัดมวลไขมัน, วัดส่วนสูงและชั่งน้ำหนัก'],['1','Vision Test','ตรวจวัดสายตา, วัดตาบอดสี'],
+ ['2','Chest X-Ray (Digital)','เอกซเรย์ปอด (ดิจิตอล)'],['3','Urine Examination','ตรวจปัสสาวะอย่างสมบูรณ์'],['4','Complete Blood Count (CBC)','ตรวจความสมบูรณ์เม็ดเลือดและเกล็ดเลือด'],['5','Glucose (Fasting)','ตรวจหาระดับน้ำตาลในเลือด'],
+ ['6','Cholesterol','ตรวจระดับไขมันโคเลสเตอรอลในเลือด'],['7','Triglyceride (BGH,BNH)','ตรวจระดับไขมันไตรกลีเซอไรด์ในเลือด'],['8','HDL-C','ตรวจระดับไขมันในเลือด (ชนิดดี)'],['9','LDL-C (Direct)','ตรวจระดับไขมันในเลือด (ชนิดไม่ดี)'],
+ ['10','AST (Aspartate Transaminase) (SGOT)','ตรวจการทำงานของตับ'],['11','ALT (Alanine Transaminase) (SGPT)','ตรวจการทำงานของตับ'],['12','ALP (Alkaline Phosphatase)','ตรวจการทำงานของตับ'],['13','Blood Urea Nitrogen (BUN)','ตรวจการทำงานของไต'],
+ ['14','Creatinine (plus eGFR)','ตรวจการทำงานของไต'],['15','Uric Acid','ตรวจหากรดยูริค'],['16','EKG','ตรวจคลื่นไฟฟ้าหัวใจ'],['17','Hepatitis B surface Antigen (HBs Ag)','ตรวจหาเชื้อไวรัสตับอักเสบบี'],
+ ['18','Hepatitis B surface Antibody (HBsAb, Anti-HBs)','ตรวจภูมิคุ้มกันไวรัสตับอักเสบบี'],['19','Glycated Hb (HbA1c)','การตรวจติดตามเบาหวาน'],['20','Triiodothyronine Free (Free T3)','ตรวจการทำงานของต่อมไทรอยด์'],['21','Thyroxine Free (Free T4)','ตรวจการทำงานของต่อมไทรอยด์'],
+ ['22','Thyroid Stimulating Hormone (TSH)','ตรวจการทำงานของต่อมไทรอยด์'],['23','Alpha Fetoprotein (AFP) (BGH)','ตรวจหาสารบ่งชี้มะเร็งตับ (ชาย - หญิง)'],['24','Carcinoembryonic Antigen (CEA) (BGH)','ตรวจหาสารบ่งชี้มะเร็งลำไส้ (ชาย - หญิง)'],['25','Carbohydrate Antigen 19-9 (CA-19-9)','ตรวจหาสารบ่งชี้มะเร็งตับอ่อน (ชาย - หญิง)'],
+ ['26','Cancer Antigen 125 (Ovary Cancer) (CA-125)','ตรวจหาสารบ่งชี้มะเร็งรังไข่ (หญิง)'],['27','Exercise Stress Test (EST)','ตรวจสมรรถภาพหัวใจขณะออกกำลังกาย'],['28','CT Calcium Scoring','ตรวจหาปริมาณคราบหินปูนในหลอดเลือดหัวใจด้วยเครื่อง CT'],
+ ['29','Ultrasound Whole Abdomen','ตรวจอัลตร้าซาวด์ช่องท้องทั้งหมด (ส่วนบนและส่วนล่าง)'],['30','Prostatic Specific Antigen (PSA)','ตรวจหาสารบ่งชี้มะเร็งต่อมลูกหมาก (ชาย)'],['31','CellPrep method (Thin Prep) & HPV DNA','ตรวจคัดกรองมะเร็งปากมดลูก'],['32','Mammogram Digital & US Breast','ตรวจมะเร็งเต้านม และอัลตร้าซาวด์เต้านม']
+];
+function matrixSampleV76399(){
+ const programs=['Program 1 · น้อยกว่า 35 ปี (ชาย/หญิง)','Program 2 · มากกว่า 35 ปี (ชาย)','Program 3 · มากกว่า 35 ปี (หญิง)','Program 4 · ผู้บริหารหญิง','Program 5 · ผู้บริหารชาย'].map((name,i)=>({name,price:[2100,5700,10100,16600,12100][i]}));
+ const rows=COMPANY_MATRIX_SAMPLE_V76399.map(([no,en,th],i)=>({no,en,th,checks:programs.map((_,j)=>{
+   if([19,20,21,22,23,24,25,26,27].includes(i+1)&&j<3)return 'na';
+   if([16,17,18,28,29,30,31,32].includes(i+1)&&j===0)return 'na';
+   if([31,32].includes(i+1)&&j===4)return 'na';
+   if((i+1===30)&&[2,3].includes(j))return 'na';
+   return 'yes';
+ })}));
+ return {programs,rows,note:' '};
+}
+let companyMatrixDraftV76399={programs:[],rows:[],note:''};
+function normalizeMatrixDraftV76399(value){const raw=value&&typeof value==='object'?value:{};const programs=(Array.isArray(raw.programs)?raw.programs:[]).slice(0,10).map(p=>({name:String(p.name||'').slice(0,90),price:Math.max(0,Number(p.price)||0)}));return {programs,rows:(Array.isArray(raw.rows)?raw.rows:[]).slice(0,200).map((r,i)=>({no:String(r.no??i+1).slice(0,12),en:String(r.en||'').slice(0,230),th:String(r.th||'').slice(0,400),checks:programs.map((_,j)=>['yes','na','blank'].includes(r.checks?.[j])?r.checks[j]:'blank')})),note:String(raw.note||'').slice(0,1000)}}
+function readMatrixV76399(){const table=$('#companyProgramMatrixTable');if(!table)return companyMatrixDraftV76399;const programs=[...table.querySelectorAll('[data-matrix-program]')].map(p=>({name:p.querySelector('[data-matrix-name]')?.value.trim()||'',price:Number(p.querySelector('[data-matrix-price]')?.value)||0}));const rows=[...table.querySelectorAll('[data-matrix-row]')].map(row=>({no:row.querySelector('[data-matrix-no]')?.value.trim()||'',en:row.querySelector('[data-matrix-en]')?.value.trim()||'',th:row.querySelector('[data-matrix-th]')?.value.trim()||'',checks:[...row.querySelectorAll('[data-matrix-check]')].map(e=>e.value)}));return normalizeMatrixDraftV76399({programs,rows,note:$('#companyProgramMatrixNote')?.value||''})}
+function renderMatrixV76399(value){companyMatrixDraftV76399=normalizeMatrixDraftV76399(value);const m=companyMatrixDraftV76399,head=$('#companyProgramMatrixHead'),body=$('#companyProgramMatrixBody'),foot=$('#companyProgramMatrixFoot');if(!head||!body||!foot)return;
+ const base='<th>ลำดับ</th><th>รายการตรวจ (English)</th><th>รายละเอียดภาษาไทย</th>';
+ const headers=m.programs.map((p,i)=>`<th data-matrix-program><div class="matrix-column-heading"><input aria-label="ชื่อโปรแกรม ${i+1}" data-matrix-name maxlength="90" value="${esc(p.name)}" placeholder="Program ${i+1}"/><button type="button" class="matrix-remove" data-matrix-delete-program="${i}" aria-label="ลบโปรแกรม">×</button></div><small>สถานะในโปรแกรม</small><input data-matrix-price aria-label="ราคาต่อคน ${i+1}" type="number" min="0" step="0.01" value="${p.price}" placeholder="ราคา/คน"/></th>`).join('');
+ head.innerHTML=`<tr>${base}${headers}</tr>`;
+ body.innerHTML=m.rows.map((r,i)=>`<tr data-matrix-row><td><input data-matrix-no aria-label="ลำดับรายการ ${i+1}" value="${esc(r.no)}" maxlength="12"/></td><td><input data-matrix-en aria-label="ชื่อภาษาอังกฤษ ${i+1}" value="${esc(r.en)}" maxlength="230" placeholder="รายการตรวจภาษาอังกฤษ"/></td><td><div class="matrix-thai-edit"><input data-matrix-th aria-label="รายละเอียดภาษาไทย ${i+1}" value="${esc(r.th)}" maxlength="400" placeholder="รายละเอียดภาษาไทย"/><button class="matrix-remove" type="button" data-matrix-delete-row="${i}" aria-label="ลบรายการตรวจ ${i+1}">×</button></div></td>${m.programs.map((_,j)=>`<td><select data-matrix-check aria-label="สถานะรายการ ${i+1} โปรแกรม ${j+1}"><option value="yes" ${r.checks[j]==='yes'?'selected':''}>✓ ตรวจ</option><option value="na" ${r.checks[j]==='na'?'selected':''}>■ ไม่รวม</option><option value="blank" ${r.checks[j]==='blank'?'selected':''}>– เว้นว่าง</option></select></td>`).join('')}</tr>`).join('')||`<tr><td colspan="${3+m.programs.length}" class="matrix-empty">ยังไม่มีรายการตรวจ กด “ใช้ตารางตัวอย่าง 32 รายการ” หรือ “เพิ่มรายการตรวจ”</td></tr>`;
+ foot.innerHTML=`<tr><th colspan="${3}">ราคาพิเศษ / คน (บาท)</th>${m.programs.map((p,i)=>`<td><strong>${Number(p.price||0).toLocaleString('th-TH',{maximumFractionDigits:2})}</strong></td>`).join('')}</tr>`;
+ if($('#companyProgramMatrixNote'))$('#companyProgramMatrixNote').value=m.note;
+}
+function bindMatrixV76399(){const table=$('#companyProgramMatrixTable');if(!table||table.dataset.bound)return;table.dataset.bound='1';
+ $('#matrixLoadExample')?.addEventListener('click',()=>{const current=readMatrixV76399();if((current.rows.length||current.programs.length)&&!confirm('แทนที่ตารางโปรแกรมที่กรอกไว้ด้วยตัวอย่าง 32 รายการ? กรุณาบันทึกข้อมูลเดิมก่อน'))return;renderMatrixV76399(matrixSampleV76399())});
+ $('#matrixAddProgram')?.addEventListener('click',()=>{const m=readMatrixV76399();if(m.programs.length>=10)return alert('รองรับสูงสุด 10 โปรแกรม');m.programs.push({name:`Program ${m.programs.length+1}`,price:0});m.rows.forEach(r=>r.checks.push('blank'));renderMatrixV76399(m)});
+ $('#matrixAddRow')?.addEventListener('click',()=>{const m=readMatrixV76399();if(m.rows.length>=200)return alert('รายการตรวจสูงสุด 200 รายการ');m.rows.push({no:String(m.rows.length+1),en:'',th:'',checks:m.programs.map(()=>'blank')});renderMatrixV76399(m)});
+ table.addEventListener('click',e=>{const row=e.target.closest('[data-matrix-delete-row]'),col=e.target.closest('[data-matrix-delete-program]');if(!row&&!col)return;const m=readMatrixV76399();if(row){m.rows.splice(Number(row.dataset.matrixDeleteRow),1)}else{const i=Number(col.dataset.matrixDeleteProgram);m.programs.splice(i,1);m.rows.forEach(r=>r.checks.splice(i,1))}renderMatrixV76399(m)});
+ $('#matrixSavePreview')?.addEventListener('click',async()=>{const status=$('#companyMatrixStatus'),button=$('#matrixSavePreview');button.disabled=true;status.textContent='กำลังบันทึกข้อมูลและสร้างตัวอย่าง PDF…';try{await saveCompanyForPrimaryV76395();await circularPdfV76393(true);status.style.color='#108157';status.textContent='บันทึกตารางแล้ว · ตัวอย่าง PDF ด้านขวาอัปเดตแล้ว (ยังไม่เปลี่ยนเอกสารหลักฉบับที่เก็บไว้)'}catch(error){status.style.color='#b43c3c';status.textContent=error.message||String(error)}finally{button.disabled=false}});
+}
 const LETTER_FIELDS_V76393=["documentDate", "documentNo", "subject", "recipient", "companyNameEn", "taxId", "address", "contactPerson", "contactPhone", "employeeCount", "payorCode", "payorPlan", "doctorDetails", "hospitalPrograms", "familyPrograms", "proofDetails", "reportDetails", "debtorDetails", "salesDetails", "appendixDetails"];
-function letterDefaultsV76393(c={}){return {documentDate:new Date().toISOString().slice(0,10),documentNo:'',subject:`ตรวจสุขภาพประจำปี ปี ${c.year||$('#companyYear')?.value||''}`,recipient:'ผจก.ต้อนรับ OPD, ต้อนรับ C-UP, ผจก.พยาบาล, ห้องยา, แพทย์, บัญชีทั่วไป, การเงิน, X-ray, ห้องปฏิบัติการ, แผนกสูติ, Call Center',companyNameEn:'',taxId:'',address:'',contactPerson:'',contactPhone:'',employeeCount:'',payorCode:'',payorPlan:'',doctorDetails:'',hospitalPrograms:'',familyPrograms:'',proofDetails:'',reportDetails:c.reportConditions||'',debtorDetails:'',salesDetails:[c.salesName,c.salesPhone].filter(Boolean).join(' · '),appendixDetails:'',walkIn:true,hearResults:false,mealCoupon:false}}
+function letterDefaultsV76393(c={}){return {documentDate:new Date().toISOString().slice(0,10),documentNo:'',subject:`ตรวจสุขภาพประจำปี ปี ${c.year||$('#companyYear')?.value||''}`,recipient:'ผจก.ต้อนรับ OPD, ต้อนรับ C-UP, ผจก.พยาบาล, ห้องยา, แพทย์, บัญชีทั่วไป, การเงิน, X-ray, ห้องปฏิบัติการ, แผนกสูติ, Call Center',companyNameEn:'',taxId:'',address:'',contactPerson:'',contactPhone:'',contacts:[],employeeCount:'',payorCode:'',payorPlan:'',doctorDetails:'',hospitalPrograms:'',familyPrograms:'',proofDetails:'',reportDetails:c.reportConditions||'',debtorDetails:'',salesDetails:[c.salesName,c.salesPhone].filter(Boolean).join(' · '),appendixDetails:'',walkIn:true,hearResults:false,mealCoupon:false}}
 function readCircularFormV76393(){syncAnnualProgramsV76396();const result={};for(const key of LETTER_FIELDS_V76393)result[key]=String(document.getElementById(`letter_${key}`)?.value||'').trim();for(const key of ['walkIn','hearResults','mealCoupon'])result[key]=!!document.getElementById(`letter_${key}`)?.checked;return result}
 function letterProgramsV76393(text){return String(text||'').split(/\r?\n/).map(line=>{const [name='',price='',code='',qty='',unit='']=line.split('|');const quantity=Math.max(1,Number(qty)||1),parsedUnit=Number(unit);return {name:name.trim(),price:price.trim(),code:code.trim(),quantity,unitPrice:unit.trim()&&Number.isFinite(parsedUnit)?parsedUnit:Number(String(price||'').replace(/[^0-9.]/g,''))/quantity||0}}).filter(p=>p.name||p.price||p.code).slice(0,100)}
 function letterProgramTextV76393(rows){return (Array.isArray(rows)?rows:[]).map(p=>[p.name,p.price,p.code,p.quantity||1,p.unitPrice??(Number(p.price)||0)/(Number(p.quantity)||1)].map(v=>String(v??'')).join(' | ')).join('\n')}
@@ -1664,19 +1718,20 @@ function circularToApiV76393(raw=readCircularFormV76393()){
   // Program tables are the only source for PDF sections 04; billing/cash remain independent.
   const joinPrograms=(text)=>letterProgramsV76393(text).map(p=>({name:p.name,code:p.code,price:p.price,quantity:p.quantity,unitPrice:p.unitPrice})).slice(0,100);
   const staff=[($('#companySalesName')?.value||'').trim(),($('#companySalesPhone')?.value||'').trim(),raw.salesDetails].filter(Boolean).join(' · ');
-  return {issueDate:raw.documentDate,documentNo:raw.documentNo,subject:raw.subject,recipient:raw.recipient,companyNameEn:raw.companyNameEn,taxId:raw.taxId,address:raw.address,coordinator:[raw.contactPerson,raw.contactPhone].filter(Boolean).join(' / '),employeeCount:raw.employeeCount,payorCode:raw.payorCode,payorPlan:raw.payorPlan,medicalStaff:raw.doctorDetails,
+  const contacts=readCompanyContactsV76400(),legacyCoordinator=contacts[0]?[contacts[0].name,contacts[0].phone].filter(Boolean).join(' / '):[raw.contactPerson,raw.contactPhone].filter(Boolean).join(' / ');
+  return {issueDate:raw.documentDate,documentNo:raw.documentNo,subject:raw.subject,recipient:raw.recipient,companyNameEn:raw.companyNameEn,taxId:raw.taxId,address:raw.address,coordinator:legacyCoordinator,contacts,employeeCount:raw.employeeCount,payorCode:companyPayorCodeV76400(raw.payorCode),payorPlan:companyPayorCodeV76400(raw.payorPlan),medicalStaff:raw.doctorDetails,
     hospitalPrograms:joinPrograms(raw.hospitalPrograms),familyPrograms:joinPrograms(raw.familyPrograms),
     eligibility:raw.proofDetails,reporting:($('#companyReportConditions')?.value||'').trim(),receivables:raw.debtorDetails,salesContact:staff,signatory:'',appendixDetails:raw.appendixDetails,walkIn:raw.walkIn,listenResults:raw.hearResults,mealCoupon:raw.mealCoupon,
-    screeningPeriod:[$('#companyCheckupStartDate')?.value,$('#companyCheckupEndDate')?.value].filter(Boolean).join(' ถึง '),additionalCompanies:readCircularSubsidiariesV76397()};
+    screeningPeriod:[$('#companyCheckupStartDate')?.value,$('#companyCheckupEndDate')?.value].filter(Boolean).join(' ถึง '),additionalCompanies:readCircularSubsidiariesV76397(),programMatrix:readMatrixV76399()};
 }
-function apiToCircularV76393(raw={}){const parts=String(raw.coordinator||'').split(' / ');const co=company(editingCompanyId)||{};const staffParts=[co.salesName,co.salesPhone].filter(Boolean).join(' · ');const legacyStaff=String(raw.salesContact||'');return {documentDate:raw.issueDate||'',documentNo:raw.documentNo||'',subject:raw.subject||'',recipient:raw.recipient||'',companyNameEn:raw.companyNameEn||'',taxId:raw.taxId||'',address:raw.address||'',contactPerson:parts[0]||'',contactPhone:parts.slice(1).join(' / '),employeeCount:raw.employeeCount||'',payorCode:raw.payorCode||'',payorPlan:raw.payorPlan||'',doctorDetails:raw.medicalStaff||'',hospitalPrograms:letterProgramTextV76393(raw.hospitalPrograms),familyPrograms:letterProgramTextV76393(raw.familyPrograms),proofDetails:raw.eligibility||'',reportDetails:raw.reporting||'',debtorDetails:raw.receivables||'',salesDetails:staffParts&&legacyStaff.startsWith(staffParts)?legacyStaff.slice(staffParts.length).replace(/^\s*[·/|]\s*/,''):(!co.salesName&&!co.salesPhone?legacyStaff:''),appendixDetails:raw.appendixDetails||'',additionalCompanies:Array.isArray(raw.additionalCompanies)?raw.additionalCompanies:[],walkIn:raw.walkIn!==false,hearResults:!!raw.listenResults,mealCoupon:!!raw.mealCoupon}}
-function setCircularFieldsV76393(data){for(const key of LETTER_FIELDS_V76393){const el=document.getElementById(`letter_${key}`);if(el)el.value=data[key]||''}for(const key of ['walkIn','hearResults','mealCoupon']){const el=document.getElementById(`letter_${key}`);if(el)el.checked=!!data[key]}renderAnnualProgramsV76396();renderCircularSubsidiariesV76397(data.additionalCompanies||[]);renderCircularSummaryV76393()}
+function apiToCircularV76393(raw={}){const parts=String(raw.coordinator||'').split(' / '),contacts=Array.isArray(raw.contacts)&&raw.contacts.length?raw.contacts:(parts.some(Boolean)?[{name:parts[0]||'',phone:parts.slice(1).join(' / '),email:'',note:''}]:[]);const co=company(editingCompanyId)||{};const staffParts=[co.salesName,co.salesPhone].filter(Boolean).join(' · ');const legacyStaff=String(raw.salesContact||'');return {documentDate:raw.issueDate||'',documentNo:raw.documentNo||'',subject:raw.subject||'',recipient:raw.recipient||'',companyNameEn:raw.companyNameEn||'',taxId:raw.taxId||'',address:raw.address||'',contactPerson:contacts[0]?.name||parts[0]||'',contactPhone:contacts[0]?.phone||parts.slice(1).join(' / '),contacts,employeeCount:raw.employeeCount||'',payorCode:raw.payorCode||'',payorPlan:raw.payorPlan||'',doctorDetails:raw.medicalStaff||'',hospitalPrograms:letterProgramTextV76393(raw.hospitalPrograms),familyPrograms:letterProgramTextV76393(raw.familyPrograms),proofDetails:raw.eligibility||'',reportDetails:raw.reporting||'',debtorDetails:raw.receivables||'',salesDetails:staffParts&&legacyStaff.startsWith(staffParts)?legacyStaff.slice(staffParts.length).replace(/^\s*[·/|]\s*/,''):(!co.salesName&&!co.salesPhone?legacyStaff:''),appendixDetails:raw.appendixDetails||'',additionalCompanies:Array.isArray(raw.additionalCompanies)?raw.additionalCompanies:[],programMatrix:raw.programMatrix||{programs:[],rows:[],note:''},walkIn:raw.walkIn!==false,hearResults:!!raw.listenResults,mealCoupon:!!raw.mealCoupon}}
+function setCircularFieldsV76393(data){for(const key of LETTER_FIELDS_V76393){const el=document.getElementById(`letter_${key}`);if(el)el.value=data[key]||''}for(const key of ['walkIn','hearResults','mealCoupon']){const el=document.getElementById(`letter_${key}`);if(el)el.checked=!!data[key]}const contacts=Array.isArray(data.contacts)&&data.contacts.length?data.contacts:((data.contactPerson||data.contactPhone)?[{name:data.contactPerson||'',phone:data.contactPhone||'',email:'',note:''}]:[]);renderCompanyContactsV76400(contacts);renderAnnualProgramsV76396();renderCircularSubsidiariesV76397(data.additionalCompanies||[]);renderMatrixV76399(data.programMatrix||{programs:[],rows:[],note:''});renderCircularSummaryV76393()}
 function loadCircularFormV76393(c={}){if(circularPreviewUrlV76393){URL.revokeObjectURL(circularPreviewUrlV76393);circularPreviewUrlV76393=null}const iframe=$('#companyCircularPdfFrame'),wrap=$('#companyCircularInlinePreview');if(iframe)iframe.removeAttribute('src');if(wrap)wrap.hidden=true;setCircularFieldsV76393({...letterDefaultsV76393(c),...legacyAnnualProgramsV76396(c),...(c.corporateCircular||{})});$('#companyCircularSaved').textContent='กำลังตรวจข้อมูลเอกสาร';if(c.id)loadCircularBackendV76393(c.id)}
 async function loadCircularBackendV76393(companyId){try{const r=await fetch(`/api/company-circulars/${encodeURIComponent(companyId)}`,{cache:'no-store'}),v=await r.json();if(!r.ok)throw new Error(v.error||'ไม่สามารถอ่านเอกสาร');if(String(editingCompanyId)!==String(companyId))return;const co=company(companyId);if(v.updatedAt&&!(($('#companyReportConditions')?.value||'').trim())&&v.item?.reporting)$('#companyReportConditions').value=v.item.reporting;setCircularFieldsV76393(v.updatedAt?{...letterDefaultsV76393(co),...apiToCircularV76393(v.item||{})}:{...letterDefaultsV76393(co),...legacyAnnualProgramsV76396(co)});$('#companyCircularSaved').textContent=v.updatedAt?'บันทึกล่าสุด: '+new Date(v.updatedAt).toLocaleString('th-TH'):'ยังไม่บันทึกเอกสาร'}catch(error){const st=$('#companyCircularStatus');if(st){st.style.color='#ae582c';st.textContent='อ่านเอกสารเวียนเดิมไม่สำเร็จ: '+error.message}}}
 function renderCircularSummaryV76393(){
   const el=$('#companyCircularSummary');if(!el)return;
   const d=readCircularFormV76393(),api=circularToApiV76393(d);
-  const entries=[['00','หัวหนังสือ',d.documentNo||d.subject],['01','บริษัท',($('#companyName')?.value||'')+' · ปี '+($('#companyYear')?.value||'')],['02','ระยะเวลาตรวจ',api.screeningPeriod],['03','แพทย์ + พยาบาล',d.doctorDetails||((d.hearResults?'ตรวจแบบฟังผล ':'')+(d.mealCoupon?'คูปองอาหาร':''))],['04','โปรแกรม รพ. / ครอบครัว',`${api.hospitalPrograms.length} / ${api.familyPrograms.length} รายการ`],['05','ต้อนรับและการเงิน',d.proofDetails],['06','การรายงานผล',api.reporting],['07','บัญชีลูกหนี้',d.debtorDetails],['08','เจ้าหน้าที่ขาย',api.salesContact]];
+  const entries=[['00','หัวหนังสือ',d.documentNo||d.subject],['01','บริษัท',($('#companyName')?.value||'')+' · ปี '+($('#companyYear')?.value||'')],['02','ระยะเวลาตรวจ',api.screeningPeriod],['03','แพทย์ + พยาบาล',d.doctorDetails||((d.hearResults?'ตรวจแบบฟังผล ':'')+(d.mealCoupon?'คูปองอาหาร':''))],['04','โปรแกรมพนักงาน / ครอบครัว',`${api.hospitalPrograms.length} / ${api.familyPrograms.length} รายการ`],['05','ต้อนรับและการเงิน',d.proofDetails],['06','การรายงานผล',api.reporting],['07','บัญชีลูกหนี้',d.debtorDetails],['08','เจ้าหน้าที่ขาย',api.salesContact]];
   el.innerHTML=entries.map(([n,t,v])=>`<p><b><em>${n}</em> ${esc(t)}</b><span>${esc(v||'-')}</span></p>`).join('');
 }
 async function saveCircularBackendV76393(companyId=editingCompanyId,payload=circularToApiV76393()){
@@ -1694,7 +1749,7 @@ async function circularPdfV76393(preview=false){if(!guard(preview?'companyView':
 }catch(e){st.style.color='#a53737';st.textContent=e.message||String(e)}}
 function bindCircularEditorV76393(){const section=$('#companyCircularEditor');if(!section||section.dataset.bound)return;section.dataset.bound='1';$('#companyOverlay')?.addEventListener('input',renderCircularSummaryV76393);$('#companyOverlay')?.addEventListener('change',renderCircularSummaryV76393);$('#previewCircularPdf')?.addEventListener('click',()=>circularPdfV76393(true));$('#downloadCircularPdf')?.addEventListener('click',()=>circularPdfV76393(false))}
 
-function openCompanyForm(id,presetName=''){editingCompanyId=id||'';const c=company(id),presetCode=presetName?companyCodeForName(presetName):'';renderCompanyHisPackageDatalist();$('#companyModalTitle').textContent=c?'แก้ไขข้อมูลรายปี':presetName?'เพิ่มปีให้บริษัท':'เพิ่มบริษัท';$('#companyName').value=c?c.name:presetName;$('#companyYear').value=c?c.year:new Date().getFullYear()+543;$('#companyCode').value=c?c.code||'':presetCode||nextCompanyCode();$('#companyCode').readOnly=true;$('#companyCode').title='ระบบรันรหัสบริษัทให้อัตโนมัติ และบริษัทเดิมจะใช้รหัสเดิมทุกปี';$('#companyCheckupStartDate').value=c?c.checkupStartDate||'':'';$('#companyCheckupEndDate').value=c?c.checkupEndDate||'':'';$('#companyNote').value=c?c.note||'':'';$('#companyReportConditions').value=c?c.reportConditions||'':'';$('#companySalesName').value=c?c.salesName||'':'';$('#companySalesPhone').value=c?c.salesPhone||'':'';$('#billingPackageRows').innerHTML=(c&&c.billingPackages||[]).map(billingPackageRow).join('');$('#cashPackageRows').innerHTML=(c&&c.cashPackages||[]).map(cashPackageRow).join('');refreshBillingPackageEmpty();refreshCashPackageEmpty();$('#companyStatus').textContent='';bindCircularEditorV76393();loadCircularFormV76393(c||{});open('companyOverlay');setTimeout(()=>(presetName?$('#companyYear'):$('#companyName')).focus(),50)}
+function openCompanyForm(id,presetName=''){editingCompanyId=id||'';const c=company(id),presetCode=presetName?companyCodeForName(presetName):'';renderCompanyHisPackageDatalist();$('#companyModalTitle').textContent=c?'แก้ไขข้อมูลรายปี':presetName?'เพิ่มปีให้บริษัท':'เพิ่มบริษัท';$('#companyName').value=c?c.name:presetName;$('#companyYear').value=c?c.year:new Date().getFullYear()+543;$('#companyCode').value=c?c.code||'':presetCode||nextCompanyCode();$('#companyCode').readOnly=true;$('#companyCode').title='ระบบรันรหัสบริษัทให้อัตโนมัติ และบริษัทเดิมจะใช้รหัสเดิมทุกปี';$('#companyCheckupStartDate').value=c?c.checkupStartDate||'':'';$('#companyCheckupEndDate').value=c?c.checkupEndDate||'':'';$('#companyNote').value=c?c.note||'':'';$('#companyReportConditions').value=c?c.reportConditions||'':'';$('#companySalesName').value=c?c.salesName||'':'';$('#companySalesPhone').value=c?c.salesPhone||'':'';$('#billingPackageRows').innerHTML=(c&&c.billingPackages||[]).map(billingPackageRow).join('');$('#cashPackageRows').innerHTML=(c&&c.cashPackages||[]).map(cashPackageRow).join('');refreshBillingPackageEmpty();refreshCashPackageEmpty();$('#companyStatus').textContent='';bindCircularEditorV76393();bindMatrixV76399();loadCircularFormV76393(c||{});open('companyOverlay');window.syncCompanyYearColumnResizer?.();fillCompanyPayorDatalistV76400($('#letter_payorCode')).catch(()=>{});setTimeout(()=>(presetName?$('#companyYear'):$('#companyName')).focus(),50)}
 function customerImportCanonicalIdentity(value=''){return String(value??'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}
 function customerImportIdentityKeys(record={}){
   const keys=[],clean=value=>norm(String(value||'')).replace(/\s+/g,'');
@@ -4371,6 +4426,10 @@ if($('#todayRegistrationRows'))$('#todayRegistrationRows').onclick=e=>{
 // v7.63.95 - Full Page annual editor / generated primary PDF / preserved legacy attachments.
 ensureCompanyPdfEditor=function(){ /* Legacy company PDF stays in PostgreSQL and is listed by company-attachments API. */ };
 let companyDocumentRequestTokenV76395=0;
+let companyCombinedPreviewBlobUrlV76399=null;
+function clearCompanyCombinedPreviewV76399(){
+  if(companyCombinedPreviewBlobUrlV76399){URL.revokeObjectURL(companyCombinedPreviewBlobUrlV76399);companyCombinedPreviewBlobUrlV76399=null}
+}
 const companyPdfDocUrlV76395=(id,kind,fileId,download=false)=>kind==='main'
   ?`/api/company-primary-pdfs/${encodeURIComponent(id)}/file/${encodeURIComponent(fileId)}${download?'?download=1':''}`
   :`/api/company-attachments/${encodeURIComponent(id)}/file/${encodeURIComponent(fileId)}${download?'?download=1':''}`;
@@ -4398,14 +4457,24 @@ async function loadCompanyPdfDocumentsV76395(id=editingCompanyId){
     if(!p.ok||!a.ok)throw new Error(primary.error||attachments.error||'โหลดเอกสารไม่สำเร็จ');
     if(token!==companyDocumentRequestTokenV76395||editingCompanyId!==id)return;
     renderCompanyFilesV76395(company(id),primary,attachments);
-    if(primary.current){const frame=$('#companyCircularPdfFrame'),wrap=$('#companyCircularInlinePreview');if(frame&&!frame.getAttribute('src'))frame.src=companyPdfDocUrlV76395(id,'main',primary.current.id);if(wrap)wrap.hidden=false;}
-    if(status){status.style.color='#147861';status.textContent='แสดงเอกสารหลักและเอกสารแนบล่าสุดแล้ว';}
+    // Live preview must include the attachments currently stored, not just an
+    // old primary PDF that may predate their upload. No database writes here.
+    const preview=await fetch(`/api/company-primary-pdfs/${encodeURIComponent(id)}/preview`,{cache:'no-store'});
+    if(!preview.ok){const problem=await preview.json().catch(()=>({}));throw new Error(problem.detail||problem.error||'รวมเอกสารแนบเพื่อพรีวิวไม่สำเร็จ')}
+    const blob=await preview.blob();
+    if(token!==companyDocumentRequestTokenV76395||editingCompanyId!==id)return;
+    clearCompanyCombinedPreviewV76399();companyCombinedPreviewBlobUrlV76399=URL.createObjectURL(blob);
+    const frame=$('#companyCircularPdfFrame'),wrap=$('#companyCircularInlinePreview');
+    if(frame)frame.src=companyCombinedPreviewBlobUrlV76399;
+    if(wrap)wrap.hidden=false;
+    const merged=Number(preview.headers.get('X-Merged-Attachments')||0);
+    if(status){status.style.color='#147861';status.textContent=`ตัวอย่าง PDF รวมเอกสารแนบ ${merged} ไฟล์ต่อท้ายแล้ว · กดบันทึกและสร้างเอกสารเวียนหลักเพื่อเก็บเป็นฉบับล่าสุด`;}
   }catch(error){if(token!==companyDocumentRequestTokenV76395)return;if(status){status.style.color='#b43c3c';status.textContent=error.message||String(error)}}
 }
 async function saveCompanyForPrimaryV76395(){
   for(const row of document.querySelectorAll('#circularSubsidiaryRows [data-circular-subsidiary]')){if(!row.querySelector('[data-subsidiary-field="name"]')?.value.trim())throw new Error('กรุณาระบุชื่อบริษัทลูก หรือกดลบรายการที่ยังไม่ได้กรอก');}
   const names=[($('#companyName')?.value||'').trim(),...readCircularSubsidiariesV76397().map(x=>x.name)].map(norm);if(new Set(names).size!==names.length)throw new Error('ชื่อบริษัทหลักและบริษัทลูกต้องไม่ซ้ำกัน');
-  const saved=$('#saveCompany').onclick();if(saved!==true)throw new Error($('#companyStatus')?.textContent||'บันทึกข้อมูลรายปีไม่สำเร็จ');
+  let saved;skipCircularAutoSaveV76393=true;try{saved=$('#saveCompany').onclick()}finally{skipCircularAutoSaveV76393=false}if(saved!==true)throw new Error($('#companyStatus')?.textContent||'บันทึกข้อมูลรายปีไม่สำเร็จ');
   // Wait for the relational store to finish persisting before generating a PDF from saved canonical source.
   await persistStateNow();
   const id=editingCompanyId;if(!id)throw new Error('ยังไม่พบรหัสบริษัท/ปีที่บันทึก');
@@ -4424,7 +4493,7 @@ async function generateCompanyMainPdfV76395(){
     await loadCompanyDocuments();
     $('#companyCircularPdfFrame').src=companyPdfDocUrlV76395(id,'main',result.item.id);
     $('#companyCircularInlinePreview').hidden=false;
-    status.style.color='#0b8057';status.textContent='สร้างและตั้งเป็นเอกสารหลักแล้ว · เก็บเอกสารแนบและฉบับก่อนหน้าไว้ครบ';$('#companyCircularStatus').textContent=status.textContent;
+    status.style.color='#0b8057';status.textContent=`สร้างและตั้งเป็นเอกสารหลักแล้ว · รวมเอกสารแนบ ${Number(result.mergedAttachments||0)} ไฟล์ต่อท้าย · เก็บเอกสารต้นฉบับไว้ครบ`;$('#companyCircularStatus').textContent=status.textContent;
   }catch(error){status.style.color='#b43c3c';status.textContent='สร้าง PDF หลักไม่สำเร็จ: '+(error.message||error);$('#companyCircularStatus').textContent=status.textContent}finally{btn.disabled=false;btn.textContent=originalText}
 }
 async function uploadCompanyAttachmentsV76395(){
@@ -4468,3 +4537,100 @@ $('#companyOverlay')?.addEventListener('click',event=>{
  target?.scrollIntoView({behavior:'smooth',block:'start'});
  document.querySelectorAll('[data-company-section]').forEach(b=>b.classList.toggle('is-active',b===link));
 });
+
+
+
+// v7.64.00 — every annual section can be saved independently and refreshes the combined PDF preview.
+async function saveAnnualCompanySectionV76400(section,button){if(!guard(editingCompanyId?'companyEdit':'companyCreate'))return;const label=section==='docs'?'เอกสารแนบ':`หัวข้อ ${section}`,status=$('#companyCircularStatus');if(button){button.disabled=true;button.dataset.oldText=button.textContent;button.textContent='กำลังบันทึก…'}try{const id=await saveCompanyForPrimaryV76395();await loadCompanyPdfDocumentsV76395(id);status.style.color='#0b8057';status.textContent=`บันทึก ${label} แล้ว · ตัวอย่าง PDF ด้านขวาอัปเดตจากข้อมูลล่าสุด`;document.querySelector(`[data-company-section="${section}"]`)?.classList.add('is-saved');}catch(error){status.style.color='#b43c3c';status.textContent=`บันทึก ${label} ไม่สำเร็จ: ${error.message||error}`}finally{if(button){button.disabled=false;button.textContent=button.dataset.oldText||`บันทึก ${label}`}}}
+$('#companyOverlay')?.addEventListener('click',event=>{const button=event.target.closest('[data-save-company-section]');if(button){event.preventDefault();saveAnnualCompanySectionV76400(button.dataset.saveCompanySection,button)}});
+
+/* Editable year form / PDF divider. UI-only; does not change annual data or PDFs. */
+function initCompanyYearColumnResizer(){
+  const workspace=document.querySelector('#companyOverlay .company-year-v76394-workspace');
+  const grip=document.getElementById('companyYearColumnResizer');
+  const form=document.getElementById('companyYearForm');
+  const nav=workspace?.querySelector('.company-year-v76395-nav');
+  if(!workspace||!grip||!form||!nav||grip.dataset.bound==='1')return;
+  grip.dataset.bound='1';
+  const minForm=windowWidth=>windowWidth<=1320?350:390;
+  const minPreview=windowWidth=>windowWidth<=1320?330:350;
+  const desktop=()=>window.matchMedia('(min-width:1051px)').matches;
+  const bounds=()=>{
+    const available=workspace.clientWidth-nav.getBoundingClientRect().width-grip.getBoundingClientRect().width;
+    const min=minForm(window.innerWidth),max=Math.max(min,available-minPreview(window.innerWidth));
+    return {min,max};
+  };
+  let savedWidth=null,dragStartX=0,dragStartWidth=0,activePointer=null;
+  const clamp=(width,limits)=>Math.max(limits.min,Math.min(limits.max,width));
+  const status=()=>{
+    if(!desktop())return;
+    const {min,max}=bounds();
+    const width=clamp(form.getBoundingClientRect().width,{min,max});
+    grip.setAttribute('aria-valuemin',String(Math.round(min)));
+    grip.setAttribute('aria-valuemax',String(Math.round(max)));
+    grip.setAttribute('aria-valuenow',String(Math.round(width)));
+    grip.setAttribute('aria-valuetext',`ความกว้างพื้นที่กรอกข้อมูล ${Math.round(width)} พิกเซล`);
+  };
+  const setWidth=(width,remember=true)=>{
+    if(!desktop())return;
+    const next=clamp(width,bounds());
+    workspace.style.setProperty('--company-year-middle-width',`${Math.round(next)}px`);
+    workspace.style.setProperty('--company-year-right-track','1fr');
+    if(remember)savedWidth=next;
+    status();
+  };
+  const reset=()=>{
+    workspace.style.removeProperty('--company-year-middle-width');
+    workspace.style.removeProperty('--company-year-right-track');
+    savedWidth=null;
+    requestAnimationFrame(status);
+  };
+  grip.addEventListener('pointerdown',event=>{
+    if(!desktop()||event.button!==0)return;
+    event.preventDefault();
+    dragStartX=event.clientX;
+    dragStartWidth=form.getBoundingClientRect().width;
+    activePointer=event.pointerId;
+    workspace.classList.add('is-resizing-columns');
+    grip.setPointerCapture(event.pointerId);
+  });
+  grip.addEventListener('pointermove',event=>{
+    if(activePointer!==event.pointerId)return;
+    setWidth(dragStartWidth+event.clientX-dragStartX);
+  });
+  const stop=event=>{
+    if(activePointer!==event.pointerId)return;
+    activePointer=null;
+    workspace.classList.remove('is-resizing-columns');
+    if(grip.hasPointerCapture(event.pointerId))grip.releasePointerCapture(event.pointerId);
+    status();
+  };
+  grip.addEventListener('pointerup',stop);
+  grip.addEventListener('pointercancel',stop);
+  grip.addEventListener('lostpointercapture',()=>{
+    activePointer=null;workspace.classList.remove('is-resizing-columns');
+  });
+  grip.addEventListener('dblclick',reset);
+  grip.addEventListener('keydown',event=>{
+    if(!desktop())return;
+    const step=event.shiftKey?64:24;
+    const current=form.getBoundingClientRect().width;
+    const limits=bounds();
+    if(event.key==='ArrowRight')setWidth(current+step);
+    else if(event.key==='ArrowLeft')setWidth(current-step);
+    else if(event.key==='Home')setWidth(limits.min);
+    else if(event.key==='End')setWidth(limits.max);
+    else return;
+    event.preventDefault();
+  });
+  window.addEventListener('resize',()=>{
+    if(!desktop())return;
+    if(savedWidth!==null)setWidth(savedWidth,false);
+    else status();
+  });
+  window.syncCompanyYearColumnResizer=()=>requestAnimationFrame(()=>{
+    if(savedWidth!==null)setWidth(savedWidth,false);
+    else status();
+  });
+}
+initCompanyYearColumnResizer();
