@@ -1,22 +1,18 @@
-# ตัวติดตั้ง Production v7.64.91 — ค้น Patient Demographic ด้วยชื่อ–นามสกุล
+# ตัวติดตั้ง Production v7.64.92
 
-รุ่นต่อจาก v7.64.90 แก้ให้ใช้ Excel ที่มีแค่ชื่อและนามสกุลได้
-- ไม่บังคับวันเกิดและ Gender; ถ้าระบุจะใช้ช่วยกรองเสมอ ไม่ละทิ้งเงื่อนไขที่กรอก
-- ยังค้น ID ก่อน ตามด้วย Passport แล้วชื่อ–นามสกุล
-- ผลจากชื่ออย่างเดียวต้องตรวจเลือกผู้ป่วย แม้พบคนเดียว ไม่เลือก HN ให้อัตโนมัติ
-- กดดูข้อมูล HIS → เลือกผู้ป่วยรายนี้ → ตรวจ HN/ชื่อ/วันเกิด/Gender แล้วกดยืนยัน
-- Export มี CandidateHN เพื่อใช้ตรวจสอบ; HN ที่ยืนยันจะมีหลังเลือก และมีชีตตรวจเลือกแล้ว
-- ไม่แก้ไขหรือเขียนข้อมูล HIS; คงระบบเดิม v7.64.90
+จัดปุ่มดาวน์โหลดเทมเพลตใน Patient Demographic ให้เสมอแถว
+- ช่องเลือกไฟล์ ช่องเลือกชีต และปุ่มดาวน์โหลด สูงเท่ากัน 44px
+- ขอบบนและล่างตรงกันบนจอใหญ่/โน้ตบุ๊ก จอเล็กเรียงเป็นคอลัมน์เดียว
+- คงฟังก์ชันค้นด้วยชื่อ–นามสกุลและการตรวจเลือกผู้ป่วยจาก v7.64.91
 
-[ดาวน์โหลดตัวติดตั้ง v7.64.91](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.91/HealthCheck-v7.64.91-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง v7.64.92](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.92/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER.zip)
 
 แตก ZIP ทั้งหมด → INSTALL-REPAIR.bat → Run as administrator
-รอ health check ผ่าน เปิดเว็บแล้วกด Ctrl+F5 ตรวจ v7.64.91
+รอ health check ผ่าน แล้วเปิดเว็บกด Ctrl+F5 ตรวจ v7.64.92
 
-ผ่าน build และ 145 tests (117 release/unit + 16 HIS fixture/HTTP + 12 Chromium/Excel)
-ทดสอบไฟล์ที่แนบว่าอ่านและส่งค้นชื่อได้ครบ 24 รายชื่อกับ HIS จำลอง ไม่ได้ยืนยันข้อมูลผู้ป่วยกับ HIS โรงพยาบาลจริง
-ไม่ได้รัน GUI/UAC/VBS/Robocopy บน Windows จริง
+ผ่าน build และ 117 release tests; ตรวจรูปแบบจริงใน Chromium ที่ 1920/1366/1024/430px
+ยังไม่ได้รัน GUI/UAC/Robocopy ของตัวติดตั้งบน Windows จริง
 
-SHA256: 39b37578ceb904f8f91601b876faa7bb38c8bf2a8eda0fec39b96f4e5820e726
+SHA256: d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301
 
 Branch นี้เก็บเฉพาะตัวติดตั้ง ไม่เปลี่ยน main
