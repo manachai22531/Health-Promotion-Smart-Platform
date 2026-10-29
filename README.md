@@ -1,17 +1,19 @@
-# ตัวติดตั้ง Production v7.64.87
+# ตัวติดตั้ง Production v7.64.89
 
-เพิ่มหน้าสถานะคำสั่ง HIS พร้อมเลขอ้างอิง ขั้นตอน เวลารอ ประวัติ และปุ่มตรวจสอบผล ตรวจผลทุก 10 วินาทีขณะเปิดหน้าต่าง
-OpenVisit กู้ VN จากคำตอบรับเดิมเมื่อ HIS ยืนยัน HN/VN/Location ตรงกัน ไม่เปิด Visit ซ้ำ เปิดให้ลองใหม่เฉพาะกรณีปลอดภัย ผลไม่ชัดเจนคงล็อกไว้
-บันทึกคำขอให้ผู้ดูแลตรวจสอบในประวัติเคสพร้อมเลขอ้างอิง ไม่มีการส่งข้อความภายนอกอัตโนมัติ
-แก้เลือก Booking แล้วไม่พบ และรองรับผู้ป่วยไม่มี Booking โดยผูกเข้าโครงการที่เลือกเมื่อยืนยัน ตรวจบริษัท/ปี/สิทธิ์และไม่สร้างซ้ำ
-คงงานรุ่นก่อนรวมรีวิวเล่ม/PDF/Gemini และ QR/อายุลิงก์ตามเดิม
+รุ่นต่อจาก v7.64.88 แก้หน้าสร้างโครงการแสดงไม่ครบจากการขยาย body 110%
+- หัวหน้าต่าง ปุ่มปิด และปุ่มบันทึกอยู่ภายในจอ
+- เลื่อนเฉพาะส่วนฟอร์ม ไม่เลื่อนหน้าหลักด้านหลัง
+- ฟอร์มคอลัมน์เดียวบนจอเล็ก
+- คงฟังก์ชันบริษัท/ปี ประวัติไฟล์นำเข้า และระบบเดิมของ v7.64.88
 
-ติดตั้ง: แตก ZIP ทั้งหมด → INSTALL-REPAIR.vbs → รอ Complete SUCCESS → เปิดเว็บ Ctrl+F5 ตรวจ v7.64.87
-ห้ามเปิดตัวติดตั้งซ้อนกัน
+[ดาวน์โหลด ZIP ตัวติดตั้ง](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.89/HealthCheck-v7.64.89-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-ผ่าน build และ 102 release tests; PostgreSQL upgrade v7.64.86→v7.64.87 รักษาข้อมูลและรหัสผ่าน; actual server + HIS จำลอง + Chromium รวมมือถือ; PowerShell syntax/BOM 22 scripts; ZIP CRC และ 817 payload hashes
-ไม่ได้เรียก HIS โรงพยาบาลจริง และยังไม่ได้ทดสอบ Windows GUI/UAC/VBS หรือเครื่องพิมพ์จริง
+ติดตั้ง: แตก ZIP ทั้งหมด → คลิกขวา INSTALL-REPAIR.bat → Run as administrator
+รอจน health check ผ่าน จากนั้นเปิดเว็บแล้วกด Ctrl+F5 ตรวจรุ่น v7.64.89
 
-SHA256: 85057cbc6a68e88d9e50b17bf2fd1b0b0b07cb50f483be4fd19c02abcec32fc6
+ผ่าน build, 102 release tests และ Chromium layout tests 6 ข้อ (5 ขนาดหน้าจอ พร้อมตรวจคืนขนาดหน้าหลัก)
+ยังไม่ได้รัน GUI/UAC/Robocopy ของตัวติดตั้งบน Windows จริง
 
-This branch contains installer artifacts only.
+SHA256: b0118a71b255a9a9c9efd5f7c6592abbe94ba5819df3ec0f111fe1842780e6a8
+
+Branch นี้เก็บเฉพาะแพ็กเกจตัวติดตั้ง ไม่เปลี่ยน branch main
