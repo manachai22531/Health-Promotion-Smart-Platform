@@ -1,0 +1,8 @@
+:root{--hc-dismiss-bg:#fff0f2;--hc-dismiss-border:#f1b8c0;--hc-dismiss-text:#ae3449;--hc-dismiss-hover:#ffe1e6;--hc-dismiss-active:#ffd3dc}
+/* A common palette, preserving each control's existing size and geometry. */
+html body :is(#hc-dismiss-style-scope,button.hc-dismiss-action,input.hc-dismiss-action){background:linear-gradient(180deg,#fff8f9,var(--hc-dismiss-bg))!important;color:var(--hc-dismiss-text)!important;border-color:var(--hc-dismiss-border)!important;box-shadow:inset 0 1px 0 #fff,0 2px 5px rgba(160,54,75,.08)!important;text-shadow:none!important}
+html body :is(#hc-dismiss-style-scope,button.hc-dismiss-action,input.hc-dismiss-action):hover:not(:disabled){background:var(--hc-dismiss-hover)!important;border-color:#e795a3!important;color:#922c3e!important}
+html body :is(#hc-dismiss-style-scope,button.hc-dismiss-action,input.hc-dismiss-action):active:not(:disabled){background:var(--hc-dismiss-active)!important;box-shadow:inset 0 2px 3px rgba(145,38,60,.12)!important}
+html body :is(#hc-dismiss-style-scope,button.hc-dismiss-action,input.hc-dismiss-action):focus-visible{outline:3px solid rgba(213,84,108,.4)!important;outline-offset:2px}
+html body :is(#hc-dismiss-style-scope,button.hc-dismiss-action,input.hc-dismiss-action):disabled{opacity:.5;cursor:not-allowed}
+@media print{html body :is(button.hc-dismiss-action,input.hc-dismiss-action){box-shadow:none!important}}

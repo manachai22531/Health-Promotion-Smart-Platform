@@ -1,0 +1,10 @@
+tesseract.min.js https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js
+worker.min.js https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js
+tesseract-core-lstm.wasm.js https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/tesseract-core-lstm.wasm.js
+tesseract-core-simd-lstm.wasm.js https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/tesseract-core-simd-lstm.wasm.js
+LICENSE-tesseract-js.txt https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/LICENSE.md
+LICENSE-tesseract-core.txt https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1/LICENSE
+Browser-only OCR; Apache-2.0 components. No card image is uploaded.
+
+Language data pinned to https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/ (eng/tha.traineddata, gzip compressed locally).
+Core wasm is embedded in the bundled .wasm.js files.

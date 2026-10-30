@@ -1,0 +1,239 @@
+/* HealthCheck v7.64.18 — Scoped, user-selectable GLOBAL UI DENSITY.
+   Existing print/PDF/A4 layout must not change. Normal mode = original UI.
+   Avoid global font-size/zoom so Thai text and A4 print coordinates stay intact. */
+.hc-density-control{display:flex;align-items:center;gap:5px;flex:0 0 auto;order:3;min-width:0;padding:3px 5px;border:1px solid #cfe2ef;border-radius:10px;background:#f5fbff;color:#225877}
+.hc-density-control label{font-size:10px;font-weight:800;white-space:nowrap}
+.hc-density-control select{height:30px;min-height:30px;max-width:110px;padding:3px 5px;border:1px solid #c6ddeb;border-radius:7px;color:#164c76;background:white;font-size:11px;font-weight:750;cursor:pointer}
+.hc-density-control select:focus-visible{outline:2px solid #009bab;outline-offset:2px}
+@media screen {
+html[data-hc-density="compact"]{--hc-d-gap:7px;--hc-d-panel:9px;--hc-d-control:34px;--hc-d-head:52px}
+html[data-hc-density="dense"]{--hc-d-gap:5px;--hc-d-panel:6px;--hc-d-control:32px;--hc-d-head:47px}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar{
+  min-height:var(--hc-d-head)!important;padding:3px 10px!important;gap:8px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .brand{
+  flex:0 0 clamp(165px,15vw,225px)!important;min-width:165px!important;gap:6px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .brand-logo{width:39px!important;height:39px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .header-product-wrap{min-width:0!important;gap:1px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .header-database strong{font-size:10px!important;line-height:1.18!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .header-database>span:last-child{font-size:9px!important;line-height:1.16!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar-right{gap:4px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav{
+  gap:1px!important;min-width:0!important;flex-wrap:nowrap!important;justify-content:flex-start!important;
+  overflow-x:auto!important;overscroll-behavior-x:contain!important;scrollbar-width:thin!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-button{
+  flex:0 0 var(--hc-nav-size,36px)!important;min-width:var(--hc-nav-size,36px)!important;width:var(--hc-nav-size,36px)!important;
+  height:var(--hc-nav-h,38px)!important;min-height:var(--hc-nav-h,38px)!important;padding:2px!important;border-radius:9px!important
+}
+html[data-hc-density="compact"]{--hc-nav-size:36px;--hc-nav-h:38px;--hc-icon-size:33px;--hc-icon-img:27px}
+html[data-hc-density="dense"]{--hc-nav-size:33px;--hc-nav-h:35px;--hc-icon-size:30px;--hc-icon-img:24px}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-icon-3d{
+  width:var(--hc-icon-size)!important;height:var(--hc-icon-size)!important;border-radius:8px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-icon-3d img{
+  width:var(--hc-icon-img)!important;height:var(--hc-icon-img)!important;object-fit:contain!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .user-session{gap:4px!important;padding:3px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .page{
+  padding:var(--hc-d-panel) var(--hc-d-panel) 22px!important;max-width:none!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-hero{
+  gap:8px!important;padding:var(--hc-d-panel) 12px!important;margin-bottom:var(--hc-d-gap)!important;border-radius:12px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-hero h1{font-size:18px!important;margin:0!important;line-height:1.28!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-hero .eyebrow{font-size:10px!important;margin-bottom:2px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-hero .hero-note{font-size:10px!important;margin:2px 0 0!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar{
+  gap:var(--hc-d-gap)!important;padding:var(--hc-d-panel)!important;margin-bottom:var(--hc-d-gap)!important;border-radius:11px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar input:not([type=checkbox]),
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar select{
+  min-height:var(--hc-d-control)!important;height:var(--hc-d-control)!important;padding:5px 9px!important;border-radius:7px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-kpis{
+  gap:var(--hc-d-gap)!important;margin-bottom:var(--hc-d-gap)!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-kpis article{
+  padding:var(--hc-d-panel) 10px!important;border-radius:10px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-kpis strong{font-size:21px!important;margin-top:2px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-project-list{gap:var(--hc-d-gap)!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-project-card{gap:9px!important;padding:10px 12px!important;border-radius:11px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-project-meta{margin-top:6px!important;gap:8px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-table th,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-table td{
+  padding:5px 8px!important;line-height:1.28!important
+}
+html[data-hc-density="dense"] body .workflow-table th,
+html[data-hc-density="dense"] body .workflow-table td{padding:4px 6px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .button:not(.mini):not(.compact){
+  min-height:var(--hc-d-control)!important;padding:5px 10px!important;border-radius:8px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .overlay:not(.booking-fullpage-overlay){padding:8px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .overlay:not(.booking-fullpage-overlay) .modal{
+  max-height:calc(100dvh - 16px)!important;border-radius:12px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .modal-header,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .modal-footer{
+  padding:var(--hc-d-panel) 12px!important;gap:var(--hc-d-gap)!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .modal-body{padding:var(--hc-d-panel) 12px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-form-grid{gap:var(--hc-d-gap)!important;padding:10px 0!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-form-grid input,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-form-grid select{padding:6px 8px!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout{
+  height:calc(100dvh - var(--hc-wl-offset,270px))!important;min-height:420px!important
+}
+html[data-hc-density="compact"]{--hc-wl-offset:270px}
+html[data-hc-density="dense"]{--hc-wl-offset:245px}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #worklistView .worklist-confirmation-panel,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #worklistView .worklist-today-panel{padding:var(--hc-d-panel)!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView .hc-search-heading{
+  padding-bottom:7px!important;margin-bottom:8px!important
+}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView .hc-one-line-search-row{gap:var(--hc-d-gap)!important}
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row .search-field input,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row #searchSubmit,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row #clearSearch,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row .search-add-customer{
+  height:var(--hc-d-control)!important;min-height:var(--hc-d-control)!important
+}
+/* Preserve table columns; prefer horizontal scrolling over hiding data. */
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-table-scroll,
+html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .worklist-today-scroll{overflow-x:auto!important;min-width:0}
+@media (max-width:1099px){
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .brand{flex-basis:180px!important;min-width:150px!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav{overflow-x:auto!important;flex-wrap:nowrap!important}
+}
+@media (max-width:700px){
+  .hc-density-control label{display:none}
+  .hc-density-control select{max-width:85px}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .brand{flex:0 1 140px!important;min-width:75px!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout{
+    height:auto!important;min-height:650px!important;grid-template-columns:minmax(0,1fr)!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar{flex-wrap:wrap!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar input,
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .workflow-toolbar select{min-width:0!important}
+}
+} /* screen */
+@media print {.hc-density-control{display:none!important}}
+/* Mobile override: keep every control reachable and prevent legacy header flex widths
+   from forcing a page-wide horizontal scrollbar. */
+@media screen and (max-width:700px){
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar{
+    flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;min-width:0!important;padding:5px 8px!important
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .brand{
+    flex:1 1 100%!important;width:100%!important;min-width:0!important;height:auto!important
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar-right{
+    flex:1 1 100%!important;max-width:100%!important;width:100%!important;min-width:0!important;
+    flex-wrap:wrap!important;align-items:center!important;justify-content:flex-start!important;gap:4px!important
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav{
+    order:7!important;flex:1 1 100%!important;display:flex!important;width:100%!important;
+    max-width:100%!important;height:41px!important;min-height:41px!important;min-width:0!important;
+    overflow-x:auto!important;overflow-y:hidden!important;flex-wrap:nowrap!important;
+    padding:0 0 4px!important;scrollbar-width:thin!important
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .guide-nav-button{order:1!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .sound-toggle-header{order:2!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .user-session{order:4!important;margin-left:auto!important;min-width:0!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .hc-density-control{order:3!important}
+}
+@media screen and (max-width:700px){
+ html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar-right{
+  flex-direction:row!important;align-content:center!important
+ }
+ html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar{
+  flex-direction:row!important;align-content:center!important
+ }
+}
+
+
+/* v7.64.19 — topbar navigation + compact density hotfixes
+   1) Remove desktop scroll/slider from main navigation and keep a single row.
+   2) Make the sound button follow density sizing.
+   3) Make “เพิ่มข้อมูลลูกค้า” height match sibling buttons.
+   4) Keep the whole topbar action cluster right-aligned.
+*/
+@media screen and (min-width:701px){
+  html[data-hc-density="compact"]{
+    --hc-nav-size:32px;--hc-nav-h:34px;--hc-icon-size:30px;--hc-icon-img:24px;
+    --hc-action-h:34px;--hc-action-radius:10px;--hc-user-gap:4px;
+  }
+  html[data-hc-density="dense"]{
+    --hc-nav-size:30px;--hc-nav-h:32px;--hc-icon-size:28px;--hc-icon-img:22px;
+    --hc-action-h:32px;--hc-action-radius:9px;--hc-user-gap:3px;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .topbar-right{
+    flex:1 1 auto!important;min-width:0!important;justify-content:flex-end!important;gap:4px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav{
+    flex:0 1 auto!important;min-width:0!important;max-width:none!important;overflow:visible!important;
+    justify-content:flex-end!important;align-items:center!important;gap:1px!important;
+    margin-left:auto!important;padding:0!important;scrollbar-width:none!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav::-webkit-scrollbar{display:none!important}
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-button{
+    flex:0 0 var(--hc-nav-size)!important;min-width:var(--hc-nav-size)!important;width:var(--hc-nav-size)!important;
+    height:var(--hc-nav-h)!important;min-height:var(--hc-nav-h)!important;padding:1px!important;border-radius:8px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-icon-3d{
+    width:var(--hc-icon-size)!important;height:var(--hc-icon-size)!important;border-radius:8px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .nav-icon-3d img{
+    width:var(--hc-icon-img)!important;height:var(--hc-icon-img)!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .guide-nav-button{
+    width:var(--hc-nav-size)!important;min-width:var(--hc-nav-size)!important;height:var(--hc-nav-h)!important;min-height:var(--hc-nav-h)!important;
+    padding:1px!important;border-radius:8px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .guide-nav-button .nav-icon-3d{
+    width:var(--hc-icon-size)!important;height:var(--hc-icon-size)!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .guide-nav-button .nav-icon-3d img{
+    width:var(--hc-icon-img)!important;height:var(--hc-icon-img)!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .sound-toggle.sound-toggle-header{
+    display:grid!important;place-items:center!important;flex:0 0 auto!important;
+    width:var(--hc-action-h)!important;height:var(--hc-action-h)!important;min-width:var(--hc-action-h)!important;min-height:var(--hc-action-h)!important;
+    padding:0!important;border-radius:var(--hc-action-radius)!important;font-size:16px!important;line-height:1!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) .hc-density-control{
+    min-height:var(--hc-action-h)!important;padding:2px 5px!important;border-radius:var(--hc-action-radius)!important;gap:4px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) .hc-density-control select{
+    height:calc(var(--hc-action-h) - 4px)!important;min-height:calc(var(--hc-action-h) - 4px)!important;
+    padding:1px 6px!important;border-radius:calc(var(--hc-action-radius) - 2px)!important;font-size:10px!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .user-session{
+    display:flex!important;align-items:center!important;gap:var(--hc-user-gap)!important;padding:0!important;flex:0 0 auto!important;white-space:nowrap!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body .user-session #logoutButton{
+    min-height:var(--hc-action-h)!important;height:var(--hc-action-h)!important;padding:0 10px!important;border-radius:var(--hc-action-radius)!important;
+  }
+}
+
+/* Compact search toolbar button parity. */
+@media screen {
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer,
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer>.button{
+    height:var(--hc-d-control)!important;min-height:var(--hc-d-control)!important;
+  }
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer>.button{
+    display:flex!important;align-items:center!important;justify-content:center!important;padding:0 10px!important;white-space:nowrap!important;
+  }
+}
+
+/* Keep mobile behaviour scrollable; desktop must stay one-line without a slider. */
+@media screen and (max-width:700px){
+  html:is([data-hc-density="compact"],[data-hc-density="dense"]) body.ui-v7592 .main-nav{
+    overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start!important;
+  }
+}

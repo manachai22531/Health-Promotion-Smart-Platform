@@ -1,0 +1,14 @@
+npm run build: PASS
+npm run test:release: PASS — 123 tests, 0 failed, 0 skipped
+Chromium regression suites: 7 passed, 0 failed, 0 skipped
+- 100-row workspace: 1920/1366 and 3 densities, no overlapping toolbar/row buttons; CSV masking/quoting; frozen left columns and scrolling sequence; both sticky header rows/hit testing; full-screen editor at 1920/1366/430
+- Real collapsible sidebar: data width increases by >200px at collapse, retains search/selected patient/Booking destination and local preference; rail expands and focuses destination; column settings remain in main toolbar; 8 long Booking project names fit sidebar without horizontal overflow and actual filter clicks work
+- Received selection edit/cancel/save, A4 and picker refresh; Order locked
+- Real read-only customer preview renderer/native link
+- Six patient regions, white cards, three theme border colors, responsive header
+- Company compact view, period states/colors, filtering, responsive
+- XLSX HISGender output and search clear controls
+Sidebar suite rerun after final column-settings placement: PASS
+API/customer-selection HTTP tests use transactional fixtures; not a live hospital HIS
+Windows installer GUI/UAC and real hospital HIS: NOT RUN (Linux host)
+Hosted runtime regression: hosted port and Windows defaults; wrong ports/database/environment rejected

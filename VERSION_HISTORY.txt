@@ -1,3 +1,9 @@
+v7.64.92 - Align Patient Demographic template button and upload/sheet controls at equal 44px height; responsive stacking on narrow screens.
+v7.64.91 - Patient Demographic accepts name+surname alone; optional DOB/gender filters remain strict when supplied; manual patient selection before verified HN export.
+v7.64.90 - Patient Demographic: Excel upload, explicit column mapping, read-only HIS matching by ID then Passport then name+DOB+gender; ambiguity/review statuses and Excel export. Retains v7.64.89.
+v7.64.89 - Fix project creation modal clipped by 110% body zoom; bounded viewport, visible header/footer, scrolling form, mobile single-column layout. Retains v7.64.88 features.
+v7.64.88 - ต่อจาก v7.64.87: reviewed bulk company-year deletion with reasons, transactional backups, clinical/Booking/HIS protection, searchable versioned import history and workbook previews.
+v7.64.30 - Removed the search TOP 5 box and redesigned User Management as a full-width tabbed workspace with summary KPIs and a compact high-volume user table.
 v7.63.98 - Windows installer safe working-directory and actionable WPF launcher errors; no application feature changes.
 v7.63.96 - Corporate year editor: PDF attachments relocated to Docs tab; hospital/family program HIS tables before separate billing/cash package rows. Previous PDFs preserved, Production Only and Update Center unchanged.
 v7.63.95 - Full Page annual editor; primary circular PDF with versions; legacy PDFs as preserved attachments plus multiple new PDFs; Production Only and Update Center retained
@@ -237,4 +243,63 @@ v7.63.92 - 2026-10-08
 - Corrected search bridge so new API results render without a duplicate stale-query request.
 - Updated release, package version, cache keys and source checksums; kept Production Only and Update Center helpers.
 
-v7.64.00 - Annual Full Page consolidated: section saves, HIS Payor, repeatable contacts, subsidiary 1.x numbering, resizable preview, matrix and attachment merge.
+v7.64.12 - One-row search, Worklist, Section 01+09, dynamic 00-10 PDF, GUI installer path fix (Production Only).
+
+v7.64.18 - 2026-10-10 - Global UI density: Normal / Compact / Dense, screen-only layout, retained Worklist two-column and A4/PDF print geometry.
+
+v7.64.20 — 2026-10-13 — Production Windows installer (Corporate Word PDF)
+- Consolidated v7.64.19 REPAIRED installer, corporate form & alignment fixes, and the Word-styled A4 continuous-table PDF implementation.
+- PDF letterhead with date and document number, company Payor columns inline, tax ID/address aligned, multiple coordinator rows, one employee count, compact program rows.
+- Production installer, server release, VERSION.txt and npm lock version synchronized, rehashed manifests.
+
+
+v7.64.21 — 2026-10-13 — Production PDF/Installer hotfix
+- Live Corporate PDF preview always uses the Word-table renderer and rejects legacy renderer responses.
+- Section 12/13 annex tables are black/white; redundant numbered page titles removed.
+- Billing and cash delete icons share the same red borderless style.
+- Corporate Payor/Plan fields display master names while persisting the original codes.
+- Installer application-server validation waits up to ~90 seconds and GUI status path handling is hardened.
+
+v7.64.22 — 2026-10-13 — Global Golden Sparkle pointer-accuracy release
+- Adds one global button effect for button, .button, role=button, and button/submit inputs.
+- Anchors sparkles to an unscaled fixed viewport layer so pointer coordinates remain accurate across UI density and transform scaling.
+- Emits 6–10 gold stars per activation, travelling 20–45px for 0.5–0.8 seconds.
+- Respects disabled controls and reduced-motion preferences; synchronizes release metadata and installer manifests.
+
+v7.64.23 — 2026-10-13 — Windows Updater Helper file-lock hotfix
+- Fixes the observed `EPERM` failure when the helper replaced `update-status.json` while Production was polling it.
+- Writes status in place with bounded retry handling for `EPERM`, `EBUSY`, and `EACCES`.
+- Retains all v7.64.22 Global Golden Sparkle behavior and Production installer safeguards.
+
+v7.64.24 — 2026-10-13 — Elevated WPF installer working-directory hotfix
+- Fixes WPF `ShowDialog()` failure caused by an inherited invalid 8.3 user-profile working directory.
+- Normalizes both PowerShell location and .NET `Environment.CurrentDirectory` to verified Windows Temp.
+- Keeps the v7.64.23 updater file-lock fix and v7.64.22 Global Golden Sparkle behavior.
+
+v7.64.25 — 2026-10-13 — Personal appearance themes
+- Replaces separate header sound/UI-size controls with one person-and-palette appearance button.
+- Adds Current, Premium, and Warm Comfort themes with instant preview and saved browser preference.
+- Combines UI size, motion effects, sound, reset, and completion controls in one accessible panel.
+- Keeps print/PDF styling isolated from screen themes and retains installer/updater reliability fixes.
+
+v7.64.29 — 2026-10-13 — Default theme label and 3D cursor family
+- Renames the Current theme card to Default without changing saved theme compatibility.
+- Adds dimensional 3D artwork for Standard, Minimal, and Clinic cursor choices.
+- Applies 3D text, wait, disabled, drag, and resize cursor states across the cursor families.
+
+v7.64.28 — 2026-10-13 — Appearance option click hotfix
+- Gives every cursor, sparkle, and click-sound card its own direct click handler.
+- Clicking an icon, label, or blank area inside a card now selects and saves that option.
+- Retains all v7.64.27 appearance settings and production installer fixes.
+
+v7.64.27 — 2026-10-13 — Advanced appearance, cursor, sparkle, and sound settings
+- Fixes Premium-theme user/session text contrast on the light header pill.
+- Keeps the original 3D hand cursor as the default for existing users and adds three sizes plus Standard, Minimal, and Clinic styles.
+- Adds Gold, Ice Blue, and Premium Violet sparkle palettes while preserving global pointer-accurate button effects.
+- Adds Soft, Crystal, and Digital click-sound profiles with preview controls.
+
+v7.64.26 — 2026-10-13 — Theme icon and text-color refinement
+- Replaces the abstract CSS dots with a dedicated person-and-color-palette SVG matching the approved mockup direction.
+- Premium theme now recolors headings, labels, supporting text, links, KPIs, and table headers.
+- Warm theme now applies its brown/sage/terracotta text hierarchy throughout pages and dialogs.
+- Retains all v7.64.25 appearance settings and installer/updater reliability fixes.

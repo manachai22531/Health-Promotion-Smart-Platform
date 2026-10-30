@@ -1,0 +1,11 @@
+HealthCheck v7.64.29 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: server, application, appearance settings, updater helper
+PASS  PowerShell syntax: Production installer GUI and worker
+PASS  Targeted appearance regression: 7/7
+PASS  Theme card label changed from Current to Default while retaining stored value compatibility
+PASS  Dimensional Standard, Minimal, and Clinic cursor assets packaged and referenced
+PASS  3D text, wait, disabled, drag, and resize states retained
+PASS  Direct click binding and browser cache-busting retained
+PASS  Original 3D Hand remains the existing-user default
+PASS  Production ZIP extraction and SHA-256 manifest verification

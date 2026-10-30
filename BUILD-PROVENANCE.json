@@ -1,0 +1,17 @@
+{
+  "release": "v7.65.00",
+  "base_release": "v7.64.99",
+  "base_archive": "HealthCheck-v7.64.99-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "bb20fafcf2673182592762907a0358ef0ca908d9b7dd7cad5b8e13a7b632f357",
+  "changes": "Approved HTML mockup 3 implemented with collapsible search/Booking sidebar, preserved handlers/filters/selection/permissions, independent scrolling and expanded data area. Editable accepted customer selection with ownership-safe updates, current catalog validation, clinical guards, concurrency, audit and A4 refresh. Includes all v7.64.92-v7.64.99 hotfixes.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.99",
+  "base_github_commit": "0b872c351399ef8e6a9167f0100414ff61909bb2",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key.",
+  "integration_branch": "releases/v7.65.00",
+  "target_branch": "main"
+}

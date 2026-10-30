@@ -7,8 +7,35 @@
 <title>Health Check Up Smart Search</title>
 <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
 <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
-<link href="assets/style.css?v=7.64.00-annual-editor-consolidated" rel="stylesheet"/>
-</head>
+<link href="assets/style.css?v=7.65.00-customer-setup" rel="stylesheet"/>
+<link href="assets/global-ui-density.css?v=7.65.00-users-exp" rel="stylesheet"/>
+<link href="assets/appearance-settings.css?v=7.65.00-panel-viewport-fix" rel="stylesheet"/>
+<script>/* Restore visual density before first paint; default = Compact. */
+try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
+  document.documentElement.setAttribute('data-hc-density', /^(normal|compact|dense)$/.test(hcDensityValue || '') ? hcDensityValue : 'compact');
+  var hcThemeValue = localStorage.getItem('healthcheck.appearance.theme.v1');
+  document.documentElement.setAttribute('data-hc-theme', /^(current|premium|warm)$/.test(hcThemeValue || '') ? hcThemeValue : 'current');
+  document.documentElement.setAttribute('data-hc-effects', localStorage.getItem('healthcheck.appearance.effects.v1') === 'off' ? 'off' : 'on');
+} catch (_) { document.documentElement.setAttribute('data-hc-density', 'compact'); }
+</script>
+<link href="assets/user-experience.css?v=7.65.00-header-shield-only" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/role-experience.css?v=7.65.00-role-exp"/>
+<link rel="stylesheet" href="assets/customer-compact.css?v=7.65.00-remove-open-button"/>
+<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.65.00-global-dismiss"/>
+<link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.00-single-busy"/>
+<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.65.00"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.65.00"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.65.00-knowledge"/>
+<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.65.00-confirmed-only-1">
+<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.65.00">
+<link rel="stylesheet" href="assets/auth-session.css?v=7.65.00-role-security"/>
+<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.65.00-mobile-compact">
+<link rel="stylesheet" href="assets/workspace-v74.css?v=7.65.00-search-align-1">
+<link rel="stylesheet" href="assets/customer-services.css?v=7.65.00"/>
+<link rel="stylesheet" href="assets/booking-calendar.css?v=7.65.00"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.65.00"/>
+<link rel="stylesheet" href="assets/personal-notes.css?v=7.65.00-note-detail"/>
+<link rel="stylesheet" href="/assets/button-theme.css?v=7.65.00"/>
+<script src="/assets/theme-sync.js?v=7.65.00"></script>
+<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.65.00"/>
+<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.65.00"><link rel="stylesheet" href="assets/workspace-v76497.css?v=7.65.00-booking-space-draft4"/><link rel="stylesheet" href="assets/company-board-compact.css?v=period-background-draft2"/><link rel="stylesheet" href="assets/patient-zone-colors.css?v=7.65.00"/><link rel="stylesheet" href="assets/customer-sidebar.css?v=7.65.00"/></head>
 <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
 <div class="app-version-corner">Version <b data-app-version="">-</b></div>
 <header class="topbar">
@@ -62,9 +89,9 @@
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/station-checkin-pin-3d.png"/></i>
 <span class="nav-popover" role="tooltip"><strong>Station Check-in</strong><small>เลือกสถานีแล้วสแกน QR, HN หรือ VN เพื่อเข้าคิว เริ่ม และจบบริการ</small></span>
 </button>
-<button aria-label="นัดหมาย HIS" class="nav-button" data-permission="appointmentView" data-view="appointmentView" title="นัดหมาย HIS" type="button">
+<button aria-label="นัดหมาย" class="nav-button" data-permission="appointmentView" data-view="appointmentView" title="นัดหมาย" type="button">
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/appointment.svg"/></i>
-<span class="nav-popover" role="tooltip"><strong>นัดหมาย HIS</strong><small>ดูและจัดการนัดหมายจากระบบ HIS</small></span>
+<span class="nav-popover" role="tooltip"><strong>นัดหมาย</strong><small>ดูและจัดการรายการนัดหมาย</small></span>
 </button>
 <button aria-label="Package HIS" class="nav-button" data-permission="hisView" data-view="packageApiView" title="Package HIS" type="button">
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/package-his-box.png"/></i>
@@ -92,7 +119,7 @@
 </button>
 <button aria-label="DataCenter" class="nav-button" data-permission="dataCenterView" data-view="dataCenterView" title="DataCenter" type="button">
 <i aria-hidden="true" class="nav-icon-3d datacenter-nav-icon"><img alt="" src="assets/nav/datacenter.png"/></i>
-<span class="nav-popover" role="tooltip"><strong>DataCenter</strong><small>Radiology/LAB Checker · Patient Package</small></span>
+<span class="nav-popover" role="tooltip"><strong>DataCenter</strong><small>Radiology/LAB Checker · Patient Package · Patient Demographic</small></span>
 </button>
 <button aria-label="ศูนย์ปฏิบัติการ" class="nav-button ops-center-nav" data-permission="worklistView" data-view="opsCenterView" title="ศูนย์ปฏิบัติการ" type="button">
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/operations-center.png"/></i>
@@ -116,8 +143,17 @@
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/guide-lightbulb-3d.svg"/></i>
 <span class="nav-popover" role="tooltip"><strong>คู่มือ</strong><small>เปิดคู่มือการใช้งานของหน้าปัจจุบัน</small></span>
 </button>
-<button aria-label="เปิด/ปิดเสียงการใช้งาน" class="sound-toggle sound-toggle-header" id="soundToggle" title="เปิด/ปิดเสียงการใช้งาน" type="button">🔊</button>
+<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.65.00"/></button>
+<section class="hc-appearance-panel" hidden id="hcAppearancePanel" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์"><header><div><small>PERSONAL APPEARANCE</small><strong>ปรับแต่งหน้าตาและเอฟเฟกต์</strong></div><button id="hcAppearanceClose" type="button" aria-label="ปิด">×</button></header>
+<div class="hc-appearance-body">
+<div class="hc-theme-options" role="radiogroup" aria-label="เลือกธีม"><button type="button" data-hc-theme-choice="current"><span class="hc-theme-preview current"></span><b>ค่าเริ่มต้น</b><small>ฟ้า–เขียวแบบเดิม</small></button><button type="button" data-hc-theme-choice="premium"><span class="hc-theme-preview premium"></span><b>พรีเมียม</b><small>กรมท่า มรกต และทอง</small></button><button type="button" data-hc-theme-choice="warm"><span class="hc-theme-preview warm"></span><b>อบอุ่นสายตา</b><small>ครีม เซจ และเทอร์ราคอตตา</small></button></div>
+<label class="hc-appearance-row"><span><b>ขนาด UI</b><small>ปรับพื้นที่แสดงผลทุกหน้า</small></span><select id="globalUiDensity" aria-label="เลือกขนาด UI"><option value="normal">ปกติ</option><option value="compact" selected>กระชับ</option><option value="dense">กระชับมาก</option></select></label>
+<section class="hc-setting-section"><div class="hc-setting-heading"><span><b>เมาส์</b><small>รูปแบบเดิม “มือ 3D” จะยังคงอยู่</small></span></div><div class="hc-setting-line"><b>ขนาดเมาส์</b><div class="hc-choice-segments" role="radiogroup" aria-label="ขนาดเมาส์"><button type="button" data-hc-cursor-size="small">เล็ก</button><button type="button" data-hc-cursor-size="medium">กลาง</button><button type="button" data-hc-cursor-size="large">ใหญ่</button></div></div><div class="hc-option-grid cursor" role="radiogroup" aria-label="รูปแบบเมาส์"><button type="button" data-hc-cursor-style="hand3d"><span class="hc-cursor-preview hand3d">☝</span><b>มือ 3D</b><small>รูปแบบเดิม</small></button><button type="button" data-hc-cursor-style="minimal"><span class="hc-cursor-preview minimal"><img alt="" src="assets/cursor-minimal-3d.svg"/></span><b>มินิมอล</b></button><button type="button" data-hc-cursor-style="clinic"><span class="hc-cursor-preview clinic"><img alt="" src="assets/cursor-clinic-3d.svg"/></span><b>คลินิก</b></button><button type="button" data-hc-cursor-style="wand"><span class="hc-cursor-preview wand"></span><b>คทาปลายดาว 3D</b></button><button type="button" data-hc-cursor-style="paw"><span class="hc-cursor-preview paw"></span><b>อุ้งเท้าแมว 3D</b></button><button type="button" data-hc-cursor-style="sailfish"><span class="hc-cursor-preview sailfish"></span><b>ปลากระโทงร่ม 3D</b></button></div><div class="hc-cursor-colors"><div class="hc-setting-heading"><b>สีเมาส์</b><button type="button" id="hcCursorDefaultColor">ใช้สีเดิม</button></div><div class="hc-cursor-color-inputs"><label>เลือกสี <input type="color" id="hcCursorColor" value="#0b9fc0" aria-label="เลือกสีเมาส์"></label><label>รหัสสี <input type="text" id="hcCursorHex" value="#0b9fc0" maxlength="7" pattern="#[0-9a-fA-F]{6}" spellcheck="false" aria-label="รหัสสีเมาส์"></label></div><div class="hc-cursor-swatches" aria-label="สีเมาส์สำเร็จรูป"><button type="button" data-hc-cursor-color="#1d5c96" style="--swatch:#1d5c96" aria-label="น้ำเงิน" title="น้ำเงิน"></button><button type="button" data-hc-cursor-color="#0b9fc0" style="--swatch:#0b9fc0" aria-label="ฟ้า" title="ฟ้า"></button><button type="button" data-hc-cursor-color="#84bd00" style="--swatch:#84bd00" aria-label="เขียว" title="เขียว"></button><button type="button" data-hc-cursor-color="#9b59d0" style="--swatch:#9b59d0" aria-label="ม่วง" title="ม่วง"></button><button type="button" data-hc-cursor-color="#e34e65" style="--swatch:#e34e65" aria-label="ชมพูแดง" title="ชมพูแดง"></button><button type="button" data-hc-cursor-color="#222222" style="--swatch:#222222" aria-label="ดำ" title="ดำ"></button><button type="button" data-hc-cursor-color="#ffffff" style="--swatch:#ffffff" aria-label="ขาว" title="ขาว"></button></div><small id="hcCursorColorStatus" role="status">ใช้สีเดิมของแต่ละแบบ</small></div></section>
+<section class="hc-setting-section"><div class="hc-setting-heading"><span><b>ประกายดาว</b><small>แสดงเมื่อคลิกปุ่มทั่วทั้งระบบ</small></span><button type="button" class="hc-setting-toggle" id="hcEffectsToggle" aria-pressed="true">เปิด</button></div><div class="hc-option-grid sparkle" role="radiogroup" aria-label="รูปแบบประกายดาว"><button type="button" data-hc-sparkle-style="gold"><span class="hc-sparkle-preview gold">✦ ✧ ★</span><b>ทองคลาสสิก</b></button><button type="button" data-hc-sparkle-style="ice"><span class="hc-sparkle-preview ice">✦ ✧ ★</span><b>ฟ้าไอซ์</b></button><button type="button" data-hc-sparkle-style="violet"><span class="hc-sparkle-preview violet">✦ ✧ ★</span><b>ม่วงพรีเมียม</b></button></div></section>
+<section class="hc-setting-section"><div class="hc-setting-heading"><span><b>เสียงคลิก</b><small>เลือกเสียงตอบสนองของปุ่ม</small></span><button aria-label="เปิด/ปิดเสียงการใช้งาน" class="hc-setting-toggle" id="soundToggle" type="button">🔊 เปิด</button></div><div class="hc-option-grid sound" role="radiogroup" aria-label="รูปแบบเสียงคลิก"><button type="button" data-hc-sound-style="soft"><span>🔊</span><b>นุ่มนวล</b><i data-hc-sound-preview="soft">▶</i></button><button type="button" data-hc-sound-style="crystal"><span>🔔</span><b>คริสตัล</b><i data-hc-sound-preview="crystal">▶</i></button><button type="button" data-hc-sound-style="digital"><span>🎛️</span><b>ดิจิทัล</b><i data-hc-sound-preview="digital">▶</i></button></div></section>
+<section class="trail-settings"><div class="hc-setting-heading"><span><b>ดาววิ่งตามเมาส์</b><small>ดาวค่อย ๆ จางหายตามการเคลื่อนไหว</small></span><button class="hc-setting-toggle" id="trailToggle" type="button" aria-pressed="false">ปิด</button></div><div class="trail-controls"><label>แสดงเมื่อ<select id="trailMode"><option value="move">ขยับเมาส์</option><option value="drag">กดค้างแล้วลาก</option></select></label><label>จำนวนดาว<select id="trailDensity"><option value="low">น้อย</option><option value="medium" selected>ปานกลาง</option><option value="high">มาก</option></select></label><label>สีดาว<input type="color" id="trailColor" value="#f5bd29"></label></div></section></div><footer><button class="hc-appearance-reset" id="hcAppearanceReset" type="button">คืนค่าเริ่มต้น</button><button class="hc-appearance-done" id="hcAppearanceDone" type="button">บันทึกการตั้งค่า</button></footer></section></div>
 <div class="user-session">
+<button id="hcExpReopen" type="button" hidden aria-controls="hcExpBar" aria-expanded="false" aria-haspopup="dialog" aria-label="เปิดข้อมูลเลเวลและ EXP"><span id="hcExpReopenShield" class="hc-exp-shield"></span></button>
 <span><strong id="currentUserName">-</strong></span>
 <span class="app-version-inline" title="Application version"><b data-app-version="">-</b></span>
 <button id="logoutButton" type="button">ออกจากระบบ</button>
@@ -165,10 +201,22 @@
 <section class="workflow-project-list" id="projectList"></section>
 </div>
 <div class="app-view workspace-fullpage" id="worklistView">
-<section class="workflow-hero"><div><p class="eyebrow">DAILY OPERATION</p><h1>Worklist งานประจำวัน</h1><p class="hero-note">ค้นหา Booking, Check-in และติดตามสถานะหน้างานจากจุดเดียว</p></div><button class="button secondary" id="refreshWorklist" type="button">รีเฟรช</button></section>
-<section class="workflow-toolbar worklist-filter"><input id="worklistQuery" placeholder="ชื่อ, HN, ID, Employee Code" type="search"/><input id="worklistDate" type="date"/><select id="worklistCompany"><option value="">ทุกบริษัท</option></select><select id="worklistProject"><option value="">ทุกโครงการ</option></select><select id="worklistStatus"><option value="">ทุกสถานะ</option><option value="NOT_ARRIVED">ยังไม่มา</option><option value="CHECKED_IN">Checked-in</option><option value="IN_SERVICE">กำลังรับบริการ</option><option value="COMPLETE">เสร็จสิ้น</option><option value="CANCELLED">ยกเลิก</option></select><button class="button primary" id="runWorklist" type="button">ค้นหา</button></section>
-<section class="workflow-kpis"><article><span>ทั้งหมด</span><strong id="worklistTotal">0</strong></article><article><span>ยืนยันรายการตรวจแล้ว</span><strong id="worklistNotArrived">0</strong></article><article><span>ส่ง EMR แล้ว</span><strong id="worklistCheckedIn">0</strong></article><article><span>เสร็จสิ้น</span><strong id="worklistComplete">0</strong></article></section>
-<section class="workflow-table-card worklist-new-layout"><aside class="worklist-confirmation-panel"><header><div><small>PENDING CONFIRMATION</small><h2>รอยืนยันการตรวจ</h2></div><strong id="worklistPendingCount">0</strong></header><p>เลือกเคสเพื่อเปิดข้อมูล ตรวจทาน และยืนยันรายการตรวจ</p><div id="worklistPendingRows" class="worklist-pending-list"></div></aside><section class="worklist-today-panel"><header><div><small>TODAY'S CASES</small><h2>รายการตรวจวันนี้</h2></div><strong id="worklistConfirmedCount">0</strong></header><div class="worklist-bulk-toolbar" id="worklistBulkToolbar"><label><input id="worklistSelectAll" type="checkbox"> เลือกทั้งหมด</label><span>เลือก <strong id="worklistSelectedCount">0</strong> รายการ</span><button class="button secondary mini" id="worklistBulkReceiveEmr" type="button" disabled>รับ EMR</button><button class="button secondary mini" id="worklistBulkSendEmr" type="button" disabled>ส่ง EMR</button><button class="button primary mini" id="worklistBulkChargeClose" type="button" disabled>Charge Close</button></div><div class="workflow-table-scroll worklist-today-scroll"><table class="workflow-table worklist-today-table"><thead><tr><th>เลือก</th><th>No.</th><th>HN</th><th>VN</th><th>ชื่อ-นามสกุล / EMR</th><th>บริษัท</th><th>โครงการ</th><th>แพ็กเกจทั้งหมด</th><th>Result Status</th><th>สถานที่ปัจจุบัน</th><th>สถานะการตรวจ</th><th>เวลา Check-in</th><th>เจ้าหน้าที่ลงทะเบียน</th></tr></thead><tbody id="worklistRows"></tbody></table></div></section></section>
+<section class="workflow-hero"><div><p class="eyebrow">DAILY OPERATION</p><h1>Worklist งานประจำวัน</h1><p class="hero-note">ค้นหา Booking, Check-in และติดตามสถานะหน้างานจากจุดเดียว</p></div></section>
+<section class="workflow-toolbar worklist-filter"><input id="worklistQuery" placeholder="ชื่อ, HN, ID, Employee Code" type="search"/><input id="worklistDate" type="date"/><select id="worklistCompany"><option value="">ทุกบริษัท</option></select><select id="worklistProject"><option value="">ทุกโครงการ</option></select><select id="worklistStatus"><option value="">ทุกสถานะ</option><option value="NOT_ARRIVED">ยังไม่มา</option><option value="CHECKED_IN">Checked-in</option><option value="IN_SERVICE">กำลังรับบริการ</option><option value="COMPLETE">เสร็จสิ้น</option><option value="CANCELLED">ยกเลิก</option></select><button class="button primary" id="runWorklist" type="button">ค้นหา</button><button class="button secondary" id="refreshWorklist" type="button">รีเฟรช</button></section>
+
+<section class="workflow-table-card worklist-new-layout worklist-unified-layout"><section class="worklist-today-panel">
+<nav class="worklist-stage-tabs" id="worklistStageTabs" aria-label="กรองขั้นตอนการตรวจ">
+<button type="button" class="active" data-worklist-stage="ALL" aria-pressed="true">ทั้งหมด <span data-worklist-count="ALL">0</span></button>
+<button type="button" data-worklist-stage="NOT_CONFIRMED" aria-pressed="false">รอยืนยัน <span data-worklist-count="NOT_CONFIRMED">0</span></button>
+<button type="button" data-worklist-stage="WAITING_VISIT" aria-pressed="false">รอเปิด Visit <span data-worklist-count="WAITING_VISIT">0</span></button>
+<button type="button" data-worklist-stage="WAITING_ORDER" aria-pressed="false">รอสั่ง Order <span data-worklist-count="WAITING_ORDER">0</span></button>
+<button type="button" data-worklist-stage="ORDERED" aria-pressed="false">ส่งตรวจแล้ว <span data-worklist-count="ORDERED">0</span></button>
+<button type="button" data-worklist-stage="COMPLETE" aria-pressed="false">เสร็จสิ้น <span data-worklist-count="COMPLETE">0</span></button>
+<span class="worklist-visible-count" title="จำนวนรายการที่แสดง" id="worklistConfirmedCount">0</span>
+</nav>
+<div class="worklist-bulk-toolbar" id="worklistBulkToolbar"><label><input id="worklistSelectAll" type="checkbox"> เลือกทั้งหมด</label><span>เลือก <strong id="worklistSelectedCount">0</strong> รายการ</span><button class="button secondary mini" id="worklistBulkVisitStatus" type="button" disabled>รับ VisitStatus</button><button class="button secondary mini" id="worklistBulkReceiveEmr" type="button" disabled>รับ EMR</button><button class="button secondary mini" id="worklistBulkSendEmr" type="button" disabled>ส่ง EMR</button><button class="button primary mini" id="worklistBulkChargeClose" type="button" disabled>Charge Close</button></div><div class="workflow-table-scroll worklist-today-scroll"><table class="workflow-table worklist-today-table worklist-unified-table"><thead><tr><th>เลือก</th><th>ผู้รับบริการ / HN</th><th>บริษัท / โครงการ</th><th>สถานะการตรวจ</th><th>VN / VisitStatus</th><th>แพ็กเกจ / Order</th><th>ผลตรวจ / EMR</th><th>เวลา / เจ้าหน้าที่</th><th>ดำเนินการ</th></tr></thead><tbody id="worklistRows"></tbody></table></div>
+<p class="worklist-unified-help">รายการอยู่ในตารางเดียวตลอดขั้นตอน · ปุ่มยืนยัน / เปิด Visit / สั่ง Order จะเปิดข้อมูลเพื่อตรวจสอบก่อนดำเนินการ · เลือกทำรายการแบบกลุ่มได้เฉพาะเคสที่ส่ง Order แล้วและมี HN/VN</p>
+</section></section>
 </div>
 <div class="app-view" id="operationsView">
 <section class="workflow-hero"><div><p class="eyebrow">CHECKUP OPERATING SYSTEM</p><h1>Operations</h1><p class="hero-note">จัดการงานก่อนตรวจ ลำดับสถานี ผลตรวจ การทบทวนโดยแพทย์ และการติดตามในหน้าเดียว</p></div><button class="button secondary" id="refreshOperations" type="button">รีเฟรช</button></section>
@@ -399,12 +447,19 @@
 </footer>
 </section>
 </div>
-<div class="app-view active" id="searchView">
+<div class="app-view active hc-search-refine hc-search-one-row" id="searchView">
 <div class="search-page-layout">
 <div class="search-main-stack">
 <section class="search-card card-search-theme">
+
+<div class="hc-one-line-search-row">
 <div class="search-grid">
-<label class="search-field"><span>บริษัท</span><input autocomplete="off" id="companyFilter" list="companyFilterOptions" placeholder="พิมพ์ค้นหาหรือเลือกทุกบริษัท" type="search"/><datalist id="companyFilterOptions"></datalist></label><label class="search-field"><span>ค้นหา Booking ของบริษัท</span><input autocomplete="off" id="searchBooking" placeholder="บริษัท / ปี / รหัส Booking" type="search"/></label><label class="search-field"><span>ชื่อ–นามสกุล</span><input autocomplete="off" autofocus="" id="searchName" placeholder="เช่น สมชาย ใจดี" type="search"/></label><label class="search-field"><span>ID / Passport</span><input autocomplete="off" id="searchIdentity" placeholder="เช่น 1234567890123" type="search"/></label><label class="search-field"><span>HN</span><input autocomplete="off" id="searchHn" placeholder="เช่น 01-23-046432" type="search"/></label><input aria-hidden="true" id="search" tabindex="-1" type="hidden"/><input aria-hidden="true" id="packageFilter" tabindex="-1" type="hidden"/><datalist id="packageFilterOptions"></datalist><small class="package-scope-hint" hidden="" id="packageScopeHint"></small><button class="button primary search-submit" id="searchSubmit" type="button">
+<label class="search-field"><span>ชื่อ–นามสกุล</span><input autocomplete="off" autofocus="" id="searchName" placeholder="เช่น สมชาย ใจดี" type="search"/></label>
+<label class="search-field"><span>ID / Passport</span><input autocomplete="off" id="searchIdentity" placeholder="เช่น 1234567890123" type="search"/></label>
+<label class="search-field"><span>HN</span><input autocomplete="off" id="searchHn" placeholder="เช่น 01-23-046432" type="search"/></label>
+<label class="search-field"><span>บริษัท</span><input autocomplete="off" id="companyFilter" list="companyFilterOptions" placeholder="พิมพ์ค้นหาหรือเลือกทุกบริษัท" type="search"/><datalist id="companyFilterOptions"></datalist></label>
+<label class="search-field"><span>ค้นหา Booking ของบริษัท</span><input autocomplete="off" id="searchBooking" placeholder="บริษัท / ปี / รหัส Booking" type="search"/></label>
+<input aria-hidden="true" id="search" tabindex="-1" type="hidden"/><input aria-hidden="true" id="packageFilter" tabindex="-1" type="hidden"/><datalist id="packageFilterOptions"></datalist><small class="package-scope-hint" hidden="" id="packageScopeHint"></small><button class="button primary search-submit" id="searchSubmit" type="button">
               ค้นหา</button><button class="button secondary search-clear" id="clearSearch" type="button">
               ล้างข้อมูล
             </button>
@@ -422,30 +477,22 @@
 <label for="companyQuickLookup"><span>ค้นหาข้อมูลบริษัท</span><input autocomplete="off" id="companyQuickLookup" list="companyQuickLookupOptions" placeholder="ชื่อบริษัท / รหัสบริษัท / ปี" type="search"/><datalist id="companyQuickLookupOptions"></datalist></label>
 <button class="button secondary" id="openCompanyQuickLookup" type="button">ดูข้อมูลบริษัท</button>
 </div>
-<p class="hint">
-            กรอกอย่างน้อย 2 ตัวอักษรในช่องใดช่องหนึ่ง ·
-            ช่องบริษัทพิมพ์ค้นหาและเลือกจากรายการได้ ·
-            ปุ่มเพิ่มข้อมูลลูกค้าเลือกบริษัทภายในปุ่ม
-          </p>
+<header class="hc-search-heading" aria-label="ค้นหาผู้รับบริการ">
+  <button id="companyQuickLookupToggle" class="hc-company-lookup-toggle" type="button" aria-controls="companyQuickLookup" aria-expanded="false">⌕ ข้อมูลบริษัท <span aria-hidden="true">▾</span></button>
+</header>
+<button type="button" class="button secondary" id="searchTodayToggle" aria-expanded="false" aria-controls="searchTodayDrawer">ยืนยันแล้ววันนี้ <span id="searchTodayCount">0</span> ☰</button>
+</div><!-- end hc-one-line-search-row -->
+
 <div class="result-meta" id="resultMeta"></div>
 <div class="result-cards" hidden="" id="resultRows"></div>
 <div class="empty" id="emptyState">
-<span class="empty-icon">⌕</span><strong>พร้อมค้นหารายชื่อ</strong><span>เพิ่มบริษัทและนำเข้าข้อมูลลูกค้าก่อนเริ่มค้นหา</span>
+<span class="empty-icon">⌕</span><strong>พร้อมค้นหารายชื่อ</strong><span>กรอกชื่อ, ID/Passport, HN หรือเลือกบริษัท แล้วกดค้นหาเพื่อเริ่มต้น</span>
 </div>
 </section>
-<aside aria-label="แพ็กเกจยอดนิยม 5 อันดับ" class="sales-ranking-rail" id="salesRankingRail">
-<header><span>TOP 5</span><strong>แพ็กเกจยอดนิยม</strong><small>จากรายการที่ยืนยันรับบริการแล้ว</small></header>
-<section><h3>แพ็กเกจคู่สัญญา</h3><div class="sales-ranking-list" id="topContractPackages"></div></section>
-<section><h3>ซื้อเพิ่ม · วางบิล</h3><div class="sales-ranking-list" id="topBillingPackages"></div></section>
-<section><h3>ซื้อเพิ่ม · ชำระเอง</h3><div class="sales-ranking-list" id="topCashPackages"></div></section>
-</aside>
 </div>
 <div class="search-side-stack">
-<aside aria-labelledby="todayRegistrationTitle" class="today-registration-panel">
-<header>
-<div><p>อัปเดตตามข้อมูลล่าสุด</p><h2 id="todayRegistrationTitle">ยืนยันการตรวจแล้ว</h2></div>
-<span class="today-live-dot" title="ข้อมูลวันนี้"></span>
-</header>
+<aside aria-label="ยืนยันการตรวจวันนี้" class="today-registration-panel">
+
 <div class="today-registration-count"><span>ยืนยันแล้ววันนี้</span><strong id="todayCaseConfirmed">0</strong></div>
 <div class="today-registration-list" id="todayRegistrationRows"></div>
 </aside>
@@ -461,17 +508,19 @@
 <article class="emr-status-card active" data-emr-status-filter="WAITING"><span>รอตรวจ</span><strong id="emrWaitingCount">0</strong></article>
 <article class="emr-status-card" data-emr-status-filter="DRAFT"><span>แบบร่าง</span><strong id="emrDraftCount">0</strong></article>
 <article class="emr-status-card" data-emr-status-filter="APPROVED"><span>อนุมัติผลแล้ว</span><strong id="emrApprovedCount">0</strong></article>
-<article><span>รายการทั้งหมด</span><strong id="emrQueueCount">0 รายการ</strong></article>
+<article class="emr-status-card" data-emr-status-filter=""><span>รายการทั้งหมด</span><strong id="emrQueueCount">0 รายการ</strong></article>
 </section>
-<section class="emr-list-filters"><label>ตั้งแต่วันที่ส่งตรวจ<input id="emrSentDateFrom" type="date"/></label><label>ถึงวันที่ส่งตรวจ<input id="emrSentDateTo" type="date"/></label><label>สถานะ<select id="emrStatusFilter"><option value="">ทุกสถานะ</option><option value="WAITING">รอตรวจ</option><option value="DRAFT">แบบร่าง</option><option value="APPROVED">อนุมัติผลแล้ว</option></select></label><label id="emrDoctorFilterLabel">แพทย์<select id="emrDoctorFilter"><option value="">แพทย์ทุกคน</option></select></label><input id="emrQueueSearch" placeholder="ค้นหา HN, VN, ชื่อ, บริษัท หรือโครงการ" type="search"/></section>
+<section class="emr-list-filters"><label>ตั้งแต่วันที่ส่งตรวจ<input id="emrSentDateFrom" type="date"/></label><label>ถึงวันที่ส่งตรวจ<input id="emrSentDateTo" type="date"/></label><div class="emr-date-actions"><button type="button" class="button secondary" id="emrDateToday">วันนี้</button><button type="button" class="button secondary" id="emrDateAll">ทุกวัน</button></div><label>สถานะ<select id="emrStatusFilter"><option value="">ทุกสถานะ</option><option value="WAITING">รอตรวจ</option><option value="DRAFT">แบบร่าง</option><option value="APPROVED">อนุมัติผลแล้ว</option></select></label><label id="emrDoctorFilterLabel">แพทย์<select id="emrDoctorFilter"><option value="">แพทย์ทุกคน</option></select></label><input id="emrQueueSearch" placeholder="ค้นหา HN, VN, ชื่อ, บริษัท หรือโครงการ" type="search"/><div class="emr-book-filters"><label><input type="checkbox" id="emrCompleteOnly">ผลตรวจครบแล้ว</label><label><input type="checkbox" id="emrApprovedOnly">พร้อมพิมพ์ (อนุมัติแล้ว)</label><small>วันที่ส่งตรวจตามเวลาไทย</small></div></section>
 <div aria-live="polite" class="emr-action-status" hidden="" id="emrActionStatus" role="status"><span aria-hidden="true" class="emr-action-spinner"></span><div><strong id="emrActionStatusTitle">กำลังดำเนินการ</strong><small id="emrActionStatusDetail">กรุณารอสักครู่</small></div></div>
-<div class="emr-workbench emr-book-workbench">
-<section class="emr-queue-card emr-patient-list-card"><div class="emr-queue-head"><strong>รายชื่อผู้ป่วย</strong><span>เรียงตามเวลาส่งตรวจล่าสุด</span></div><div class="emr-queue-list" id="emrQueueRows"></div></section>
-<section class="emr-editor-card emr-book-editor">
-<div class="empty" id="emrEmptyState"><strong>ยังไม่มีเคสที่เลือก</strong><span>กด “ทำเล่ม” จากรายชื่อด้านซ้าย หน้าทำเล่มจะแสดงในพื้นที่นี้</span></div>
+<div class="emr-workbench emr-book-workbench emr-table-workbench">
+<section class="emr-queue-card emr-table-panel"><div class="emr-queue-head"><strong>รายการ EMR</strong><span>เรียงตามเวลาส่งตรวจล่าสุด <small id="emrBookUpdatedAt">ข้อมูลที่โหลดจากระบบ</small></span></div>
+<div class="emr-book-bulk"><label><input type="checkbox" id="emrBookSelectAll">เลือกเล่มที่อนุมัติในหน้านี้</label><span>เลือก <b id="emrBookSelectedCount">0</b> เล่ม</span><button type="button" class="button secondary mini" id="emrBookBulkPrint" disabled>พิมพ์เล่มที่เลือก</button></div><div class="emr-table-scroll"><table class="workflow-table emr-case-table"><thead><tr><th>เลือก</th><th>ลำดับ</th><th>ผู้รับบริการ / HN</th><th>VN</th><th>บริษัท / โครงการ</th><th>วันที่ส่งตรวจ</th><th>แพทย์</th><th>สถานะ</th><th>ผลตรวจ</th><th>ดำเนินการ</th></tr></thead><tbody id="emrQueueRows"></tbody></table></div></section>
+<section class="emr-editor-card emr-book-editor" id="emrBookPanel" hidden>
+<div class="emr-book-navigation"><button type="button" class="button secondary" id="emrBackToList">← กลับตาราง EMR</button><strong id="emrSelectedPatient"></strong></div>
+<div class="empty" id="emrEmptyState"><strong>ยังไม่มีเคสที่เลือก</strong><span>ไม่พบข้อมูลผู้รับบริการของเคสนี้ กรุณากลับตารางแล้วรีเฟรชรายการ</span></div>
 <div hidden="" id="emrEditor">
 <div class="emr-inline-health-book" id="emrInlineBookContent"></div>
-<div class="emr-editor-actions"><button class="button auto-interpret-button" id="autoInterpretEmrBook" type="button">✨ แปลผลอัตโนมัติ</button><button class="button secondary" id="saveEmrDraft" type="button">แบบร่าง</button><button class="button primary" id="approveEmrBook" type="button">อนุมัติเล่ม</button></div>
+<div class="emr-editor-actions"><button type="button" class="button secondary" id="reviewActiveEmrBook">▤ รีวิวเล่ม</button><button type="button" class="button secondary" id="geminiInterpretEmrBook">✦ แปลผลด้วย Gemini</button><button class="button auto-interpret-button" id="autoInterpretEmrBook" type="button">✨ แปลผลอัตโนมัติ</button><button class="button secondary" id="saveEmrDraft" type="button">แบบร่าง</button><button class="button primary" id="approveEmrBook" type="button">อนุมัติเล่ม</button></div>
 </div>
 </section>
 </div>
@@ -485,7 +534,9 @@
               ข้อมูลลูกค้าทุกชุดต้องนำเข้าผ่านบริษัทที่เลือกเสมอ
             </p>
 </div>
-<div class="hero-actions">
+<div class="hero-actions"><a class="button primary" data-permission="customerPageManage" id="openCustomerDisplaySetup" href="/customer-setup" target="_blank" rel="noopener noreferrer">ตั้งค่าหน้าลูกค้า ↗</a>
+<button class="button danger" id="bulkDeleteCompanies" data-permission="companyDelete" type="button">ลบหลายบริษัท / ปี</button>
+<button class="button secondary" id="viewAllCompanyImportFiles" data-permission="customerImport" type="button">ไฟล์รายชื่อที่นำเข้า</button>
 <button class="button secondary" id="exportCompanyFolders" type="button">Export ข้อมูลบริษัท</button>
 <button class="button secondary" id="openMultiCompanyImport" type="button">นำเข้าหลายบริษัท</button><button class="button secondary" id="openMultiCustomerImport" type="button">นำเข้าหลายรายชื่อ</button><button class="button primary" id="addCompany" type="button">
               + เพิ่มบริษัท
@@ -498,7 +549,7 @@
 <span aria-hidden="true">⌕</span><input autocomplete="off" id="companySearch" placeholder="ค้นหาชื่อบริษัท รหัสบริษัท หรือปี" type="search"><button aria-label="ล้างคำค้น" id="clearCompanySearch" type="button">
                 ×
               </button>
-</input></div></label>
+</div></label>
 <div class="company-board-filters" aria-label="ตัวกรองข้อมูลบริษัท">
 <label class="company-status-filter-label"><span>สถานะ <button aria-expanded="false" aria-controls="companyStatusLegend" aria-label="ดูคำอธิบายสถานะ" class="company-status-help" id="companyStatusHelp" type="button">i</button></span><select id="companyStatusFilter"><option value="">สถานะทั้งหมด</option><option value="NOT_STARTED">ยังไม่เริ่ม</option><option value="IN_PROGRESS">กำลังดำเนินการ</option><option value="COMPLETE">เสร็จสิ้น</option><option value="CLOSED">ปิดปีแล้ว</option><option value="CANCELLED">ยกเลิก</option></select></label>
 <label><span>ปี</span><select id="companyYearFilter"><option value="">ทุกปี</option></select></label>
@@ -507,7 +558,7 @@
 <span class="result-meta" id="companySearchMeta"></span>
 <div class="company-status-legend" id="companyStatusLegend" hidden role="dialog" aria-label="คำอธิบายสถานะ"><div class="company-status-legend-head"><strong>คำอธิบายสถานะปี</strong><button type="button" id="companyStatusLegendClose" aria-label="ปิด">×</button></div><div class="company-status-legend-grid"><span class="company-status-pill year not_started">ยังไม่เริ่ม</span><p>ยังไม่มีรายชื่อหรือการดำเนินการ</p><span class="company-status-pill year in_progress">กำลังดำเนินการ</span><p>มีรายชื่อหรือ Booking และกำลังตรวจ/รับผลบางส่วน</p><span class="company-status-pill year complete">เสร็จสิ้น</span><p>ดำเนินการครบแล้วตามข้อมูล Booking</p><span class="company-status-pill year closed">ปิดปีแล้ว</span><p>ปิดการดำเนินงานของปีนั้นแล้ว</p><span class="company-status-pill cancelled">ยกเลิก</span><p>โครงการของปีนั้นถูกยกเลิก</p></div></div>
 </section>
-<section class="company-board-head" aria-hidden="true"><div><span>🏢</span><strong>บริษัท</strong></div><div><span>▣</span><strong>ปี</strong></div><div><span>▤</span><strong>Booking</strong></div></section>
+<section class="company-board-head" aria-hidden="true"><div><span>🏢</span><strong>บริษัท</strong></div><div><span>▤</span><strong>ข้อมูลรายปี / Booking</strong></div></section>
 <section class="company-list company-board-list" id="companyList"></section>
 <div class="empty company-empty" id="companyEmpty">
 <span class="empty-icon">🏢</span><strong>ยังไม่มีข้อมูลบริษัท</strong><span>เพิ่มบริษัทก่อน แล้วจึงนำเข้ารายชื่อลูกค้า</span>
@@ -524,6 +575,7 @@
             </p>
 </div>
 <div class="hero-actions">
+<button class="button secondary" id="openPackageKnowledgeImport" type="button">นำเข้าความรู้รายการตรวจ</button>
 <button class="button secondary" id="openPackageSetup" type="button">ตั้งค่ารายการตรวจ</button>
 <button class="button secondary" id="openPackageCategoryMaster" type="button">จัดการหมวด</button>
 <a class="button secondary button-link" download="" href="templates/contract-extra-package-template.xlsx">ดาวน์โหลดเทมเพลต</a><button class="button primary" id="openPackageImport" type="button">
@@ -719,6 +771,7 @@
 <div aria-label="DataCenter modules" class="datacenter-tabs" role="tablist">
 <button class="button primary active" id="dataCenterRadiologyTab" type="button">Radiology/LAB Checker</button>
 <button class="button secondary" id="dataCenterPatientPackageTab" type="button">Patient Package</button>
+<button class="button secondary" data-permission="customerSensitiveView" id="dataCenterPatientDemographicTab" type="button">Patient Demographic</button>
 </div>
 <iframe class="datacenter-frame" id="dataCenterFrame" src="/datacenter/radiology" title="Radiology/LAB Checker"></iframe>
 </section>
@@ -733,7 +786,7 @@
 </section>
 </div>
 <div class="app-view" id="orderSetupView">
-<section class="hero"><div><p class="eyebrow">ORDER &amp; STATION SETUP</p><h1>Set Up Order&amp;Station</h1><p class="hero-note">กำหนดประเภท สถานี และซ่อนรายการที่ไม่ควรแสดงให้ลูกค้า</p></div></section>
+<section class="hero"><div><p class="eyebrow">ORDER &amp; STATION SETUP</p><h1>Set Up Order&amp;Station</h1><p class="hero-note">กำหนดประเภท สถานี และซ่อนรายการที่ไม่ควรแสดงให้ลูกค้า</p></div><div class="hero-actions order-excel-actions"><button class="button secondary" id="exportOrderExcel" data-permission="orderView" type="button">⇩ ส่งออก Excel</button><button class="button primary" id="importOrderExcel" data-permission="orderItemManage" type="button">⇧ นำเข้า Excel</button><input type="file" id="orderExcelFile" accept=".xlsx,.xls" hidden></div></section>
 <section class="api-card order-setup-card">
 <div class="api-tester-head"><div><h2>จัดการประเภท</h2><p>ประเภทที่สร้างจะใช้เรียงรายละเอียดแพ็กเกจ</p></div><button class="button secondary" id="addOrderType" type="button">+ เพิ่มประเภท</button></div>
 <div class="order-type-chips" id="orderTypeChips"></div>
@@ -779,15 +832,15 @@
 <div class="overlay" hidden="" id="labScanLogOverlay"><section class="modal lab-scan-log-modal"><header><div><small>LAB SCAN AUDIT</small><h2>ประวัติการสแกน HN / VN / LN</h2></div><button aria-label="ปิด" class="icon-button" id="closeLabScanLog" type="button">×</button></header><div class="lab-scan-log-toolbar"><input id="labScanLogQuery" placeholder="ค้นหา SID, HN, VN หรือ LN" type="search"/><button class="button primary" id="refreshLabScanLog" type="button">ค้นหา</button><a class="button secondary" download="" href="/api/his/lab-scan-report.csv" id="labScanLogExport">Export CSV</a></div><div class="workflow-table-scroll"><table class="workflow-table"><thead><tr><th>เวลาสแกน</th><th>SID</th><th>HN</th><th>VN / VisitUID</th><th>LN</th><th>สถานะ</th><th>ผล</th><th>ผู้ดำเนินการ</th></tr></thead><tbody id="labScanLogRows"></tbody></table></div></section></div>
 <div class="app-view" id="appointmentView">
 <section class="hero">
-<div><p class="eyebrow">ปฏิทินนัดหมายจากฐานข้อมูล HIS</p><h1>นัดหมาย HIS</h1><p class="hero-note">เลือกรายวัน รายสัปดาห์ หรือรายเดือน และกรองตาม Location ก่อนดึงข้อมูล</p></div>
+<div><p class="eyebrow">ตารางนัดหมายและการรับบริการ</p><h1>นัดหมาย</h1><p class="hero-note">เลือกรายวัน รายสัปดาห์ หรือรายเดือน และกรองตาม Location ก่อนดึงข้อมูล</p></div>
 </section>
-<section class="appointment-filter-card">
+<nav class="apt-main-tabs" role="tablist" aria-label="การจัดการนัดหมาย"><button id="aptListTab" role="tab" aria-selected="true" aria-controls="aptListPanel" type="button"><span aria-hidden="true">▦</span><span><strong>นัดหมาย</strong><small>ดูปฏิทินและรายชื่อนัดหมาย</small></span></button><button id="aptCreateTab" role="tab" aria-selected="false" aria-controls="aptCreatePanel" tabindex="-1" type="button" hidden><span aria-hidden="true">＋</span><span><strong>สร้างตาราง</strong><small>กำหนดวัน เวลา และจำนวนรับลูกค้า</small></span></button><button id="aptBookingsTab" role="tab" aria-selected="false" aria-controls="aptBookingsPanel" tabindex="-1" type="button" hidden><span aria-hidden="true">◷</span><span><strong>ลูกค้าจองนัด</strong><small>ดูช่วงเวลา จำนวนจอง และรายชื่อ</small></span></button></nav><section id="aptListPanel" role="tabpanel" aria-labelledby="aptListTab"><section class="appointment-filter-card">
 <div class="appointment-filter-fields">
 <label>วันที่อ้างอิง<input id="appointmentDate" type="date"/></label>
-<label>Location<select id="appointmentLocation"><option value="95">Corporate Health Checkup · ID 95</option><option value="">ทุก Location</option></select><small id="appointmentLocationStatus">กำลังโหลดรายการจาก HIS…</small></label>
+<label>Location<select id="appointmentLocation"><option value="95">Corporate Health Checkup · ID 95</option><option value="">ทุก Location</option></select><small id="appointmentLocationStatus">กำลังโหลดรายการสถานที่…</small></label>
 </div>
 <div class="appointment-filter-actions">
-<button class="button primary" data-permission="appointmentPull" id="pullHisAppointments" type="button">ดึงข้อมูลนัดหมายจาก HIS</button>
+<button class="button primary" data-permission="appointmentPull" id="pullHisAppointments" type="button">ดึงข้อมูลนัดหมาย</button>
 <button class="button secondary" id="clearAppointmentFilter" type="button">ล้างตัวกรอง</button>
 <button class="button secondary" data-permission="appointmentExport" disabled="" id="exportAppointmentsExcel" type="button">Export Excel</button>
 </div>
@@ -802,7 +855,7 @@
 <div class="appointment-calendar" id="appointmentCalendar"></div>
 <div class="empty" id="appointmentEmpty"><strong>ยังไม่ได้ดึงข้อมูลนัดหมาย</strong><span>ค่าเริ่มต้นเป็นวันนี้และ Corporate Health Checkup (ID 95)</span></div>
 </section>
-</div>
+</section><section id="aptCreatePanel" class="as-panel" role="tabpanel" aria-labelledby="aptCreateTab" hidden></section><section id="aptBookingsPanel" role="tabpanel" aria-labelledby="aptBookingsTab" hidden></section></div>
 <div class="app-view" id="dashboardView">
 <section class="hero">
 <div>
@@ -883,7 +936,7 @@
 <button data-ops-tab="jobs" type="button"><span>Job กำลังทำ</span><strong id="opsActiveJobs">0</strong><small id="opsJobErrors">Error 0</small></button>
 <button data-ops-tab="notifications" type="button"><span>Notification</span><strong id="opsUnreadNotifications">0</strong><small id="opsHealthAlerts">Health Alert 0</small></button>
 </section>
-<section class="ops-tabs" id="opsTabs"><button class="active" data-ops-tab="work" type="button">งานค้าง / Error Center</button><button data-ops-tab="jobs" type="button">Job Queue & Retry</button><button data-ops-tab="audit" type="button">Audit Log</button><button data-ops-tab="health" type="button">System Health</button><button data-ops-tab="backup" type="button">Backup / Rollback</button><button data-ops-tab="notifications" type="button">Notification</button><button data-ops-tab="readiness" type="button">Production Readiness</button></section>
+<section class="ops-tabs" id="opsTabs"><button class="active" data-ops-tab="work" type="button">งานค้าง / Error Center</button><button data-ops-tab="jobs" type="button">Job Queue & Retry</button><button data-ops-tab="audit" type="button">Audit Log</button><button data-ops-tab="logins" data-permission="auditView" type="button">ประวัติการเข้าสู่ระบบ</button><button data-ops-tab="health" type="button">System Health</button><button data-ops-tab="backup" type="button">Backup / Rollback</button><button data-ops-tab="notifications" type="button">Notification</button><button data-ops-tab="readiness" type="button">Production Readiness</button></section>
 <section class="ops-panel active" data-ops-panel="work">
 <div class="workflow-toolbar ops-filter-toolbar"><select id="opsWorkType"><option value="">งานค้างทั้งหมด</option><option value="NO_HN">ไม่มี HN</option><option value="NO_VN">ไม่มี VN</option><option value="NO_EMR">ยังไม่มี EMR</option><option value="HIS_STATUS_ERROR">HIS Status Error</option></select><input id="opsWorkSearch" placeholder="ค้นหา HN, VN, ชื่อ, บริษัท, โครงการ" type="search"/><button class="button secondary" id="opsWorkSearchButton" type="button">ค้นหา</button><span id="opsWorkMeta">0 รายการ</span></div>
 <div class="workflow-table-card"><div class="workflow-table-scroll"><table class="workflow-table ops-work-table"><thead><tr><th>ประเภท</th><th>HN</th><th>VN</th><th>ชื่อผู้รับบริการ</th><th>บริษัท / โครงการ</th><th>Package</th><th>รายละเอียด</th><th>จัดการ</th></tr></thead><tbody id="opsWorkRows"></tbody></table></div></div>
@@ -896,6 +949,18 @@
 <section class="ops-panel" data-ops-panel="audit">
 <div class="workflow-toolbar"><input id="opsAuditSearch" placeholder="ค้นหา User, Action, Endpoint, HN/VN" type="search"/><button class="button secondary" id="opsAuditSearchButton" type="button">ค้นหา</button></div>
 <div class="workflow-table-card"><div class="workflow-table-scroll"><table class="workflow-table"><thead><tr><th>เวลา</th><th>Source</th><th>User</th><th>Action</th><th>Entity</th><th>Status</th><th>รายละเอียด</th></tr></thead><tbody id="opsAuditRows"></tbody></table></div></div>
+</section>
+<section class="ops-panel" data-ops-panel="logins">
+<div class="ops-panel-head"><div><h2>ประวัติการเข้าสู่ระบบ</h2><p>เวลาไทย (Asia/Bangkok) · รายการก่อนอัปเดตอาจไม่ระบุชื่อผู้ใช้หรือผลการเข้าใช้งาน</p></div><button class="button secondary" id="opsLoginRefresh" type="button">รีเฟรชประวัติ</button></div>
+<div class="workflow-toolbar ops-login-filters">
+<input id="opsLoginSearch" type="search" placeholder="ค้นหาผู้ใช้ ชื่อ Role หรือ IP" aria-label="ค้นหาประวัติการเข้าสู่ระบบ"/>
+<label>ตั้งแต่วันที่<input id="opsLoginFrom" type="date"/></label><label>ถึงวันที่<input id="opsLoginTo" type="date"/></label>
+<select id="opsLoginOutcome" aria-label="ผลการเข้าสู่ระบบ"><option value="">ผลทั้งหมด</option><option value="SUCCESS">เข้าสู่ระบบสำเร็จ</option><option value="FAILED">เข้าสู่ระบบไม่สำเร็จ</option><option value="PASSWORD_CHANGE_REQUIRED">ต้องเปลี่ยนรหัสผ่าน</option><option value="RATE_LIMITED">ระงับชั่วคราว</option><option value="ERROR">ระบบขัดข้อง</option><option value="LEGACY">ข้อมูลเดิม (ไม่ระบุผล)</option></select>
+<button class="button secondary" id="opsLoginSearchButton" type="button">ค้นหา</button>
+</div>
+<p id="opsLoginStatus" role="status" aria-live="polite"></p>
+<div class="workflow-table-card"><div class="workflow-table-scroll"><table class="workflow-table"><thead><tr><th>เวลาเข้าสู่ระบบ</th><th>ชื่อผู้ใช้</th><th>ชื่อผู้ใช้งาน</th><th>Role</th><th>ผลการเข้าสู่ระบบ</th><th>IP</th><th>รายละเอียด</th></tr></thead><tbody id="opsLoginRows"></tbody></table></div></div>
+<div class="ops-login-pagination"><button class="button secondary" id="opsLoginPrevious" type="button" disabled>ก่อนหน้า</button><span id="opsLoginPage">0 รายการ</span><button class="button secondary" id="opsLoginNext" type="button" disabled>ถัดไป</button></div>
 </section>
 <section class="ops-panel" data-ops-panel="health">
 <div class="ops-panel-head"><div><h2>System Health & Performance</h2><p>Database, Connection Pool, Disk, Memory, Slow events และ Update Center</p></div><button class="button primary" data-permission="apiView" id="opsRunHealth" type="button">ตรวจ Health ตอนนี้</button></div>
@@ -940,6 +1005,12 @@
             ตรวจสถานะใหม่
           </button>
 </section>
+
+<form class="api-card" id="customerPublicUrlForm" data-permission="apiManage" hidden>
+<h2>URL สำหรับลูกค้าเลือกแพ็กเกจ</h2><p>ตั้งค่าโดยผู้ดูแลระบบ ใช้ร่วมกันทุกบริษัทและทุกหน้าจอ</p>
+<label>URL ที่ลูกค้าเปิดถึงได้<input name="baseUrl" type="url" required autocomplete="off" placeholder="https://checkup.example.com" style="width:100%;margin:8px 0"></label>
+<p>ใช้โดเมน HTTPS สำหรับลูกค้าภายนอก ไม่ใช้ localhost หรือ 127.0.0.1 และไม่ใส่ /customer ต่อท้าย</p>
+<button class="button primary" type="submit">บันทึก URL ลูกค้า</button><p role="status" aria-live="polite"></p></form>
 <section class="api-card system-status-card">
 <div class="compact-settings-head"><div><h2>สถานะระบบและการอัปเดต</h2><p>ตรวจสอบโปรแกรม ฐานข้อมูล Backup และโหมดปิดปรับปรุง</p></div><div class="system-head-actions"><button class="button primary" id="openUpdateGuide" type="button">คู่มืออัปเดตระบบ</button><button class="button secondary" id="refreshSystemStatus" type="button">ตรวจสอบใหม่</button></div></div>
 <div class="system-status-grid">
@@ -1330,33 +1401,40 @@ Content-Type: application/json
 <div>
 <p class="eyebrow">USER MANAGEMENT</p>
 <h1>ผู้ใช้และสิทธิ์การใช้งาน</h1>
-<p class="hero-note">จัดการ Role และบัญชีผู้ใช้ในหน้าเดียว พร้อมดึงข้อมูลผู้ใช้จาก HIS เพื่อให้ข้อมูลเป็นปัจจุบัน</p>
+<p class="hero-note">จัดการบัญชีผู้ใช้จำนวนมาก แยกงานเป็นหมวดชัดเจน พร้อมดึงข้อมูลจาก HIS</p>
 </div>
+<div class="permission-kpis-v76430"><span><small>ผู้ใช้ทั้งหมด</small><strong id="permissionKpiTotal">0</strong></span><span><small>กำลังใช้งาน</small><strong id="permissionKpiActive">0</strong></span><span><small>Role</small><strong id="permissionKpiRoles">0</strong></span><span><small>ยังไม่ Mapping</small><strong id="permissionKpiUnmapped">0</strong></span></div>
 </section>
+<nav aria-label="หมวดจัดการผู้ใช้" class="permission-tabs-v76430">
+<button class="active" data-permission-tab="users" type="button">👥 ผู้ใช้งาน</button>
+<button data-permission-tab="roles" type="button">♟ Role และสิทธิ์</button>
+<button id="openHisRoleMapping" type="button">🔗 Mapping Role</button>
+<button id="openPermissionAudit" type="button">🕘 ประวัติการเปลี่ยนแปลง</button>
+</nav>
 <section class="permission-management-grid-v76372">
-<article class="access-card permission-role-panel-v76372">
-<div class="permission-panel-head-v76372"><div><h2>Role (บทบาท)</h2><p>จัดการกลุ่มสิทธิ์การใช้งาน</p></div><button class="button primary" id="addRole" type="button">+ เพิ่ม Role</button></div>
-<div class="permission-panel-filters-v76372"><label class="permission-search-box-v76372"><span>⌕</span><input id="roleSearchInput" placeholder="ค้นหา Role (ชื่อ หรือ คำอธิบาย)" type="search"/></label></div>
-<div class="permission-table-head-v76372 role"><span>ลำดับ</span><span>ชื่อ Role</span><span>จำนวนผู้ใช้</span><span>สถานะ</span><span>จัดการ</span></div>
-<div class="role-list permission-role-list-v76372" id="roleList"></div>
-<details class="permission-editor-collapsible-v76372">
-<summary>กำหนดสิทธิ์ของ Role ที่เลือก</summary>
-<div class="permission-editor-card-v76372" id="permissionEditor"></div>
-</details>
-<div hidden id="permissionMenuSummary"></div>
-</article>
-<article class="access-card permission-user-panel-v76372">
-<div class="permission-panel-head-v76372"><div><h2>User (ผู้ใช้งาน)</h2><p>ข้อมูลผู้ใช้จาก HIS และกำหนดบทบาท</p></div><div class="permission-user-head-actions-v76372"><button class="button secondary" id="syncHisUsers" type="button">↻ ดึงข้อมูลจาก HIS</button><button class="button secondary" id="setFirstLoginPassword" type="button">🔑 รหัสเข้าใช้ครั้งแรก</button><button class="button secondary" id="openHisRoleMapping" type="button">Mapping Role</button><button class="button secondary" id="openPermissionAudit" type="button">ประวัติการเปลี่ยนแปลง</button><button class="button primary" id="addUser" type="button">+ เพิ่มผู้ใช้</button></div></div>
+<article class="access-card permission-user-panel-v76372" data-permission-panel="users">
+<div class="permission-panel-head-v76372"><div><h2>User (ผู้ใช้งาน)</h2><p>ค้นหา กรอง และจัดการผู้ใช้ได้จากตารางเต็มพื้นที่</p></div><div class="permission-user-head-actions-v76372"><button class="button secondary" id="syncHisUsers" type="button">↻ ดึงข้อมูลจาก HIS</button><button class="button secondary" id="setFirstLoginPassword" type="button">🔑 รหัสเข้าใช้ครั้งแรก</button><button class="button primary" id="addUser" type="button">+ เพิ่มผู้ใช้</button></div></div>
 <div class="permission-user-filters-v76372">
 <label class="permission-search-box-v76372"><span>⌕</span><input id="userSearchInput" placeholder="ค้นหา (ชื่อ-สกุล, รหัส HIS, Username)" type="search"/></label>
 <select id="userRoleFilter"><option value="">ทุก Role</option></select>
 <select id="userDepartmentFilter"><option value="">ทุกแผนก</option></select>
 <select id="userStatusFilter"><option value="">ทุกสถานะ</option><option value="ACTIVE">ใช้งาน</option><option value="PENDING">รอตั้งรหัสผ่าน</option><option value="INACTIVE">ปิดใช้งาน</option></select>
 </div>
-<div class="permission-bulk-toolbar-v76375"><label><input id="selectAllVisibleUsers" type="checkbox"/> <span>เลือกทั้งหมดที่แสดง</span></label><span id="selectedUserCount">เลือกแล้ว 0 คน</span><button class="button danger" id="bulkDeleteUsers" type="button" disabled>ลบผู้ใช้ที่เลือก</button></div>
-<div class="permission-table-head-v76372 user"><span>เลือก</span><span>ลำดับ</span><span>รหัส HIS / Username</span><span>ชื่อ - สกุล</span><span>แผนก</span><span>ตำแหน่ง</span><span>Role</span><span>สถานะ</span><span></span></div>
+<div class="permission-bulk-toolbar-v76375"><label><input id="selectAllVisibleUsers" type="checkbox"/> <span>เลือกทั้งหมดที่แสดง</span></label><span id="selectedUserCount">เลือกแล้ว 0 คน</span><button class="button" id="bulkEnableUsers" type="button" disabled>เปิดใช้งาน</button><button class="button secondary" id="bulkDisableUsers" type="button" disabled>ปิดใช้งาน</button><button class="button secondary" id="bulkResetPasswords" type="button" disabled>รีเซ็ตรหัสผ่าน</button><button class="button danger" id="bulkDeleteUsers" type="button" disabled>ลบผู้ใช้ที่เลือก</button></div>
+<div class="permission-table-head-v76372 user"><span>เลือก</span><span>ลำดับ</span><span>ผู้ใช้งาน / Username</span><span>แผนก / ตำแหน่ง</span><span>Role</span><span>สถานะ</span><span></span></div>
 <div class="user-list permission-user-list-v76372" id="userList"></div>
 <div class="permission-user-footer-v76372"><span id="permissionUserCount"></span></div>
+</article>
+<article class="access-card permission-role-panel-v76372" data-permission-panel="roles" hidden>
+<div class="permission-panel-head-v76372"><div><h2>Role (บทบาท)</h2><p>จัดการกลุ่มสิทธิ์การใช้งาน</p></div><button class="button primary" id="addRole" type="button">+ เพิ่ม Role</button></div>
+<div class="permission-panel-filters-v76372"><label class="permission-search-box-v76372"><span>⌕</span><input id="roleSearchInput" placeholder="ค้นหา Role (ชื่อ หรือ คำอธิบาย)" type="search"/></label></div>
+<div class="permission-table-head-v76372 role"><span>ลำดับ</span><span>ชื่อ Role</span><span>สะสม Level</span><span>จำนวนผู้ใช้</span><span>สถานะ</span><span>จัดการ</span></div>
+<div class="role-list permission-role-list-v76372" id="roleList"></div>
+<details class="permission-editor-collapsible-v76372">
+<summary>กำหนดสิทธิ์และความปลอดภัยของ Role ที่เลือก</summary>
+<div class="permission-editor-card-v76372" id="permissionEditor"></div>
+</details>
+<div hidden id="permissionMenuSummary"></div>
 </article>
 </section>
 </div>
@@ -1409,7 +1487,7 @@ Content-Type: application/json
 <button class="button secondary" data-close="detailOverlay" type="button">
             ปิด</button><button class="button secondary" id="saveCustomerDetail" type="button">
             บันทึกข้อมูลส่วนบุคคล</button><button class="button secondary" id="saveCustomerPackages" type="button">
-            บันทึกแพ็กเกจหลัก</button><button class="button secondary package-settings-save" id="saveCustomerPackageSettings" type="button">บันทึกประเภท / สถานี</button><button class="button primary" id="receiveCheckup" type="button">
+            บันทึกแพ็กเกจหลัก</button><button class="button secondary" id="saveCustomerSupplements" type="button">บันทึกแพ็กเกจเสริม</button><button class="button secondary package-settings-save" id="saveCustomerPackageSettings" type="button">บันทึกประเภท / สถานี</button><button class="button primary" id="receiveCheckup" type="button">
             มารับการตรวจ
           </button>
 </footer>
@@ -1455,13 +1533,11 @@ Content-Type: application/json
 <button class="button danger" id="cancelOrderSummary" type="button">CancelOrder</button>
 <button class="button secondary" id="backToDetail" type="button">
             ย้อนกลับแก้ไข</button><button class="button secondary" id="printSummary" type="button">
-            พิมพ์ A4</button><button class="button secondary" id="printSummaryNavigation" type="button">
+            พิมพ์สรุปรายการตรวจ</button><button class="button secondary" id="printSummaryNavigation" type="button">
             พิมพ์ใบนำทาง</button><button class="button secondary" id="printSummaryOtherDocuments" type="button">
             พิมพ์เอกสาร</button><button class="button secondary" hidden="" id="printHnSticker" type="button">
             พิมพ์สติกเกอร์ HN</button><button class="button secondary" id="printLabStickerSummary" type="button">
-            พิมพ์ Sticker LAB</button><button class="button primary" id="confirmCheckup" type="button">
-            ยืนยันและบันทึกการตรวจ
-          </button>
+            พิมพ์ Sticker LAB</button><button class="button primary" hidden data-checkup-edit-ready="0" id="confirmCheckup" type="button">บันทึกการแก้ไขรายการตรวจ</button>
 </footer>
 </article>
 </div>
@@ -1541,73 +1617,91 @@ Content-Type: application/json
 <div class="company-year-v76394-workspace">
 <nav class="company-year-v76395-nav" aria-label="หัวข้อเอกสารเวียน">
  <strong>หัวข้อเอกสารเวียน</strong>
- <button type="button" data-company-section="00"><span>00</span> ข้อมูลหัวหนังสือ</button>
- <button type="button" data-company-section="01"><span>01</span> ข้อมูลบริษัท</button>
- <button type="button" data-company-section="02"><span>02</span> ระยะเวลาในการตรวจ</button>
- <button type="button" data-company-section="03"><span>03</span> แพทย์ + พยาบาล</button>
- <button type="button" data-company-section="04"><span>04</span> โปรแกรมพนักงาน / ครอบครัว</button>
- <button type="button" data-company-section="05"><span>05</span> ต้อนรับและการเงิน</button>
- <button type="button" data-company-section="06"><span>06</span> การรายงานผล</button>
- <button type="button" data-company-section="07"><span>07</span> บัญชีลูกหนี้</button>
- <button type="button" data-company-section="08"><span>08</span> เจ้าหน้าที่ขาย</button>
- <button type="button" data-company-section="09"><span>09</span> ตารางโปรแกรม</button>
- <button type="button" data-company-section="10"><span>10</span> รายการตรวจเพิ่มเติม</button>
+ <button type="button" data-company-section="01"><span>00</span> ข้อมูลบริษัท</button>
+ <button type="button" data-company-section="00"><span>01</span> ข้อมูลหัวหนังสือ</button>
+ <button type="button" data-company-subsection="02"><span>02</span> บริษัทในเครือ</button>
+ <button type="button" data-company-subsection="03"><span>03</span> ผู้ประสานงานบริษัท</button>
+ <button type="button" data-company-subsection="04"><span>04</span> จำนวนพนักงาน</button>
+ <button type="button" data-company-section="02"><span>05</span> ระยะเวลาในการตรวจ</button>
+ <button type="button" data-company-section="03"><span>06</span> แพทย์ + พยาบาล</button>
+ <button type="button" data-company-section="04"><span>07</span> โปรแกรมพนักงาน / ครอบครัว</button>
+ <button type="button" data-company-section="05"><span>08</span> ต้อนรับและการเงิน</button>
+ <button type="button" data-company-section="06"><span>09</span> การรายงานผล</button>
+ <button type="button" data-company-section="07"><span>10</span> บัญชีลูกหนี้</button>
+ <button type="button" data-company-section="08"><span>11</span> เจ้าหน้าที่ขาย</button>
+ <button type="button" data-company-section="09"><span>12</span> ตารางโปรแกรม</button>
+ <button type="button" data-company-section="10"><span>13</span> รายการตรวจเพิ่มเติม</button>
  <button type="button" data-company-section="docs"><span>+</span> เอกสารแนบ</button>
 </nav>
-<div class="company-year-v76394-form" id="companyYearForm">
-<div class="company-year-v76394-info">หัวข้อ 00–08 เป็นข้อมูลหนังสือเวียน · 09 ตารางเปรียบเทียบโปรแกรมตรวจ (แนบท้าย PDF) · 10 รายการตรวจเพิ่มเติมสำหรับงานรับบริการ</div>
+<div class="company-year-v76394-form">
+<div class="company-year-v76394-info">กรอกข้อมูลบริษัทและปีในหัวข้อ 00 แล้วกดบันทึกได้ทันที · เพิ่มปีถัดไปให้บริษัทเดิมได้ · ลำดับเอกสาร PDF คงเดิม</div>
 <datalist id="companyHisPackageOptions"></datalist>
-<datalist id="companyPayorMasterOptions"></datalist>
-<datalist id="companyPayorPlanOptions"></datalist>
+<section class="company-year-v76394-section annual-v76419-main" data-circular-number="01">
+<header class="annual-company-header"><span class="company-year-v76394-number">00</span><div><strong>ข้อมูลบริษัท</strong></div></header>
+<div class="company-year-v76394-fields two annual-v76419-company-fields">
+<label>ชื่อบริษัท (ภาษาไทย) <span class="required">*</span><input id="companyName" maxlength="150" required placeholder="ชื่อบริษัท"/></label>
+<label>Payor Code<input id="letter_payorCode" maxlength="1500" list="letterPayorCodeOptions" autocomplete="off"/><datalist id="letterPayorCodeOptions"></datalist></label>
+<label>ชื่อบริษัท (ภาษาอังกฤษ)<input id="letter_companyNameEn" maxlength="1500"/></label>
+<label>Payor Plan<input id="letter_payorPlan" maxlength="1500" list="letterPayorPlanOptions" autocomplete="off"/><datalist id="letterPayorPlanOptions"></datalist></label>
+<label>ปีตรวจสุขภาพ <span class="required">*</span><input id="companyYear" type="number" min="2000" max="2700" required/></label>
+<label>เลขที่ผู้เสียภาษี<input id="letter_taxId" maxlength="1500"/></label>
+<label class="wide">ที่อยู่บริษัท<textarea id="letter_address" rows="2" maxlength="3500"></textarea></label>
+</div>
+<!-- Company code is assigned automatically; the selected year is visible above. -->
+<div class="annual-v76419-internal-fields" aria-hidden="true">
+<label>รหัสบริษัท<input id="companyCode" maxlength="50" readonly tabindex="-1"/></label>
+</div>
+<input id="letter_contactPerson" type="hidden"/><input id="letter_contactPhone" type="hidden"/>
 <section class="company-year-v76394-section" data-circular-number="00">
-<header><span class="company-year-v76394-number">00</span><div><strong>ข้อมูลหัวหนังสือ</strong><small>วันที่ เลขที่หนังสือ เรื่อง และหน่วยงานที่รับหนังสือ</small></div><button class="button secondary company-section-save" data-save-company-section="00" type="button">บันทึกหัวข้อ 00</button></header>
+<header><span class="company-year-v76394-number">01</span><div><strong>ข้อมูลหัวหนังสือ</strong><small>วันที่ เลขที่หนังสือ เรื่อง และหน่วยงานที่รับหนังสือ</small></div></header>
 <div class="company-year-v76394-fields three">
 <label>วันที่เอกสาร<input id="letter_documentDate" type="date"/></label>
 <label>เลขที่หนังสือ<input id="letter_documentNo" maxlength="1500" placeholder="เช่น CORP/2569/001"/></label>
 <label>เรื่อง<input id="letter_subject" maxlength="1500"/></label>
 <label class="wide">เรียน (หน่วยงานที่เกี่ยวข้อง)<textarea id="letter_recipient" rows="2" maxlength="3500"></textarea></label>
+<div class="company-circular-service-options wide">
 <label class="company-circular-check"><input id="letter_walkIn" type="checkbox" checked/> Walk in ที่โรงพยาบาลวิมุต</label>
-</div></section>
-<section class="company-year-v76394-section" data-circular-number="01">
-<header class="annual-company-header"><span class="company-year-v76394-number">01</span><div><strong>ข้อมูลบริษัท</strong><small>บริษัทหลัก บริษัทลูก Payor และผู้ประสานงานในเอกสารเวียนประจำปีเดียวกัน</small></div><div class="company-section-actions"><button class="button secondary" id="addCircularSubsidiary" type="button">+ เพิ่มบริษัทลูก</button><button class="button secondary company-section-save" data-save-company-section="01" type="button">บันทึกหัวข้อ 01</button></div></header>
-<div class="annual-company-primary-label">บริษัทหลัก · ข้อมูลบริษัทและปีเดิมของระบบ</div>
-<div class="company-year-v76394-fields three">
-<label>ชื่อบริษัท <span class="required">*</span><input id="companyName" maxlength="150" required placeholder="ชื่อบริษัท"/></label>
-<label>ปีตรวจสุขภาพ <span class="required">*</span><input id="companyYear" type="number" min="2000" max="2700" required/></label>
-<label>รหัสบริษัท<input id="companyCode" maxlength="50" readonly/></label>
-<label>ชื่อบริษัท (ภาษาอังกฤษ)<input id="letter_companyNameEn" maxlength="1500"/></label>
-<label>เลขที่ผู้เสียภาษี<input id="letter_taxId" maxlength="1500"/></label>
-<label>จำนวนพนักงาน<input id="letter_employeeCount" maxlength="1500" inputmode="numeric"/></label>
-<label class="wide">ที่อยู่บริษัท<textarea id="letter_address" rows="2" maxlength="3500"></textarea></label>
-<label>Payor Code<input id="letter_payorCode" class="company-payor-code" list="companyPayorMasterOptions" maxlength="1500" autocomplete="off" placeholder="ค้นหารหัสหรือชื่อ Payor จาก HIS Master"/></label>
-<label>Payor Plan<input id="letter_payorPlan" class="company-payor-plan" list="companyPayorPlanOptions" maxlength="1500" autocomplete="off" placeholder="เลือก Plan ที่สัมพันธ์กับ Payor"/></label>
-<label class="wide company-payor-master-status" id="companyPayorMasterStatus">Payor Code / Plan ใช้ Master HIS ชุดเดียวกับหน้า Booking</label>
-<input id="letter_contactPerson" type="hidden"/><input id="letter_contactPhone" type="hidden"/>
+<label class="company-circular-service-other">รูปแบบบริการอื่น ๆ (กรณีไม่ใช่ Walk in)
+<textarea id="letter_serviceFormat" rows="2" maxlength="1000" placeholder="เช่น ตรวจสุขภาพนอกสถานที่ หรือตามนัดหมายบริษัท" disabled></textarea>
+<small>ยกเลิก Walk in เพื่อระบุรูปแบบบริการอื่น</small>
+</label>
 </div>
-<div id="circularSubsidiaryRows" class="annual-company-subsidiary-list" aria-label="บริษัทลูกในเอกสารเวียน"></div>
-<p class="annual-company-info">ข้อมูลบริษัทลูกใช้ประกอบเอกสารเวียนนี้เท่านั้น ไม่เปลี่ยนข้อมูลบริษัทหลักหรือทะเบียนบริษัทเดิม</p>
-<section class="annual-company-contacts" aria-label="ผู้ประสานงานบริษัท">
-  <div class="editor-heading"><div><strong>ผู้ประสานงานบริษัท</strong><span>อยู่ท้ายหัวข้อข้อมูลบริษัท · เพิ่มได้มากกว่า 1 คน</span></div><button class="button secondary" id="addCompanyContact" type="button">+ เพิ่มผู้ประสานงาน</button></div>
-  <div class="annual-company-contact-heading" aria-hidden="true"><span>#</span><span>ชื่อผู้ประสานงาน</span><span>เบอร์ติดต่อ</span><span>อีเมล</span><span>รายละเอียด / บริษัทที่ดูแล</span><span>ลบ</span></div>
-  <div id="companyContactRows" class="annual-company-contact-rows"></div>
-  <p id="companyContactEmpty" class="annual-program-empty">ยังไม่มีผู้ประสานงาน</p>
-</section>
+</div></section>
+<div class="annual-v76419-block" data-circular-subsection="02">
+<header class="annual-v76419-block-head"><span class="company-year-v76394-number">02</span><strong>บริษัทในเครือ</strong><button class="button secondary" id="addCircularSubsidiary" type="button">+ เพิ่มบริษัทในเครือ</button></header>
+<div id="circularSubsidiaryRows" class="annual-company-subsidiary-list" aria-label="บริษัทในเครือในเอกสารเวียน"></div>
+</div>
+<div class="annual-v76419-block" data-circular-subsection="03">
+<header class="annual-v76419-block-head"><span class="company-year-v76394-number">03</span><strong>ผู้ประสานงานบริษัท</strong><button class="button secondary" id="addCircularCoordinator" type="button">+ เพิ่มผู้ประสานงาน</button></header>
+<div id="circularCoordinatorRows" class="annual-company-subsidiary-list"></div>
+</div>
+<div class="annual-v76419-block" data-circular-subsection="04">
+<header class="annual-v76419-block-head"><span class="company-year-v76394-number">04</span><strong>จำนวนพนักงาน</strong></header>
+<div class="company-year-v76394-fields"><label>จำนวนพนักงานทั้งหมด<input id="letter_employeeCount" maxlength="30" inputmode="numeric" placeholder="ระบุจำนวนพนักงานรวมเพียงครั้งเดียว"/></label></div>
+</div>
+<p class="annual-company-info">ข้อมูลบริษัทในเครือใช้สำหรับเอกสารเวียนเท่านั้น ไม่แก้ไขข้อมูลทะเบียนบริษัทหลักหรือข้อมูลบริษัทในเครือเดิมของระบบ</p>
 </section>
 <section class="company-year-v76394-section" data-circular-number="02">
-<header><span class="company-year-v76394-number">02</span><div><strong>ระยะเวลาในการตรวจ</strong><small>ใช้ช่วงวันที่ตรวจของบริษัท/ปีเดิมในการออก PDF โดยอัตโนมัติ</small></div><button class="button secondary company-section-save" data-save-company-section="02" type="button">บันทึกหัวข้อ 02</button></header>
+<header><span class="company-year-v76394-number">05</span><div><strong>ระยะเวลาในการตรวจ</strong><small>ใช้ช่วงวันที่ตรวจของบริษัท/ปีเดิมในการออก PDF โดยอัตโนมัติ</small></div></header>
 <div class="company-year-v76394-fields two">
 <label>วันที่เริ่มตรวจ<input id="companyCheckupStartDate" type="date"/></label>
 <label>วันที่สิ้นสุดตรวจ<input id="companyCheckupEndDate" type="date"/></label>
 </div></section>
 <section class="company-year-v76394-section" data-circular-number="03">
-<header><span class="company-year-v76394-number">03</span><div><strong>แพทย์ + พยาบาล</strong><small>เงื่อนไขการให้บริการและสิทธิประโยชน์ตามต้นฉบับ</small></div><button class="button secondary company-section-save" data-save-company-section="03" type="button">บันทึกหัวข้อ 03</button></header>
+<header><span class="company-year-v76394-number">06</span><div><strong>แพทย์ + พยาบาล</strong><small>เงื่อนไขการให้บริการและสิทธิประโยชน์ตามต้นฉบับ</small></div></header>
 <div class="company-year-v76394-fields two">
+<div class="company-circular-options" role="group" aria-label="รูปแบบการตรวจ">
 <label class="company-circular-check"><input id="letter_hearResults" type="checkbox"/> ตรวจแบบฟังผล</label>
+<label class="company-circular-check"><input id="letter_noHearResults" type="checkbox"/> ตรวจแบบไม่ฟังผล</label>
+</div>
+<div class="company-circular-options" role="group" aria-label="คูปองอาหาร">
 <label class="company-circular-check"><input id="letter_mealCoupon" type="checkbox"/> คูปองอาหาร</label>
+<label class="company-circular-check"><input id="letter_noMealCoupon" type="checkbox"/> ไม่มีคูปองอาหาร</label>
+</div>
 <label class="wide">รายละเอียดแพทย์และพยาบาลเพิ่มเติม<textarea id="letter_doctorDetails" rows="2" maxlength="3500"></textarea></label>
 </div></section>
 <section class="company-year-v76394-section" data-circular-number="04">
-<header><span class="company-year-v76394-number">04</span><div><strong>โปรแกรมพนักงาน / โปรแกรมครอบครัว</strong><small>กำหนดโปรแกรมพนักงานและครอบครัวก่อน · รายการวางบิล/เงินสดอยู่ด้านล่างและทำงานแยกจากเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="04" type="button">บันทึกหัวข้อ 04</button></header>
+<header><span class="company-year-v76394-number">07</span><div><strong>โปรแกรมพนักงาน / โปรแกรมครอบครัว</strong><small>เลือกโปรแกรมจาก HIS หรือเพิ่มเองได้ และกำหนดเงื่อนไขประกอบ</small></div></header>
 <div class="annual-program-editor-grid" id="annualProgramEditor">
   <section class="annual-program-panel" data-program-kind="hospital">
     <div class="editor-heading"><div><strong>โปรแกรมพนักงาน</strong><span>ค้นหาจาก Package HIS หรือกรอกโปรแกรมเอง · ใช้สำหรับเอกสารเวียน</span></div><button class="button secondary annual-program-add" data-add-annual-program="hospital" type="button">+ เพิ่มโปรแกรม</button></div>
@@ -1623,63 +1717,60 @@ Content-Type: application/json
   </section>
 </div>
 <textarea id="letter_hospitalPrograms" hidden aria-hidden="true"></textarea><textarea id="letter_familyPrograms" hidden aria-hidden="true"></textarea>
+<div class="company-year-v76394-fields"><label>เงื่อนไขโปรแกรมตรวจ<textarea id="letter_programConditions" rows="4" maxlength="2500"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="05">
-<header><span class="company-year-v76394-number">05</span><div><strong>ต้อนรับและการเงิน</strong><small>การแสดงสิทธิ์เพื่อรับการตรวจ และข้อกำหนดการรับบริการ</small></div><button class="button secondary company-section-save" data-save-company-section="05" type="button">บันทึกหัวข้อ 05</button></header>
+<header><span class="company-year-v76394-number">08</span><div><strong>ต้อนรับและการเงิน</strong><small>การแสดงสิทธิ์เพื่อรับการตรวจ และข้อกำหนดการรับบริการ</small></div></header>
 <div class="company-year-v76394-fields"><label>การแสดงสิทธิ์ / ต้อนรับและการเงิน<textarea id="letter_proofDetails" rows="3" maxlength="3500"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="06">
-<header><span class="company-year-v76394-number">06</span><div><strong>การรายงานผล</strong><small>แก้ไขเงื่อนไขการรายงานผลของปีนี้ที่เดียว และนำไปออกเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="06" type="button">บันทึกหัวข้อ 06</button></header>
+<header><span class="company-year-v76394-number">09</span><div><strong>การรายงานผล</strong><small>แก้ไขเงื่อนไขการรายงานผลของปีนี้ที่เดียว และนำไปออกเอกสารเวียน</small></div></header>
 <div class="company-year-v76394-fields"><label>เงื่อนไขการรายงานผล<textarea id="companyReportConditions" maxlength="1500" rows="3" placeholder="เช่น ส่งผลตรวจทางอีเมลภายใน 7 วัน"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="07">
-<header><span class="company-year-v76394-number">07</span><div><strong>บัญชีลูกหนี้</strong><small>รายละเอียดการเรียกเก็บเงินและเครดิตตามเอกสารเวียน</small></div><button class="button secondary company-section-save" data-save-company-section="07" type="button">บันทึกหัวข้อ 07</button></header>
+<header><span class="company-year-v76394-number">10</span><div><strong>บัญชีลูกหนี้</strong><small>รายละเอียดการเรียกเก็บเงินและเครดิตตามเอกสารเวียน</small></div></header>
 <div class="company-year-v76394-fields"><label>รายละเอียดบัญชีลูกหนี้ / เงื่อนไขการชำระเงิน<textarea id="letter_debtorDetails" maxlength="3500" rows="3"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="08">
-<header><span class="company-year-v76394-number">08</span><div><strong>เจ้าหน้าที่ขาย</strong><small>ใช้ชื่อและเบอร์โทรของเจ้าหน้าที่ขายปีนี้โดยตรง ไม่ต้องกรอกซ้ำ</small></div><button class="button secondary company-section-save" data-save-company-section="08" type="button">บันทึกหัวข้อ 08</button></header>
+<header><span class="company-year-v76394-number">11</span><div><strong>เจ้าหน้าที่ขาย</strong><small>ใช้ชื่อและเบอร์โทรของเจ้าหน้าที่ขายปีนี้โดยตรง ไม่ต้องกรอกซ้ำ</small></div></header>
 <div class="company-year-v76394-fields two"><label>ชื่อเจ้าหน้าที่ขาย<input id="companySalesName" maxlength="150" placeholder="ชื่อ–นามสกุล"/></label><label>เบอร์โทร<input id="companySalesPhone" maxlength="30" type="tel"/></label><label class="wide">หมายเหตุเฉพาะเอกสารเวียน (ถ้ามี)<textarea id="letter_salesDetails" maxlength="3500" rows="2"></textarea></label></div>
 </section>
 <section class="company-year-v76394-section" data-circular-number="09" id="companyProgramMatrixSection">
- <header><span class="company-year-v76394-number">09</span><div><strong>ตารางโปรแกรม</strong><small>สร้างตารางเปรียบเทียบรายการตรวจตามเอกสารตัวอย่าง · เลือก ✓, ไม่รวม (เทา) หรือช่องว่างแยกแต่ละโปรแกรมได้</small></div><button class="button secondary company-section-save" data-save-company-section="09" type="button">บันทึกหัวข้อ 09</button></header>
- <div class="company-matrix-toolbar"><button type="button" class="button secondary" id="matrixLoadExample">ใช้ตารางตัวอย่าง 32 รายการ</button><button type="button" class="button secondary" id="matrixAddProgram">+ เพิ่มโปรแกรม</button><button type="button" class="button secondary" id="matrixAddRow">+ เพิ่มรายการตรวจ</button></div>
+ <header><span class="company-year-v76394-number">12</span><div><strong>ตารางโปรแกรม</strong><small>สร้างตารางเปรียบเทียบรายการตรวจตามเอกสารตัวอย่าง · เลือก ✓, ไม่รวม (เทา) หรือช่องว่างแยกแต่ละโปรแกรมได้</small></div><button type="button" class="button secondary" id="matrixCancelTable">ยกเลิกตาราง</button></header>
+ <div class="company-matrix-toolbar"><button type="button" class="button secondary" id="matrixLoadExample">ใช้ตารางตัวอย่าง 32 รายการ</button><button type="button" class="button secondary" id="matrixAddProgram">+ เพิ่มโปรแกรม</button><button type="button" class="button secondary" id="matrixAddRow">+ เพิ่มรายการตรวจ</button><button type="button" class="button secondary" id="matrixImportExcel">นำเข้าตาราง Excel</button><button type="button" class="button secondary" id="matrixDownloadTemplate">ดาวน์โหลดเทมเพลต Excel</button><button type="button" class="button secondary" id="matrixAttachPdf">แนบ PDF ตารางโปรแกรม</button></div>
+ <input id="matrixExcelFile" type="file" accept=".xlsx,.xls" hidden aria-label="เลือกไฟล์ Excel ตารางโปรแกรม"/>
+ <input id="matrixPdfFile" type="file" accept=".pdf,application/pdf" hidden aria-label="เลือก PDF ตารางโปรแกรม"/>
+ <p class="company-matrix-help">Excel: ใช้เทมเพลตของระบบ แล้วกดบันทึกหัวข้อ 12 หลังนำเข้า · PDF: ไม่เกิน 20 MB ต่อไฟล์ แนบแล้วบันทึกทันทีและรวมท้ายเอกสารเวียน สามารถใช้ร่วมกับตารางที่กรอกได้</p>
+ <div id="matrixPdfAttachments" class="company-year-v76395-file-list" aria-live="polite"></div>
  <p class="company-matrix-help">แก้ชื่อโปรแกรม ราคาต่อคน ชื่อรายการตรวจภาษาอังกฤษ/ไทย และสถานะของแต่ละโปรแกรมได้ • ตารางนี้จะถูกสร้างเป็นหน้าแนบท้ายเอกสารเวียน ก่อน PDF ที่อัปโหลด</p>
  <div class="company-matrix-scroll"><table class="company-matrix-table" id="companyProgramMatrixTable"><thead id="companyProgramMatrixHead"></thead><tbody id="companyProgramMatrixBody"></tbody><tfoot id="companyProgramMatrixFoot"></tfoot></table></div>
  <label class="company-matrix-note">หมายเหตุใต้ตาราง (ถ้ามี)<textarea id="companyProgramMatrixNote" rows="2" maxlength="1000" placeholder="เช่น พนักงานใช้สิทธิ์ฉีดวัคซีนตามเงื่อนไขบริษัท"></textarea></label>
  <p id="companyMatrixStatus" class="import-status" aria-live="polite"></p>
 </section>
 <section class="company-year-v76394-section" data-circular-number="10" id="companyAdditionalPackagesSection">
- <header><span class="company-year-v76394-number">10</span><div><strong>รายการตรวจเพิ่มเติม</strong><small>งานรับบริการ · แยกรายการที่บริษัทวางบิล และรายการที่ผู้รับบริการชำระเงิน</small></div><button class="button secondary company-section-save" data-save-company-section="10" type="button">บันทึกหัวข้อ 10</button></header>
+ <header><span class="company-year-v76394-number">13</span><div><strong>รายการตรวจเพิ่มเติม</strong><small>งานรับบริการ · แยกรายการที่บริษัทวางบิล และรายการที่ผู้รับบริการชำระเงิน</small></div></header>
  <section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (วางบิล)</strong><span>Package HIS · เรียกเก็บจากบริษัท</span></div><button class="button secondary" id="addBillingPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="billingPackageRows"></div><div class="empty-inline compact" id="billingPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (วางบิล)</div></section>
  <section class="cash-package-editor"><div class="editor-heading"><div><strong>รายการตรวจเพิ่มเติม (เงินสด)</strong><span>Package HIS · ผู้รับบริการชำระเงิน</span></div><button class="button secondary" id="addCashPackage" type="button">+ เพิ่มแพ็กเกจ</button></div><div class="cash-package-rows" id="cashPackageRows"></div><div class="empty-inline compact" id="cashPackageEmpty">ยังไม่มีรายการตรวจเพิ่มเติม (เงินสด)</div></section>
 </section>
 <section class="company-year-v76394-section company-year-v76394-secondary" id="companyYearAttachmentsSection">
-<header><span class="company-year-v76394-number">+</span><div><strong>เอกสารแนบ</strong><small>อัปโหลด PDF เพิ่มเติมและเข้าถึงไฟล์เดิมจากหน้านี้ โดยไม่ทับ PDF เอกสารหลัก</small></div><button class="button secondary company-section-save" data-save-company-section="docs" type="button">บันทึกและอัปเดตตัวอย่าง</button></header>
+<header><span class="company-year-v76394-number">+</span><div><strong>เอกสารแนบ</strong><small>อัปโหลด PDF เพิ่มเติมและเข้าถึงไฟล์เดิมจากหน้านี้ โดยไม่ทับ PDF เอกสารหลัก</small></div></header>
 <div class="company-year-v76395-document-card"><div class="company-year-v76395-document-label"><strong>เอกสารแนบ — PDF เดิมและไฟล์ที่อัปโหลดเพิ่มเติม</strong><span>PDF เดิมยังอยู่ ไม่ถูกลบหรือย้ายทับ</span></div><input id="companyAttachmentFile" type="file" accept=".pdf,application/pdf" multiple aria-label="เลือกเอกสารแนบ PDF"/><button class="button secondary" id="uploadCompanyAttachments" type="button">อัปโหลดเอกสารแนบ</button><div class="company-year-v76395-file-list" id="companyAttachmentList"></div><p class="company-year-v76395-help">รองรับหลายไฟล์ PDF ไม่เกิน 20 MB ต่อไฟล์ · ต้องบันทึกข้อมูลปีอย่างน้อยหนึ่งครั้ง</p></div>
 <div class="company-year-v76394-fields"><label>หมายเหตุข้อมูลรายปี<textarea id="companyNote" maxlength="500" rows="2" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></label><label>รายละเอียดเอกสารแนบท้าย (ถ้ามี)<textarea id="letter_appendixDetails" maxlength="3500" rows="2"></textarea></label></div>
 </section>
 </div>
-<div class="company-year-v76395-resizer" id="companyYearColumnResizer"
-     role="separator" tabindex="0" aria-orientation="vertical"
-     aria-label="ลากเพื่อปรับความกว้างพื้นที่แก้ไขข้อมูลรายปี"
-     aria-controls="companyYearForm companyYearPdfPreview"
-     aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
-     title="ลากซ้ายหรือขวาเพื่อปรับความกว้าง • ปุ่มลูกศรปรับครั้งละ 24px • ดับเบิลคลิกเพื่อคืนค่าเดิม">
-  <span aria-hidden="true" class="company-year-v76395-resizer-grip"></span>
-</div>
-<div class="company-year-v76395-right" id="companyYearPdfPreview"><section class="company-year-v76395-document-hub" id="companyYearDocumentHub" hidden aria-hidden="true">
-<header><div><strong>เอกสารหลักของบริษัท / ปี</strong><small>สร้างจากข้อมูล 00–08 · จัดการไฟล์แนบที่แท็บเอกสารแนบด้านซ้าย</small></div></header>
+<div class="company-year-v76395-right"><section class="company-year-v76395-document-hub" id="companyYearDocumentHub" hidden aria-hidden="true">
+<header><div><strong>เอกสารหลักของบริษัท / ปี</strong><small>สร้างจากข้อมูล 00–13 · จัดการไฟล์แนบที่แท็บเอกสารแนบด้านซ้าย</small></div></header>
 <div class="company-year-v76395-document-card main"><div class="company-year-v76395-document-label"><strong>เอกสารหลัก — PDF ที่สร้างจากระบบ</strong><span id="companyMainPdfStatus">ยังไม่มี PDF หลัก</span></div><div id="companyMainPdfCurrent" class="company-year-v76395-file-list"></div><button class="button primary" id="companyGeneratePrimaryPdf" type="button">สร้าง PDF และบันทึกเป็นเอกสารหลัก</button><details><summary>ประวัติ PDF เอกสารหลัก</summary><div id="companyMainPdfHistory" class="company-year-v76395-file-list"></div></details></div>
 
 <p id="companyDocumentHubStatus" class="import-status" aria-live="polite"></p>
 </section>
 <aside class="company-circular-preview" id="companyCircularEditor" data-permission="companyEdit">
-<header class="company-circular-head"><div><strong>ตัวอย่างเอกสารเวียน PDF + เอกสารแนบ</strong><span>เอกสารเวียน 00–08 → ตารางโปรแกรม 09 → PDF เอกสารแนบ ตามลำดับ · กดบันทึกแต่ละหัวข้อเพื่ออัปเดตตัวอย่าง</span></div><button class="button secondary" id="previewCircularPdf" type="button">รีเฟรชตัวอย่าง PDF</button></header>
+<header class="company-circular-head"><div><strong>ตัวอย่างเอกสารเวียน PDF</strong><span>สร้างตารางจากข้อมูลที่บันทึก 00–13 และต่อเอกสารแนบ · เมื่อบันทึกจะตั้งเป็นเอกสารหลัก</span></div><button class="button secondary" id="previewCircularPdf" type="button">ดูตัวอย่าง PDF</button></header>
 <div id="companyCircularSaved" class="annual-pdf-saved-hint">ยังไม่บันทึกเอกสาร</div>
 <div class="company-circular-summary" id="companyCircularSummary" hidden></div>
 <div id="companyCircularInlinePreview" class="company-circular-inline-preview" hidden><iframe id="companyCircularPdfFrame" title="ตัวอย่าง PDF เอกสารเวียน" loading="lazy"></iframe></div>
 
-<p class="company-year-v76394-preview-note">ตัวอย่าง PDF ใช้เทมเพลตจริงของโรงพยาบาล ต้องบันทึกบริษัท/ปีอย่างน้อยหนึ่งครั้งก่อนสร้าง PDF</p>
+<p class="company-year-v76394-preview-note">ตัวอย่าง PDF สร้างเป็นตารางต่อเนื่องจากข้อมูลหัวข้อ 00–10 โดยตรง ไม่ใช้หน้าเทมเพลตเดิม · บันทึกบริษัท/ปีอย่างน้อยหนึ่งครั้งก่อนสร้าง PDF</p>
 <p class="import-status" id="companyCircularStatus" aria-live="polite"></p>
 </aside>
 </div>
@@ -1709,7 +1800,7 @@ Content-Type: application/json
 <strong>ใช้รูปแบบ customer-import-template.xlsx เวอร์ชันใหม่</strong><br/>รองรับคอลัมน์ตามไฟล์ Template ล่าสุด เช่น
             DisplayOrder, CheckupDate, CheckupEndDate, HN, VN, Title, FirstName, LastName, TitleEN, FirstNameEN, LastNameEN,
             IdentificationType, IDCard, Password, Gender, MaritalStatus, BirthDate(DD/MM/YYYY), Address, Age, Email,
-            PhoneNumber, Doctor Name, Doctor Number, Payor, PayorAgreement, PayorOffice, LocationCode, EmployeeCode, DepartmentName และ PositionName<br/>
+            PhoneNumber, Doctor Name, Doctor Number, Payor, PayorAgreement, PayorOffice, LocationCode, EmployeeCode, DepartmentName, PositionName และหมายเหตุเฉพาะบุคคล<br/><strong>หมายเหตุรายบุคคล:</strong> ใช้หัวคอลัมน์ หมายเหตุ / หมายเหตุเฉพาะบุคคล / Note / Remark (ไม่เกิน 2,000 ตัวอักษร) เว้นว่างหรือไม่มีคอลัมน์นี้จะเก็บหมายเหตุเดิมไว้<br/>
 <strong>แพ็กเกจหลักหลายรายการ:</strong> รองรับ PackageCode1/PackageName1 ถึง PackageCode5/PackageName5 และยังอ่าน PackageCode/PackageName แบบเดิมได้<br/><a class="template-link" download="" href="templates/customer-import-template.xlsx">ดาวน์โหลดเทมเพลต Excel</a>
 </div>
 <div class="warning-box">
@@ -1817,7 +1908,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <label><input id="selectAllFilteredCustomers" type="checkbox"/> เลือกทั้งหมดที่กรอง</label>
 <span id="selectedCustomerMeta">เลือก 0 รายการ</span>
 </div>
-<label class="customer-list-search customer-list-search-v75922"><span aria-hidden="true">⌕</span><input autocomplete="off" id="customerListSearch" placeholder="ค้นหาข้อมูลลูกค้าจากทุกคอลัมน์" type="search"><button aria-label="ล้างคำค้น" id="clearCustomerListSearch" type="button">×</button></input></label>
+<label class="customer-list-search customer-list-search-v75922"><span aria-hidden="true">⌕</span><input autocomplete="off" id="customerListSearch" placeholder="ค้นหาข้อมูลลูกค้าจากทุกคอลัมน์" type="search"><button aria-label="ล้างคำค้น" id="clearCustomerListSearch" type="button">×</button></label>
 <div class="customer-status-filters"><select aria-label="กรองความพร้อมของข้อมูล" id="customerRecordFilter"><option value="ALL">รายชื่อทั้งหมด</option><option value="HAS_HN">มี HN แล้ว</option><option value="NO_HN">ไม่มี HN</option><option value="HAS_VN">มี VN แล้ว</option><option value="NO_VN">ไม่มี VN</option><option value="HAS_EMR">มี EMR แล้ว</option><option value="NO_EMR">ไม่มี EMR</option><option value="BOOK_APPROVED">อนุมัติเล่มแล้ว</option><option value="BOOK_NOT_APPROVED">ไม่อนุมัติเล่ม</option></select><select aria-label="กรอง Status VN" id="customerVnStatusFilter"><option value="">ทุก Status VN</option></select><button class="button secondary unified-column-settings-button" id="customerColumnSettingsButton" type="button">⚙ ตั้งค่าคอลัมน์</button></div>
 </section>
 <section class="customer-tools-booking">
@@ -2022,6 +2113,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <label>หมวดหลัก <span class="required">*</span><select id="setupPackageCategory"><option value="">เลือกหมวดหลัก</option></select></label>
 <label>หมวดย่อย <span class="required">*</span><select disabled="" id="setupPackageSubcategory"><option value="">เลือกหมวดหลักก่อน</option></select></label>
 <p class="section-note">หมวดหลักและหมวดย่อยเป็นรายการควบคุม (Controlled List) เพื่อป้องกันชื่อซ้ำและสะกดไม่ตรงกัน</p>
+<section class="package-knowledge-editor"><label>ความรู้เกี่ยวกับรายการตรวจ<textarea id="setupPackageKnowledge" rows="6" maxlength="12000" placeholder="อธิบายว่าตรวจอะไร ใช้เพื่ออะไร และการเตรียมตัวที่เกี่ยวข้อง"></textarea></label><label>อัปโหลดคำอธิบาย (.txt UTF-8)<input type="file" accept=".txt,text/plain" data-knowledge-file="setupPackageKnowledge"/></label><small>ข้อความจะแสดงให้ลูกค้าเมื่อกด ⓘ ของรายการนี้ · ตรวจทานเนื้อหาก่อนบันทึก</small><span role="status" data-knowledge-status="setupPackageKnowledge"></span></section>
 <div class="import-status" id="packageSetupStatus"></div>
 </div>
 <footer class="modal-footer">
@@ -2046,6 +2138,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <label>หมวดหลัก <span class="required">*</span><select id="editPackageCategory"><option value="">เลือกหมวดหลัก</option></select></label>
 <label>หมวดย่อย <span class="required">*</span><select disabled="" id="editPackageSubcategory"><option value="">เลือกหมวดหลักก่อน</option></select></label>
 <p class="section-note">ใช้รายการหมวดมาตรฐานเดียวกันทั้งระบบ ข้อมูลเดิมที่อยู่นอก Master จะยังคงแสดงเป็น “ข้อมูลเดิม” และไม่ถูกลบจนกว่าจะเปลี่ยนเอง</p>
+<section class="package-knowledge-editor"><label>ความรู้เกี่ยวกับรายการตรวจ<textarea id="editPackageKnowledge" rows="6" maxlength="12000" placeholder="อธิบายว่าตรวจอะไร ใช้เพื่ออะไร และการเตรียมตัวที่เกี่ยวข้อง"></textarea></label><label>อัปโหลดคำอธิบาย (.txt UTF-8)<input type="file" accept=".txt,text/plain" data-knowledge-file="editPackageKnowledge"/></label><small>ข้อความจะแสดงให้ลูกค้าเมื่อกด ⓘ ของรายการนี้ · ตรวจทานเนื้อหาก่อนบันทึก</small><span role="status" data-knowledge-status="editPackageKnowledge"></span></section>
 <div class="import-status" id="packageEditStatus"></div>
 </div>
 <footer class="modal-footer">
@@ -2130,15 +2223,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
             กลับหน้าเจ้าหน้าที่
           </button>
 </header>
-<section class="customer-verify-card" id="customerVerifyPanel">
-<div class="customer-step">1</div>
-<div>
-<h2>ยืนยันตัวตน</h2>
-<p>
-              กรอกข้อมูลให้ตรงกับรายชื่อที่บริษัทส่งมา
-              ระบบจะแสดงเฉพาะข้อมูลของคุณ
-            </p>
-</div>
+<section class="customer-verify-card" id="customerVerifyPanel" aria-label="ยืนยันตัวตน">
 <form id="customerVerifyForm">
 <div class="customer-login-fields" id="customerIdLoginFields">
 <label>ID / Passport<input autocomplete="off" id="customerSelfId" inputmode="text" placeholder="กรอกเลขประจำตัวหรือ Passport"/></label>
@@ -2232,7 +2317,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 </div>
 
 <div aria-hidden="true" class="overlay" id="firstLoginChangeOverlay">
-<article class="modal password-reset-modal">
+<article class="modal password-reset-modal" role="dialog" aria-modal="true" aria-label="กำหนดรหัสผ่านส่วนตัว">
 <header class="modal-header"><div><p>FIRST LOGIN SECURITY</p><h2>กำหนดรหัสผ่านส่วนตัว</h2></div></header>
 <div class="password-reset-body"><p class="password-reset-note">บัญชีนี้กำลังใช้รหัสเข้าใช้ครั้งแรก กรุณาตั้งรหัสผ่านส่วนตัวก่อนเข้าใช้งานระบบ</p><div class="password-reset-grid"><label>รหัสผ่านใหม่ <span class="required">*</span><input autocomplete="new-password" id="firstLoginNewPassword" placeholder="อย่างน้อย 10 ตัวอักษร และมีตัวอักษร+ตัวเลข" type="password"></label><label>ยืนยันรหัสผ่านใหม่ <span class="required">*</span><input autocomplete="new-password" id="firstLoginConfirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" type="password"></label></div><div class="login-status" id="firstLoginChangeStatus"></div></div>
 <footer class="modal-footer password-reset-footer"><button class="button primary" id="saveFirstLoginPassword" type="button">บันทึกและกลับไปเข้าสู่ระบบ</button></footer>
@@ -2256,7 +2341,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 </input></label>
 <div class="password-reset-grid">
 <label>รหัสผ่านใหม่ <span class="required">*</span>
-<input autocomplete="new-password" id="resetNewPassword" placeholder="อย่างน้อย 8 ตัวอักษร และมีตัวอักษร+ตัวเลข" type="password">
+<input autocomplete="new-password" id="resetNewPassword" placeholder="อย่างน้อย 10 ตัวอักษร และมีตัวอักษร+ตัวเลข" type="password">
 </input></label>
 <label>ยืนยันรหัสผ่านใหม่ <span class="required">*</span>
 <input autocomplete="new-password" id="resetConfirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" type="password">
@@ -2299,8 +2384,8 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
           </button>
 </header>
 <div class="modal-body form-stack">
-<label>ชื่อที่แสดง <span class="required">*</span><input id="userDisplayName" maxlength="100"/></label><label>ชื่อผู้ใช้ <span class="required">*</span><input autocomplete="off" id="userUsername" maxlength="50"/></label><label>รหัสผ่าน <span class="required" id="userPasswordRequired">*</span><input autocomplete="new-password" id="userPassword" maxlength="100" type="password"><small>เว้นว่างไว้ หากแก้ไขผู้ใช้และไม่ต้องการเปลี่ยนรหัสผ่าน</small></input></label><label>Role <span class="required">*</span><select id="userRole"></select></label><label class="inline-check"><input checked="" id="userActive" type="checkbox">
-            เปิดใช้งานบัญชี</input></label>
+<label>ชื่อที่แสดง <span class="required">*</span><input id="userDisplayName" maxlength="100"/></label><label>ชื่อผู้ใช้ <span class="required">*</span><input autocomplete="off" id="userUsername" maxlength="50"/></label><section class="user-password-policy"><strong>รหัสผ่านเข้าใช้ครั้งแรก</strong><p>บัญชีใหม่ใช้รหัสตั้งต้นที่แอดมินกำหนด ผู้ใช้ต้องเปลี่ยนเป็นรหัสของตนเองก่อนเข้าใช้งานระบบ</p><p id="userPasswordState"></p><button class="button secondary" id="resetUserPassword" type="button" hidden>รีเซตรหัสผ่านเป็นรหัสตั้งต้น</button></section><label>Role <span class="required">*</span><select id="userRole"></select></label><label class="inline-check"><input checked="" id="userActive" type="checkbox">
+            <span>เปิดใช้งานบัญชี</span></label>
 <div class="import-status" id="userStatus"></div>
 </div>
 <footer class="modal-footer">
@@ -2432,8 +2517,52 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div aria-hidden="true" class="legacy-pdf-compat" hidden=""><button data-patient-pdf="opd-claim-th"></button><button data-patient-pdf="opd-claim-en"></button><button data-patient-pdf="medical-certificate-th"></button><button data-patient-pdf="medical-certificate-en"></button><button data-patient-pdf="medical-5-diseases-th"></button><button data-patient-pdf="medical-5-diseases-en"></button></div>
 <div aria-hidden="true" hidden="" id="pdfFormSetupOverlay"><input id="pdfSetupX" type="number"/><input id="pdfSetupY" type="number"/><input id="pdfSetupSize" type="number"/><input id="pdfSetupTemplate" type="file"/><select id="pdfSetupForm"></select><select id="pdfSetupField"></select><div id="pdfSetupFieldList"></div><span id="pdfSetupStatus"></span><button id="openPdfFormSetup"></button><button id="savePdfSetupField"></button><button id="uploadPdfSetupTemplate"></button></div>
 <script src="assets/vendor/xlsx.full.min.js"></script>
-<script src="assets/app.js?v=7.64.00-annual-editor-consolidated"></script>
+<aside id="hcExpBar" hidden role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="hcExpPanelTitle"><header class="hc-exp-panel-head"><h2 id="hcExpPanelTitle">เลเวลและประสบการณ์ของฉัน</h2><button id="hcExpHide" type="button" aria-label="ปิดข้อมูลเลเวล">×</button></header><div class="hc-exp-panel-body"><div class="hc-exp-summary"><span id="hcExpShield" class="hc-exp-shield"></span><span class="hc-exp-identity"><strong id="hcExpName"></strong><small id="hcExpRole">ผู้ใช้งาน</small><b id="hcExpTier"></b></span><button id="hcExpLatest" type="button" aria-label="ดูเหรียญผลงานล่าสุดและประวัติ EXP"><span aria-hidden="true">★</span><small id="hcExpLatestName">ยังไม่มีเหรียญ</small></button></div><div class="hc-exp-meter"><div class="hc-exp-meter-head"><strong>ความคืบหน้าเลเวล</strong><span id="hcExpNumbers">กำลังโหลด EXP…</span></div><div id="hcExpProgress" role="progressbar" aria-label="EXP สู่เลเวลถัดไป" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hcExpFill"></span></div><small id="hcExpRemaining"></small></div><div class="hc-exp-total"><small>EXP สะสมทั้งหมด</small><strong id="hcExpTotal">—</strong></div><div class="hc-exp-achievement"><span class="hc-exp-coin" aria-hidden="true">★</span><span><strong><span id="hcExpRuleTitle">กติกาการสะสม</span> <b id="hcExpRuleValue"></b></strong><small id="hcExpToday"></small></span></div><footer class="hc-exp-panel-footer"><span class="hc-exp-max">สูงสุด LV. 100</span><button id="hcExpRefresh" type="button">↻ อัปเดต EXP</button></footer><section class="hc-exp-work"><h3>ผลงานวันนี้</h3><div id="hcExpWorkToday"></div><button id="hcExpHistoryToggle" type="button" aria-expanded="false" aria-controls="hcExpHistory">ดูประวัติ EXP</button><div id="hcExpHistory" hidden><p id="hcExpHistoryStatus" role="status"></p><ol id="hcExpHistoryList"></ol></div></section></div></aside><div id="hcExpToast" role="status" aria-live="polite" hidden></div>
+<script src="assets/user-experience.js?v=7.65.00-header-shield-only"></script>
+<script src="assets/package-knowledge-model.js?v=7.65.00"></script>
+<script src="assets/package-categories.js?v=7.65.00"></script>
+<script src="assets/auth-session.js?v=7.65.00-role-security"></script>
+<script src="assets/company-matrix-import.js?v=7.65.00-matrix-files-1"></script>
+<script src="assets/customer-display-model.js?v=7.65.00-knowledge"></script>
+<div class="overlay" id="searchTodayDrawer" hidden aria-hidden="true"><section class="modal search-today-modal" role="dialog" aria-modal="true" aria-labelledby="searchTodayTitle"><header><h2 id="searchTodayTitle">ยืนยันแล้ววันนี้</h2><button id="searchTodayClose" type="button" class="modal-close" data-close="searchTodayDrawer" aria-label="ปิดรายชื่อยืนยัน">×</button></header><div class="search-today-body"></div></section></div>
+<div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
+<script src="assets/emr-book-model.js?v=7.65.00"></script>
+<script src="assets/personal-note-model.js?v=7.65.00-note-import"></script>
+<script src="assets/customer-profile-presentation.js?v=7.65.00"></script><script src="assets/app.js?v=7.65.00-sticky-headers-draft3-customer-summary-note-detail-customer-setup"></script>
+<script src="assets/customer-search-one-row.js?v=7.65.00-compact-search"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
-<script src="assets/flow-v76384.js?v=7.63.94-worklist-confirmation-emr-layout"></script>
-</body>
+<script src="assets/worklist-board.js?v=7.65.00"></script>
+<script src="assets/flow-v76384.js?v=7.65.00-search-compact-no-auto-select"></script>
+<script src="assets/global-ui-density.js?v=7.65.00-users-exp"></script>
+<script src="assets/appearance-settings.js?v=7.65.00-panel-viewport-fix"></script>
+<script src="assets/role-experience.js?v=7.65.00-role-exp"></script>
+<script src="assets/coverage-names.js?v=7.65.00"></script>
+<script src="assets/customer-compact.js?v=7.65.00-coverage-rows-remove-open-button"></script>
+<script src="assets/checkup-summary-template.js?v=7.65.00-print-parity-qr"></script>
+<script src="assets/booking-defaults.js?v=7.65.00"></script>
+<script src="assets/checkup-unified.js?v=7.65.00-print-parity-direct-card-print"></script>
+<script src="assets/customer-save-all.js?v=7.65.00-note-detail"></script>
+<script src="assets/package-knowledge-editor.js?v=7.65.00"></script>
+<script src="assets/customer-shop.js?v=7.65.00-knowledge"></script>
+<script src="assets/global-dismiss-buttons.js?v=7.65.00-global-dismiss"></script>
+<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.65.00">
+<script src="assets/his-operation-monitor.js?v=7.65.00" defer></script>
+<script src="assets/clinical-lifecycle.js?v=7.65.00-confirmed-only-1"></script>
+<script src="assets/customer-access.js?v=7.65.00"></script>
+<script src="assets/customer-url-settings.js?v=7.65.00"></script>
+<script src="assets/pdf-topic-navigation.js?v=7.65.00"></script>
+<script src="assets/customer-create-workspace.js?v=7.65.00"></script>
+<script src="assets/customer-field-copy.js?v=7.65.00-coverage-code"></script>
+<script src="assets/order-excel-core.js?v=7.65.00"></script>
+<script src="assets/order-excel-ui.js?v=7.65.00"></script>
+<script src="assets/cursor-customization.js?v=7.65.00-cursor"></script>
+<script src="assets/cursor-star-trail.js?v=7.65.00-pointer-position-fix"></script>
+<script src="assets/customer-knowledge.js?v=7.65.00"></script><script src="assets/customer-display-settings.js?v=7.65.00-mobile-compact"></script>
+<script src="assets/emr-book-actions.js?v=7.65.00"></script>
+<script src="assets/search-today-drawer.js?v=7.65.00"></script>
+<script src="assets/customer-services.js?v=7.65.00-project-type"></script>
+<script src="assets/customer-profile-header.js?v=7.65.00-fast-save"></script><script src="assets/booking-calendar.js?v=7.65.00"></script><script src="assets/id-card-camera-model.js?v=7.65.00"></script><script src="assets/customer-id-camera.js?v=7.65.00"></script><script src="assets/appointment-schedules.js?v=7.65.00"></script>
+<script src="assets/personal-notes.js?v=7.65.00-note-detail"></script>
+<script src="assets/customer-selection-review.js?v=7.65.00-selection-edit-draft1"></script>
+<script src="assets/personal-book-report.js?v=7.65.00"></script><script src="assets/personal-book-workspace.js?v=7.65.00"></script><script src="assets/customer-staff-preview.js?v=7.65.00"></script><script src="assets/workspace-v76497.js?v=7.65.00-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.00"></script><script src="assets/customer-sidebar.js?v=7.65.00"></script></body>
 </html>

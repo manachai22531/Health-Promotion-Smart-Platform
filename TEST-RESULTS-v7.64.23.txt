@@ -1,0 +1,14 @@
+HealthCheck v7.64.23 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: assets/app.js
+PASS  JavaScript syntax: server.js
+PASS  JavaScript syntax: tools/app-update-helper.js
+PASS  Targeted updater/Sparkle regression: 4/4
+PASS  Updater helper no longer uses renameSync(tmp,status)
+PASS  Bounded retry covers Windows EPERM, EBUSY, and EACCES
+PASS  v7.64.22 Global Golden Sparkle contract retained
+
+Observed failure reproduced from v7.64.21 launch log:
+EPERM rename update-status.json.tmp-15676 -> update-status.json
+
+Packaging verification is recorded in the external release checksum and manifest delivered beside the ZIP.

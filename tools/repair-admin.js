@@ -57,7 +57,9 @@ async function main() {
     admin.displayName = admin.displayName || 'ผู้ดูแลระบบ';
     admin.username = 'admin';
     const currentHash = String(admin.passwordHash || '');
-    if (!currentHash || currentHash === LEGACY_DEFAULT_ADMIN_PASSWORD_HASH) admin.passwordHash = DEFAULT_ADMIN_PASSWORD_HASH;
+    if (!currentHash || currentHash === LEGACY_DEFAULT_ADMIN_PASSWORD_HASH) { admin.passwordHash = DEFAULT_ADMIN_PASSWORD_HASH; admin.mustChangePassword = true; admin.passwordChangedAt = null; }
+    state.roles = Array.isArray(state.roles) ? state.roles : [];
+    if (!state.roles.some(role => String(role.id) === 'admin')) state.roles.push({ id:'admin', name:'Administrator', permissions:[], securityPolicy:{passwordMaxAgeDays:90,idleTimeoutMinutes:15} });
     state.adminPasswordBaselineVersion = ADMIN_PASSWORD_BASELINE_VERSION;
     admin.roleId = 'admin';
     admin.active = true;

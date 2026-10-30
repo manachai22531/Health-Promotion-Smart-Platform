@@ -1,0 +1,6 @@
+v7.64.87 validation — 2026-10-27
+PASS npm ci, TypeScript build, release suite: 80 tests (72 + 8).
+PASS JavaScript syntax and Chromium copy-control integration: Payor and Agreement code-only/full-value clipboard payloads, internal hyphens, keyboard/mobile, asynchronous master-name refresh, escaped labels, missing-name code fallback, Location and age copy behavior.
+PASS PostgreSQL upgrade v7.64.84 to v7.64.87 and repair-admin: company/year, circular, notes, pending selections and receipts, examination knowledge, credentials, password age, role policies and configuration preserved; existing login works. Public/staff API, browser and restart persistence checks pass.
+PASS QR, server PDF, shared A4 template/preparation and coverage overview sources identical to v7.64.84 except version references.
+Windows GUI/UAC/VBS/Task Scheduler and physical printer/phone were not exercised on real Windows hardware.

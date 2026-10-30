@@ -1,0 +1,10 @@
+HealthCheck v7.64.52 targeted validation — 16 October 2026 (Bangkok)
+PASS actual browser workspace and Save Data module: one visible coverage section directly before primary package editor, three original input IDs remain unique and editable for customerEdit Role. Edited Payor/Plan/Office update live A4, persist in existing record fields and leave clean saved status.
+PASS read-only Role retains displayed values with all three payer inputs disabled and no duplicate coverage sections. Shared document header metadata text and children are left aligned at the cell edge.
+PASS A4 regression: actual saved record address and payer data reach shared HTML/PDF, sample 20 clinical rows fits one page, masked ID stays masked in restricted saved/draft views.
+PASS direct saved-HTML print call, Ctrl+P, explicit PDF viewer separation, toolbar visibility, PDF caching/stale-response protection, dirty/no-op-save and close guards.
+PASS 33 confirmation/workflow/EXP unit tests, TypeScript typecheck, changed JavaScript syntax and production startup/version/assets with protected endpoint checks.
+PASS ZIP CRC and all source hashes, consistent versions, unchanged migration bytes and dependency equality after release version normalization.
+
+Limits: controlled Chromium/API fixtures and actual browser PDF generation were used. Native print was intercepted in automation; Windows installer execution, physical printer, live HIS and production upgrade were not performed. Full historical suite is not claimed as passing. Existing project Payor validation for OpenVisit remains in place. Earlier npm EPERM root cause is not claimed fixed.
+PDF preview requires installed Edge/Chrome. Example manifest URL must be replaced for automatic download; Drive ZIP supports manual Application Update upload.

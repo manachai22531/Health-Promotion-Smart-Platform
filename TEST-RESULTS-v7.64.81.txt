@@ -1,0 +1,15 @@
+v7.64.87 release validation — 27 October 2026
+
+PASS npm ci, TypeScript build and 65 release tests.
+PASS actual PostgreSQL upgrade v7.64.80 to v7.64.87: credentials, role/security policies, personal notes, company/year, circular and configuration preserved.
+PASS scope-limited profile save with 20,001 customers/20,002 memberships, concurrency, audit rollback and bounded lock timeout. Local test timing is not a production guarantee.
+PASS real browser profile save/cancel/read-back/context/logout; cart and catalog remain intact.
+PASS text and Excel education upload, PostgreSQL persistence/reload, patient info dialog, missing-content state and mobile layout.
+PASS shared actual-template Desktop/Phone preview 320/390/430, 16 px phone inset, working local-only demo flows.
+PASS bundled OCR engine recognizes a synthetic card; review before applying; no image uploads/external OCR calls. Fake-device camera lifecycle and permission fallback passed.
+PASS real calendar creation and customer booking/details Day/Week/Month; hospital-import appointment view preserved; authorization and mobile fit.
+PASS read-only front personal notes, empty headings, package columns and billing/cash colors in all themes.
+PASS PowerShell updater repair core and source backup/preflight, including paths with spaces/quotes, SHA rejection, active-update guard, backup contents and low-space refusal.
+PASS ZIP CRC and all source hashes (verified separately when packaging).
+
+Not tested on physical Windows GUI/UAC/VBS/Task Scheduler or a physical phone camera.

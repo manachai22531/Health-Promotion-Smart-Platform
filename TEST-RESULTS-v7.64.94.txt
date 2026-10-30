@@ -1,0 +1,4 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+node --test tools/customer-staff-preview-browser.test.cjs: PASS — actual popup URL verified with shadowed window.open, zero/pending/reviewed action strip, read-only customer renderer, blocked writes
+Windows GUI/UAC and real hospital HIS: NOT RUN

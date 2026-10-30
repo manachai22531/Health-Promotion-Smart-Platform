@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 
-function registerDataCenter(app,{localOnly,rootDir=__dirname,settingsPool=null,encryptPassword=(v)=>String(v||''),decryptPassword=(v)=>String(v||''),configSessionRequired=(_req,_res,next)=>next()}={}){
+function registerDataCenter(app,{localOnly,rootDir=__dirname,settingsPool=null,encryptPassword=(v)=>String(v||''),decryptPassword=(v)=>String(v||''),configSessionRequired=(_req,_res,next)=>next(),staffPermissionRequired}={}){
   const radiologyConfigPath=path.join(rootDir,'datacenter-radiology-config.json');
   const patientPackageConfigPath=path.join(rootDir,'datacenter-patient-package-config.json');
   const readJson=p=>{try{return fs.existsSync(p)?JSON.parse(fs.readFileSync(p,'utf8')):null}catch(_){return null}};
@@ -86,6 +86,7 @@ ORDER BY h.resultentereddatetime DESC,h.labresult_id DESC,ldt.id ASC NULLS LAST`
 
   // Patient Package: relational lookup from HIS patientvisitpackage + patient + package.
   const readPatientPackageConfig=async()=>await readStoredConfig(PATIENT_PACKAGE_SETTING_KEY,patientPackageConfigPath)||await readStoredConfig(RADIOLOGY_SETTING_KEY,radiologyConfigPath);
+  require('./patient-demographic').registerPatientDemographic({app,localOnly,rootDir,readConfig:readPatientPackageConfig,staffPermissionRequired});
   const quoted=name=>`"${String(name).replace(/"/g,'""')}"`;
   async function detectPatientPackageDateColumn(p){
     const q=await p.query(`SELECT column_name,data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='patientvisitpackage' AND LOWER(column_name)='insdate' LIMIT 1`);

@@ -1,0 +1,15 @@
+HealthCheck v7.64.45 release validation
+PASS targeted checks, not the entire historical suite.
+PASS real PDF generation: QR library encodes the exact HN and image embedded; date/time at bottom-right; unset type/station absent; consecutive equal type/station merged once; merge fragments repeat correctly across multiple pages with 100 rows retained.
+PASS Chromium workspace: HTML source clipped outside preview and old summary overlay suppressed; original full button names; grouped footer at 1920/1366; ChargeClose endpoint confirmation/request/status using fixtures; existing confirmation, SetUpMaster and print controls.
+PASS customer shop Chromium at desktop 1600 and mobile 390: cart survives filtering/categories/language, deselected pending items remain removed, pagination, escaped catalog text, three payment categories, actual existing identity-confirmation handler and quote payload, order reference acknowledgement, logout isolation and locked Order controls.
+PASS server catalog and actual pending-save function: authoritative prices and snapshot, stale-price conflict, active/hidden/unknown-price rules, forged item rejection, duplicate IDs, separate totals, existing per-record patch/audit rather than full-state write. No automatic HIS order.
+PASS 25 actual-handler workflow/EXP integration checks using PostgreSQL-engine PGlite, including contract payer permissions and active Order rejection.
+PASS scoped visibility transaction/rollback/conflict and actual browser hide-handler success/failure/retry tests.
+PASS 33 confirmation/workflow/EXP unit regressions, TypeScript typecheck and changed JavaScript syntax.
+PASS actual v7.64.45 server starts, customer-shop/unified assets served, protected reads reject anonymous access. Database bootstrap skipped in startup smoke.
+PASS package CRC, full source manifest SHA256, new runtime module/assets inventory, unchanged migration bytes, installer version consistency and omission of .env/node_modules/runtime fixtures.
+
+Limits: browser tests use controlled data/API/HIS fixtures and embedded PostgreSQL, not live HIS or a production upgrade. Windows installer execution was not performed. Long reports intentionally continue to additional pages.
+A legacy customer-vn HTML attribute-order assertion remains incompatible with existing HTML and was reproduced against the released v7.64.44 ZIP; the full legacy suite is not claimed as passing.
+The external example manifest downloadUrl is a placeholder for your hosted ZIP; Drive ZIP can be downloaded and uploaded manually in Application Update.

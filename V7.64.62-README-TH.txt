@@ -1,0 +1,37 @@
+HealthCheck v7.64.62 — ใช้ชุด v7.64.61 performance ที่ผู้ใช้แนบเป็นฐาน
+Base SHA-256: f22e2fac147ee2883c78a6eb2042ae3acf7bcd6e0795f50b667b702d8d76e796
+
+การอ่าน VisitStatusHIS ร่วมกันทุกหน้าที่เกี่ยวข้อง
+- ตัวอ่านกลาง visit-status-reader.js อ่าน opdvisit ด้วย VN ก่อน
+- หากไม่พบ VN ใน opdvisit จึงอ่าน Patient Log โดยจับคู่ HN และ VN และเลือก tovalue ล่าสุดตาม insdate/id
+- หากพบใน opdvisit ใช้ผลนั้นทันที ไม่อ่าน Patient Log ทับ ไม่ค้นข้าม Visit ด้วย HN อย่างเดียว
+- ถ้าเชื่อมต่อฐานข้อมูลหรือ query ผิดพลาด จะแจ้งข้อผิดพลาด ไม่ถือว่าไม่พบแล้วข้ามไปอีกตาราง
+- หน้าค้นหาหลัก/รายละเอียด, Booking ทั้งโหลดครั้งแรก/รีเฟรช/ปุ่ม Visit Status และ Worklist ผ่านตัวอ่านกลางเดียวกัน
+- แสดงแหล่งข้อมูล opdvisit หรือ patientlog พร้อมสถานะจริงและคำเตือนเมื่อข้อมูลไม่ตรง ไม่แยก PatientLog Status เป็นอีกคอลัมน์ตามข้อเสนอเก่าที่ผู้ใช้ยกเลิก
+- หากพบ VN แต่ HN ไม่ตรง แสดงคำเตือนเฉพาะ ไม่รายงานว่าไม่พบ VN และไม่ใช้ข้อมูลนั้นอนุญาตคำสั่ง HIS
+- ถ้าสถานะ Patient Log เป็น Sent จะแสดง Sent โดยตรง ไม่สรุปว่า Visit เปิดอยู่หรือคิดเงินแล้ว รหัสที่ไม่อยู่ใน mapping ยังคง UNKNOWN สำหรับการอนุญาตคำสั่ง
+- ข้อมูล chargecloseddate ใช้เฉพาะแหล่งที่คืนค่าจริง ไม่อนุมานการเงินจากข้อความใน Patient Log
+- เก็บผลสถานะที่รับสำเร็จ แหล่งข้อมูลและเวลาลงข้อมูลเคสด้วย API บันทึกเดิม
+
+คงงานที่ปรับความเร็วจาก v7.64.61
+- gzip compression
+- immutable cache สำหรับ asset ที่มี version, HTML revalidation
+- JSON/gzip state cache ตาม revision และการรวมคำขอ state พร้อมกัน
+- auto-refresh ทุก 20–25 วินาทีและหยุดเมื่อ tab ไม่แสดง
+- ใช้ query แบบกลุ่ม ไม่เรียก Patient Log ซ้ำทีละคนภายในตัวอ่าน batch: opdvisit ครั้งละไม่เกิน 500 VN และ Patient Log เฉพาะคู่ที่ไม่พบ
+- ไม่มี dependency หรือ schema migration เพิ่ม (schema 0217)
+
+คงงานเดิมจาก v7.64.60 ซึ่งอยู่ในฐาน v7.64.61 แล้ว
+- URL ลูกค้าอยู่ System & API เฉพาะ apiManage พร้อม Audit/transaction
+- QR แพ็กเกจคู่สัญญาตำแหน่งเดิม แสดงหลังยืนยัน/ตั้ง URL หมดอายุหลัง OrderHIS หรือสิ้นวันบริการ
+- PDF preview พอดีจอ 100%, เลือกหัวข้อสารบัญ และกรอบแพ็กเกจ 2 คอลัมน์ความสูงเดิม
+- ล็อกป้องกันกดซ้ำ การแก้ย้อนหลังและเหตุผล HN/VN/ID และข้อจำกัด Order/ChargeClose ยังคงเดิม
+
+ติดตั้ง
+สำรองข้อมูลและ .env แตก ZIP ทั้งหมดลงโฟลเดอร์ใหม่ รัน INSTALL-REPAIR.bat แบบ Run as administrator
+ปลายทาง D:\HealthCheck\Production พอร์ต 3000 ตรวจ /api/version เป็น v7.64.62
+
+การตรวจสอบ
+ทดสอบแบบจำลอง 54 รายการ รวมลำดับ fallback, ข้อผิดพลาด, HN/VN, SQL Patient Log ล่าสุด, batching, workflow, URL Audit และ PDF
+ตรวจหน้าต่าง/สารบัญ/รายการแพ็กเกจ/สิทธิ์ URL ด้วย Chromium 7 ขนาดจอ และเทียบโค้ดส่วนความเร็วกับ ZIP ฐาน
+ไม่ได้เชื่อมต่อ HIS จริงหรือรันตัวติดตั้งบน Windows จริง ต้องตรวจผลกับฐาน HIS และเครือข่ายหน้างาน

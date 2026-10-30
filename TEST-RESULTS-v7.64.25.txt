@@ -1,0 +1,9 @@
+HealthCheck v7.64.25 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: app, appearance settings, server, updater helper
+PASS  PowerShell installer syntax
+PASS  Targeted appearance/installer/updater/Sparkle regression: 7/7
+PASS  Exactly three themes: ปัจจุบัน, พรีเมียม, อบอุ่นสายตา
+PASS  Unified person-and-palette control contains UI size, effects and sound
+PASS  Theme/effects preferences persist; reset restores Current + Compact + effects on
+PASS  Print hides appearance controls and screen-only themes remain isolated

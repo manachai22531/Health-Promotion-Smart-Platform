@@ -1,0 +1,5 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+node --test tools/search-clear-browser.test.cjs: PASS — audit custom-clear search inputs in full app template; inspect Chromium native shadow clear control with CDP; assert native duplicate hidden, one custom clear, actual clear handlers and focus/pagination reset; preserve native clear elsewhere; mobile clearing
+Same regression against v7.64.94 CSS: FAILED as expected (duplicate native clear remained visible)
+Windows installer GUI/UAC and real hospital HIS: NOT RUN

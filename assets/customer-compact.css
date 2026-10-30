@@ -1,0 +1,92 @@
+#resultRows .customer-compact-card{display:block!important;padding:12px!important;cursor:default;min-width:0}
+.customer-compact-card .cc-identity{display:flex;align-items:center;gap:10px;padding:10px;background:linear-gradient(100deg,#edf8fa,#fff);border-bottom:1px solid #c7e4e8;flex-wrap:wrap}
+.customer-compact-card .cc-identity>div{min-width:70px}.customer-compact-card .cc-name{margin-right:0;min-width:180px!important}.customer-compact-card .cc-name strong{font-size:18px}.customer-compact-card small,.customer-compact-card .cc-identity b{display:block}.customer-compact-card .cc-identity small{font-size:11px;color:#607784}.customer-compact-card .cc-arrival{padding:8px 12px;border-radius:8px;background:#edf0f2;color:#637580;font-weight:700}.customer-compact-card .cc-arrival.arrived{background:#def5e8;color:#087545}
+.customer-compact-card .cc-columns{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin-top:8px}.customer-compact-card h3{margin:8px 0;padding:6px 8px;font-size:14px;background:#e6f3f6;color:#164e68}.customer-compact-card table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}.customer-compact-card th,.customer-compact-card td{padding:6px 8px;border:1px solid #deebef;vertical-align:top;overflow-wrap:anywhere;text-align:left}.customer-compact-card .cc-data th{width:30%;font-weight:500;background:#f4f9fb;color:#527484}.customer-compact-card .cc-hn button{float:right;font-size:10px;min-height:25px;margin-left:8px}.customer-compact-card .cc-packages th{background:#f1f7fa}.customer-compact-card .cc-packages td:last-child{white-space:nowrap;text-align:right}.customer-compact-card .cc-package-main td{background:#fff1c4;border-color:#e4c77a}.customer-compact-card .cc-package-billing td{background:#e6f3ff;border-color:#b8d9f2}.customer-compact-card .cc-package-cash td{background:#e5f6e9;border-color:#b9dfc2}.customer-compact-card .cc-note{font-size:11px;color:#607c8b;margin:8px 0}.customer-compact-card .cc-info{display:grid;grid-template-columns:1fr 1fr;gap:8px}.customer-compact-card .cc-info>section{padding:8px;background:#f4f9fb;border:1px solid #dbe9ef;border-radius:6px;min-width:0}.customer-compact-card .cc-actions{display:flex;align-items:center;gap:8px;padding-top:10px;margin-top:10px;border-top:1px solid #d1e4e9;flex-wrap:wrap}.customer-compact-card .post-checkup-tools{display:flex!important;flex-wrap:wrap;gap:6px;width:100%;margin:0;padding:0;border:0}.customer-compact-card .post-checkup-tools button{flex:1 1 auto;min-height:36px!important;font-size:11px!important;padding:6px 9px!important}.customer-compact-card .cc-log{font-size:11px}.cc-a4-entitlements{margin:12px 0;border-top:1px solid #a9cbd7;padding-top:8px}.cc-a4-entitlements>p{font-size:11px;color:#476779}
+@media(max-width:1000px){.customer-compact-card .cc-columns{grid-template-columns:1fr}.customer-compact-card .cc-identity{gap:8px}.customer-compact-card .cc-name{width:100%}}
+.customer-compact-card .cc-columns>section{min-width:0}.customer-compact-card table.cc-data,.customer-compact-card table.cc-packages{min-width:0!important;width:100%!important;table-layout:fixed!important}.customer-compact-card .cc-packages th:nth-child(1){width:17%}.customer-compact-card .cc-packages th:nth-child(2){width:18%}.customer-compact-card .cc-packages th:nth-child(3){width:44%}.customer-compact-card .cc-packages th:nth-child(4){width:21%}.customer-compact-card .post-checkup-tools{justify-content:flex-start!important}.customer-compact-card .post-checkup-tools button{max-width:none!important}.customer-compact-card .cc-actions{justify-content:flex-start!important}
+.customer-compact-card .cc-packages th:nth-child(1){width:15%}.customer-compact-card .cc-packages th:nth-child(2){width:15%}.customer-compact-card .cc-packages th:nth-child(3){width:36%}.customer-compact-card .cc-packages th:nth-child(4){width:18%}.customer-compact-card .cc-packages th:nth-child(5){width:16%}.customer-compact-card .cc-packages td:nth-child(4){white-space:nowrap;text-align:right}.customer-compact-card .cc-packages td:last-child{white-space:normal;text-align:left}.customer-compact-card .cc-contract{margin-top:8px;padding:8px;border:1px solid #dce9ef;border-radius:6px;font-size:12px}
+/* Raised surfaces; keep text flat, sharp and readable. */
+#resultRows .customer-compact-card{background:linear-gradient(145deg,#fff 0%,#f8fcff 75%,#edf6fa 100%);border:1px solid #c6dde7!important;border-radius:16px!important;box-shadow:0 14px 28px rgba(14,61,86,.14),0 3px 5px rgba(14,61,86,.08),inset 0 2px 0 #fff!important}
+.customer-compact-card .cc-identity{border:1px solid #c8e0e9;border-radius:12px;background:linear-gradient(150deg,#fff,#e8f4f8);box-shadow:0 4px 9px rgba(23,72,94,.10),inset 0 2px 0 #fff;padding:12px}
+.customer-compact-card .cc-columns>section{border:1px solid #d4e5ec;border-radius:12px;padding:9px;background:linear-gradient(150deg,#fff,#f8fcfe);box-shadow:0 5px 12px rgba(28,75,98,.08),inset 0 1px 0 #fff}
+.customer-compact-card h3{border:1px solid #c7e0e9;border-radius:7px;background:linear-gradient(#effafd,#d8edf3);box-shadow:0 2px 3px rgba(20,68,87,.08),inset 0 1px 0 #fff}
+.customer-compact-card .cc-data th{background:linear-gradient(100deg,#edf6f9,#e0eef3)}.customer-compact-card .cc-data td{background:linear-gradient(100deg,#fff,#f9fcfe)}
+.customer-compact-card .cc-package-main td{background:linear-gradient(#fff8dd,#f9e8ac)}.customer-compact-card .cc-package-billing td{background:linear-gradient(#eef8ff,#d9edfc)}.customer-compact-card .cc-package-cash td{background:linear-gradient(#f0fcf3,#d7efdf)}
+.customer-compact-card .cc-arrival.arrived{background:linear-gradient(#e1f9ec,#c5ead7);border:1px solid #b3dcc7;box-shadow:0 3px 6px rgba(13,111,69,.12),inset 0 1px 0 #fff}
+.customer-compact-card .cc-info>section,.customer-compact-card .cc-contract{background:linear-gradient(#fff,#edf6fa);box-shadow:0 3px 7px rgba(23,72,94,.07),inset 0 1px 0 #fff}
+@media print{#resultRows .customer-compact-card,.customer-compact-card .cc-identity,.customer-compact-card .cc-columns>section,.customer-compact-card h3,.customer-compact-card .cc-arrival,.customer-compact-card .cc-info>section,.customer-compact-card .cc-contract{box-shadow:none!important;background:#fff!important}}
+
+/* Pending after v7.64.40: raised field labels and grouped Visit actions. */
+.customer-compact-card .cc-data th{background:linear-gradient(150deg,#f8fdff 0%,#e3f1f6 45%,#cfe3eb 100%);border-color:#bed5df;color:#21516a;font-weight:600;box-shadow:inset 0 2px 0 rgba(255,255,255,.95),inset 2px 0 0 rgba(255,255,255,.75),inset 0 -2px 2px rgba(39,88,111,.13),inset -2px 0 2px rgba(39,88,111,.07);text-shadow:0 1px 0 #fff}
+.customer-compact-card .cc-actions .card-cancel-visit{float:none;margin:0;border:1px solid #ff6377;border-radius:9px;background:linear-gradient(#fff,#fff0f2);color:#d92d44;box-shadow:inset 0 1px 0 #fff,0 2px 4px rgba(143,41,57,.09)}
+.customer-compact-card .cc-actions .card-cancel-visit:disabled{opacity:.5;box-shadow:none;cursor:not-allowed}
+@media print{.customer-compact-card .cc-data th{background:#fff!important;box-shadow:none!important;text-shadow:none!important}}
+
+/* Give the package overview the available width; do not stretch the identity panel. */
+.customer-compact-card .cc-columns{grid-template-columns:minmax(285px,.40fr) minmax(0,.60fr);align-items:start}
+.customer-compact-card .cc-columns>section{align-self:start;min-height:0!important}
+@media(max-width:1000px){.customer-compact-card .cc-columns{grid-template-columns:1fr}}
+
+/* Match the supplied overview: service conditions and sales beneath patient details. */
+.customer-compact-card .cc-patient-column{min-width:0;align-self:start}
+.customer-compact-card .cc-patient-panel{border:1px solid #d4e5ec;border-radius:12px;padding:9px;background:linear-gradient(150deg,#fff,#f8fcfe);box-shadow:0 5px 12px #1c4b6214,inset 0 1px 0 #fff}
+.customer-compact-card .cc-patient-column>.company-service-info{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px;margin:8px 0 0!important}
+.customer-compact-card .cc-patient-column>.company-service-info>div{min-width:0;min-height:64px;padding:10px!important;overflow-wrap:anywhere;border-radius:10px}
+@media(max-width:600px){.customer-compact-card .cc-patient-column>.company-service-info{grid-template-columns:1fr}}
+
+.customer-compact-card .cc-contract{min-height:92px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;padding:6px 8px}.cc-contract>header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:none;font-size:11px;margin-bottom:3px}.cc-contract>header>span{border-radius:12px;background:#dfedf5;padding:1px 7px;white-space:nowrap}.cc-contract-list{overflow:auto;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 9px;scrollbar-gutter:stable}.cc-contract-item{display:flex;gap:5px;align-items:flex-start;border-bottom:1px solid #dfebf0;padding:3px 0;min-width:0;font-size:11px}.cc-contract-item>span{color:#008783}.cc-contract-item>div{min-width:0}.cc-contract-item strong{font-weight:600;display:block;overflow-wrap:anywhere;line-height:1.3}.cc-contract-item small{display:block;color:#627f90;font-size:10px;overflow-wrap:anywhere}.cc-contract-list>p{margin:3px 0}@media(max-width:600px){.cc-contract-list{grid-template-columns:1fr}}
+
+/* Let selected packages fill the package panel down to the shared grid edge. */
+.customer-compact-card .cc-columns>.cc-package-panel{align-self:stretch;display:flex;flex-direction:column}
+.customer-compact-card .cc-package-panel>h3,
+.customer-compact-card .cc-package-panel>.cc-packages,
+.customer-compact-card .cc-package-panel>.cc-note,
+.customer-compact-card .cc-package-panel>.cc-info{flex-shrink:0}
+.customer-compact-card .cc-package-panel>.cc-contract{flex:1 0 auto}
+.customer-compact-card .cc-contract-list{align-content:start}
+/* Contract period colors remain visible over card/theme backgrounds. */
+.customer-compact-card .cc-info>.company-checkup-period.expired{background:#fde8e8!important;border-color:#edb3b3!important}
+.customer-compact-card .cc-info>.company-checkup-period.due-soon{background:#fff0dc!important;border-color:#eac697!important}
+.customer-compact-card .cc-info>.company-checkup-period.active{background:#e5f5eb!important;border-color:#abd8bb!important}
+.company-checkup-period.due-soon .company-checkup-period-copy strong,.company-checkup-period.due-soon .company-checkup-period-copy em{color:#92581d}.company-checkup-period.due-soon .company-checkup-period-icon{background:#ffe3bd!important;color:#a76321}
+.company-checkup-period.due-soon{background:#fff0dc;border-color:#eac697}
+.customer-compact-card .cc-copy-value{position:relative}.cc-value-copy{display:inline-flex;align-items:center;justify-content:space-between;gap:5px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;cursor:copy;max-width:100%;vertical-align:middle}.cc-value-copy>span{min-width:0;overflow-wrap:anywhere}.cc-value-copy>svg{flex:none;color:#0b8d91}.cc-copy-value>.cc-value-copy{width:100%}.cc-copy-value:has(.cc-copy-parts){padding-right:24px}.cc-copy-parts .cc-value-copy>svg{width:10px;height:10px}.cc-copy-all{position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:3px}.cc-copy-value:hover{background:#e4f5f2!important}.cc-value-copy:focus-visible{outline:2px solid #139c9d;outline-offset:2px;border-radius:2px}#fieldCopyToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#0e7162;color:#fff;border-radius:10px;padding:10px 18px;font-size:13px;pointer-events:none}
+.company-checkup-period.unset{background:#f1f3f5;border-color:#d6dce1}.customer-compact-card .cc-info>.company-checkup-period.unset{background:#f1f3f5!important;border-color:#d6dce1!important}.customer-compact-card .cc-info>.company-checkup-period.upcoming{background:#e8f2fc!important;border-color:#bfd6ed!important}.company-checkup-period.urgent .company-checkup-period-copy em{font-weight:800}
+/* Whole-field copy stays at the trailing edge, outside individual copy targets. */
+.customer-compact-card td.cc-copy-value:has(.cc-copy-parts){padding-right:26px}
+.customer-compact-card td.cc-copy-value>.cc-copy-all{position:absolute;left:auto;right:5px;top:50%;transform:translateY(-50%);width:18px;max-width:18px;min-width:18px;height:20px;padding:3px;justify-content:center;box-sizing:border-box}
+
+/* v77 compact overview: edit personal notes in details only; keep empty headings visible. */
+#resultRows .customer-compact-card{padding:10px!important}
+.customer-compact-card .cc-identity{padding:8px;gap:9px}.customer-compact-card .cc-name strong{font-size:16px}
+.customer-compact-card .cc-columns{gap:11px;margin-top:7px;align-items:start}
+.customer-compact-card .cc-columns>.cc-package-panel{align-self:start;display:block;min-height:0!important}
+.customer-compact-card .cc-package-panel>.cc-contract{flex:none;min-height:0}
+.customer-compact-card h3{margin:5px 0;padding:5px 8px;font-size:12px;line-height:1.5}
+.customer-compact-card .cc-patient-panel{padding:8px}
+.customer-compact-card .cc-data th,.customer-compact-card .cc-data td{padding:3px 7px;font-size:11px;line-height:1.5}
+.customer-compact-card .cc-packages th,.customer-compact-card .cc-packages td{padding:5px 7px;font-size:11px;line-height:1.45}
+.customer-compact-card .cc-packages th{font-size:10px}
+.customer-compact-card .cc-note{font-size:10px;margin:5px 0 6px}
+.customer-compact-card .cc-info{gap:7px}.customer-compact-card .cc-info>section{padding:7px 9px}
+.customer-compact-card .cc-patient-column>.company-service-info{gap:7px;margin-top:7px!important}
+.customer-compact-card .cc-patient-column>.company-service-info>div{min-height:0;padding:8px 10px!important}
+.customer-compact-card .cc-actions{padding-top:9px;margin-top:9px}
+.customer-compact-card .cc-personal-note-summary{margin-top:7px;padding:9px 11px;border:1px solid #c8e2ec;border-radius:9px;background:#f3faff;color:#164d6c;min-width:0}
+.customer-compact-card .cc-personal-note-summary>h3{margin:0 0 5px;padding:0;border:0;box-shadow:none;background:transparent;font-size:12px;font-weight:700}
+.customer-compact-card .cc-personal-note-summary>p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.7;color:inherit}
+.customer-compact-card .cc-personal-note-summary.is-empty{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 11px}
+.customer-compact-card .cc-personal-note-summary.is-empty>h3{margin:0;flex:0 1 auto}.customer-compact-card .cc-personal-note-summary.is-empty>p{color:#718c9d;font-size:11px;line-height:1.5;text-align:right}
+.customer-compact-card .cc-contract.is-empty{min-height:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px}
+.customer-compact-card .cc-contract.is-empty>header{margin:0;flex:1;min-width:0}
+.customer-compact-card .cc-contract.is-empty>.cc-contract-list{display:block;overflow:visible;flex:none;scrollbar-gutter:auto}
+.customer-compact-card .cc-contract.is-empty .cc-contract-empty{margin:0;font-size:11px;color:#718c9d;line-height:1.5}
+/* Paint each cell explicitly so alternating rows and appearance themes keep the payment colors. */
+#resultRows .customer-compact-card .cc-packages .cc-package-main>td{background:#fff2ca!important;border-color:#e5d7a8!important;color:#194b70!important}
+#resultRows .customer-compact-card .cc-packages .cc-package-billing>td{background:#dcefff!important;border-color:#b7d8ed!important;color:#194b70!important}
+#resultRows .customer-compact-card .cc-packages .cc-package-cash>td{background:#d8f0df!important;border-color:#b6d9c1!important;color:#194b70!important}
+#resultRows .customer-compact-card .cc-packages .cc-package-billing>td:first-child{box-shadow:inset 3px 0 #1593c5}
+#resultRows .customer-compact-card .cc-packages .cc-package-cash>td:first-child{box-shadow:inset 3px 0 #26a26b}
+@media(max-width:600px){.customer-compact-card .cc-data th,.customer-compact-card .cc-data td{padding:4px 5px}.customer-compact-card .cc-packages th,.customer-compact-card .cc-packages td{padding:5px;font-size:10px}.customer-compact-card .cc-contract.is-empty{align-items:start;flex-direction:column;gap:3px}.customer-compact-card .cc-contract.is-empty>header{width:100%}.customer-compact-card .cc-personal-note-summary.is-empty>p{font-size:10px}}
+
+#resultRows .customer-compact-card .cc-identity{padding:9px;gap:9px}.customer-compact-card .cc-contract.is-empty{flex-direction:row}@media(max-width:600px){.customer-compact-card .cc-contract.is-empty{flex-direction:column}}

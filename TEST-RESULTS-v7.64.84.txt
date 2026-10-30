@@ -1,0 +1,7 @@
+v7.64.87 validation — 2026-10-27
+PASS npm ci, TypeScript build, release test suite: 80 (72+8).
+PASS real PostgreSQL and Chromium print parity: print-only staff role, 30 primary tests + 6 add-ons, identical saved models/prices/column widths and two-page A4 output. Rasterized PDF pages identical after normalizing the print timestamp. Direct front-card printing never opens editor or writes patient records; pending draft restored; cancel/repeat/failure cleanup tested.
+PASS production overview renderer, master name resolver and copy controls: Payor and Agreement code-name on separate rows, Location retained, Office not displayed or looked up, stored Office retained; desktop/mobile and missing-master/empty-value checks.
+PASS PostgreSQL upgrade v7.64.83 to v7.64.87 and repair-admin: credentials, role policies, company/year, notes, selection data, knowledge and settings preserved. Login/API/browser and restart tests passed.
+PASS QR/server PDF source unchanged except release version references.
+Physical Windows GUI/UAC/VBS/Task Scheduler and printer not exercised in Linux test environment.

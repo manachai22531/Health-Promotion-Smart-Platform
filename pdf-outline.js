@@ -1,0 +1,7 @@
+'use strict';
+const {PDFName,PDFHexString}=require('pdf-lib');
+// Flat, Unicode bookmarks. Destinations bind to actual page refs after pagination.
+function readOutline(pdf){const root=pdf.catalog.lookup(PDFName.of('Outlines'));if(!root)return[];let ref=root.get(PDFName.of('First'));const seen=new Set(),items=[];while(ref&&!seen.has(String(ref))){seen.add(String(ref));const item=pdf.context.lookup(ref),title=item.lookup(PDFName.of('Title')),dest=item.lookup(PDFName.of('Dest'));if(title&&dest)items.push({title:title.decodeText(),dest});ref=item.get(PDFName.of('Next'))}return items}
+function setOutline(pdf,entries){if(!entries.length)return;const context=pdf.context,root=context.obj({Type:'Outlines'}),rootRef=context.register(root),items=entries.map(e=>{const page=e.page||pdf.getPages()[e.pageIndex||0];return context.obj({Title:PDFHexString.fromText(e.title),Parent:rootRef,Dest:e.dest||context.obj([page.ref,'XYZ',null,e.top??page.getHeight(),null])})}),refs=items.map(item=>context.register(item));items.forEach((item,i)=>{if(i)item.set(PDFName.of('Prev'),refs[i-1]);if(i+1<refs.length)item.set(PDFName.of('Next'),refs[i+1])});root.set(PDFName.of('First'),refs[0]);root.set(PDFName.of('Last'),refs.at(-1));root.set(PDFName.of('Count'),context.obj(items.length));pdf.catalog.set(PDFName.of('Outlines'),rootRef);pdf.catalog.set(PDFName.of('PageMode'),PDFName.of('UseOutlines'))}
+function appendOutline(pdf,entries){setOutline(pdf,[...readOutline(pdf),...entries])}
+module.exports={setOutline,appendOutline,readOutline};

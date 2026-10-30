@@ -1,0 +1,15 @@
+HealthCheck v7.64.67 validation report
+
+62 targeted Node tests passed, 0 failed. TypeScript typecheck passed.
+Production browser checks passed: six cursor styles, sizes/hotspots, custom color/persistence/reset, text/disabled/drag behavior, star trail move/drag modes, bounded canvas and idle/off cleanup, responsive settings panel.
+Regression browser checks passed: XLSX roundtrip/import preview, responsive toolbar, PDF sidebar and close button, one-row footer, whole and individual field copy, due-period colors.
+v7.64.61 compression, cache and state/refresh optimizations preserved. Dependency lock unchanged apart from version. No migration changes.
+
+Memory changes: optional compact package response removes duplicate raw HIS payload after deriving normalized details; concurrent catalog loads coalesced; stale responses ignored; hidden page rendering avoided.
+Synthetic Chromium benchmark (1000 packages x20 details, repeated vendor fields; retained JS heap after explicit GC): full response 15,764,171 bytes and heap 15,884,028 bytes; compact response 2,301,481 bytes and heap 2,376,176 bytes. This is not production data or whole-tab memory. No claim that the user's 595 MB tab will reach a particular value.
+
+Star trail defaults off; max 40 particles; canvas longest backing dimension 1280; animation stops and canvas is removed when idle/off/hidden.
+All earlier release functionality retained, including PDF theme/code columns, Excel setup import/export, scheduled startup, shared HIS status workflow, customer QR and admin URL configuration.
+
+Limitations: Windows installer/startup and live HIS/database were not executed in this Linux environment. Validate those connections on the target Windows server. No database schema changes.
+Install: extract ZIP, run INSTALL-REPAIR.bat as administrator, verify v7.64.67; refresh browser cache if needed.

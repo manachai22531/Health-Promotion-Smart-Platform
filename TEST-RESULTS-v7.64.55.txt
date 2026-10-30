@@ -1,0 +1,16 @@
+HealthCheck v7.64.55 verification
+PASS reviewed uploaded video (12.28 seconds) showing unblocked save/summary-refresh interval.
+PASS targeted Chromium workspace: confirmed-only legacy record displays orange repeat-confirm through workflow synchronization.
+PASS delayed save blocks duplicate save/confirmation and Escape, retains lock through summary refresh; failed write unlocks screen and preserves editable fields.
+PASS initial confirmation permits format choice then blocks writes; repeat confirmation blocks duplicate interaction and restores orange button.
+PASS actual Location field visible between HIS and coverage, no duplicate control IDs; canonical Office and payer codes persist; read-only coverage unchanged.
+PASS compact overview displays exact scoped payer/plan/office names and cached Location name by code or ID.
+PASS shared HTML/PDF layout: Package code/name pairing preserved, address and Office omitted only from document, Payor Plan aligned with patient ID/Passport column.
+PASS actual generated PDF text excludes address/Office and retains package/Plan data.
+PASS direct Print A4/Ctrl+P without PDF request; separate explicit PDF preview; desktop and narrow action groups.
+PASS dirty baseline: no-op save acknowledgement, newer pending edits retained, close guard and right-edge Close button.
+PASS exact scoped Master lookup, cache, unrelated row rejection and partial failures.
+PASS production runtime startup, version identity, static assets and anonymous endpoint access checks (database bootstrap skipped).
+PASS 34 selected unit/workflow tests, 0 failures; npm run typecheck.
+PASS dependency manifests unchanged from v7.64.54 aside from release version; migrations unchanged; ZIP CRC and SHA256 inventories checked.
+LIMITS: controlled browser/API fixtures; no live HIS calls, Windows installer execution, production database upgrade or physical printer test in this environment.

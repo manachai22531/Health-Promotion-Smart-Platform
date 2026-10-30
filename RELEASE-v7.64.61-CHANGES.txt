@@ -1,0 +1,10 @@
+HealthCheck v7.64.61 - Production performance update
+
+- เปิด gzip compression สำหรับ HTML, CSS, JavaScript และ JSON response
+- cache asset ที่มี version เป็น immutable และให้ HTML revalidate เสมอ
+- cache /api/state ทั้ง JSON และ gzip ต่อ revision
+- รวมคำขอ /api/state ที่เข้าพร้อมกันให้สร้าง state เพียงครั้งเดียว
+- ลด auto-refresh จากทุก 5 วินาทีเป็น 20-25 วินาทีแบบสุ่ม
+- หยุด auto-refresh เมื่อ browser tab ไม่ได้ใช้งาน
+
+หมายเหตุ: รุ่นนี้ไม่เปลี่ยน schema ฐานข้อมูลและไม่แก้ข้อมูลผู้ป่วย

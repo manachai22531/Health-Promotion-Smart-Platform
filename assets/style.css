@@ -222,7 +222,7 @@ tbody tr:hover { background: #f2fafa; }
 .cash-package-rows { display: grid; gap: 8px; margin-top: 12px; }
 .cash-package-row { display: grid; grid-template-columns: minmax(0,1fr) 150px 42px; gap: 8px; }
 .cash-package-row input { min-width: 0; }
-.cash-package-row .remove-cash-package { min-height: 42px; border: 0; border-radius: 10px; color: var(--danger); background: var(--danger-bg); font-size: 20px; }
+.cash-package-row .remove-cash-package, .cash-package-row .remove-billing-package { min-height: 42px; border: 0; border-radius: 10px; color: var(--danger); background: var(--danger-bg); font-size: 20px; cursor:pointer; }
 #cashPackageEmpty { margin-top: 12px; }
 .required { color: var(--danger); }
 .selected-company { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 16px; padding: 14px 16px; border-radius: 12px; color: var(--brand-dark); background: #e8f4f4; }
@@ -5806,6 +5806,23 @@ body.project-bulk-emr-active{overflow:hidden}
 @media(max-width:1250px){.permission-table-head-v76372.user,.permission-user-table-row{grid-template-columns:40px 36px 110px minmax(130px,1.1fr) 95px 85px 115px 82px 105px}.permission-user-head-actions-v76372{gap:6px}}
 @media(max-width:760px){.permission-bulk-toolbar-v76375{flex-wrap:wrap}.permission-bulk-toolbar-v76375 #selectedUserCount{margin-left:0}.permission-user-table-row{grid-template-columns:32px 32px 1fr!important}.permission-user-table-row>*:nth-child(n+4){grid-column:3}.his-user-query-meta-v76375{grid-template-columns:1fr}}
 .permission-v76372 .permission-hero-v76372{background:#fff!important;box-shadow:0 5px 14px rgba(20,72,98,.035)!important}
+
+/* v7.64.30 high-volume user management: full-width task tabs */
+.permission-v76372 .permission-hero-v76372{display:flex;align-items:center;justify-content:space-between;gap:22px}
+.permission-kpis-v76430{display:grid;grid-template-columns:repeat(4,minmax(105px,1fr));gap:8px;min-width:min(540px,48vw)}
+.permission-kpis-v76430>span{display:grid;gap:2px;padding:9px 12px;border:1px solid #d9e9f1;border-radius:12px;background:#f8fcff}
+.permission-kpis-v76430 small{color:#718797;font-size:9px;font-weight:800}.permission-kpis-v76430 strong{color:#114b78;font-size:20px;line-height:1}
+.permission-tabs-v76430{display:flex;gap:4px;margin:0 0 12px;padding:5px;border:1px solid #d4e5ef;border-radius:14px;background:#fff;box-shadow:0 5px 15px rgba(20,72,98,.04)}
+.permission-tabs-v76430 button{min-height:38px;padding:0 18px;border:0;border-radius:10px;background:transparent;color:#4b6c83;font:inherit;font-size:11px;font-weight:900;cursor:pointer}
+.permission-tabs-v76430 button:hover{background:#edf8fc;color:#075d8e}.permission-tabs-v76430 button.active{background:linear-gradient(135deg,#0579d8,#0ca89f);color:#fff;box-shadow:0 5px 12px rgba(5,121,216,.2)}
+.permission-management-grid-v76372{display:block}.permission-management-grid-v76372>[data-permission-panel]{width:100%}.permission-management-grid-v76372>[hidden]{display:none!important}
+.permission-v76372 .permission-user-panel-v76372,.permission-v76372 .permission-role-panel-v76372{border-top:0!important}
+.permission-v76372 .permission-user-list-v76372{max-height:54vh;overflow:auto}
+.permission-table-head-v76372.user,.permission-user-table-row{grid-template-columns:44px 48px minmax(250px,1.5fr) minmax(170px,1fr) minmax(160px,.9fr) 110px 120px}
+.permission-user-org-v76430{min-width:0;display:grid;gap:1px}.permission-user-org-v76430 strong,.permission-user-org-v76430 small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.permission-user-org-v76430 strong{color:#16466f;font-size:10px}.permission-user-org-v76430 small{color:#7b8f9d;font-size:8.5px}
+.permission-user-footer-v76372{justify-content:space-between;padding:10px 4px 0}
+@media(max-width:980px){.permission-v76372 .permission-hero-v76372{align-items:flex-start;flex-direction:column}.permission-kpis-v76430{width:100%;min-width:0}.permission-tabs-v76430{overflow-x:auto}.permission-tabs-v76430 button{white-space:nowrap}.permission-table-head-v76372.user,.permission-user-table-row{grid-template-columns:38px 40px minmax(210px,1.4fr) minmax(145px,1fr) 145px 100px 110px}}
+@media(max-width:680px){.permission-kpis-v76430{grid-template-columns:1fr 1fr}.permission-tabs-v76430{border-radius:10px}.permission-table-head-v76372.user{display:none}.permission-user-table-row{grid-template-columns:34px 34px 1fr!important}.permission-user-table-row>*:nth-child(n+4){grid-column:3}}
 /* v7.63.86 daily summary follows automatic confirmation flow */
 .today-registration-summary{grid-template-columns:repeat(2,1fr)!important}
 /* v7.63.84 two-column Worklist */
@@ -5834,6 +5851,19 @@ body.project-bulk-emr-active{overflow:hidden}
 @media(min-width:850px) and (max-width:1250px){#searchView .search-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}#searchView .search-add-customer{display:block!important}}
 @media(max-width:849px){#searchView .search-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}#searchView .search-add-customer{display:block!important}}
 @media(max-width:490px){#searchView .search-grid{grid-template-columns:1fr!important}}
+@media(min-width:1251px){#searchView .search-grid>.company-quick-lookup{grid-column:span 2!important;margin:0!important;min-width:0}#searchView .search-submit,#searchView .search-clear,#searchView .search-add-customer{grid-column:auto!important}}
+#searchView .search-grid>.company-quick-lookup{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,32%);gap:9px;align-items:end;box-sizing:border-box}#searchView .search-grid>.company-quick-lookup label{min-width:0}#searchView .search-grid>.company-quick-lookup input,#searchView .search-grid>.company-quick-lookup button{width:100%;box-sizing:border-box}
+
+/* v7.64.05: one orderly action row below the five primary search fields. */
+#searchView .search-secondary-row-v76405{display:grid;grid-template-columns:minmax(260px,1.35fr) minmax(140px,.55fr) minmax(140px,1fr) minmax(140px,1fr) minmax(180px,1fr);gap:10px;align-items:end;width:100%;margin-top:10px;padding-top:10px;border-top:1px solid #d8e8f0;box-sizing:border-box}
+#searchView .search-secondary-row-v76405>label{display:grid;gap:4px;min-width:0;color:#174f70;font-weight:800}
+#searchView .search-secondary-row-v76405>label>span{font-size:10px;line-height:1.2}
+#searchView .search-secondary-row-v76405 input,#searchView .search-secondary-row-v76405>.button,#searchView .search-secondary-row-v76405>.search-add-customer,#searchView .search-secondary-row-v76405>.search-add-customer>.button{width:100%!important;min-width:0!important;height:46px!important;min-height:46px!important;margin:0!important;box-sizing:border-box}
+#searchView .search-secondary-row-v76405 input{border:1px solid #bfd8e8;border-radius:9px;padding:0 11px;background:#fff;color:#123f60}
+#searchView .search-secondary-row-v76405>.search-add-customer{height:46px!important;position:relative}
+@media(max-width:1180px){#searchView .search-secondary-row-v76405{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){#searchView .search-secondary-row-v76405{grid-template-columns:1fr}}
+#worklistView .worklist-filter{display:grid!important;grid-template-columns:minmax(220px,1.4fr) 145px minmax(150px,1fr) minmax(150px,1fr) 145px auto auto!important;gap:8px;align-items:center}#worklistView .worklist-filter>*{min-width:0;margin:0!important}#worklistView .worklist-new-layout{grid-template-columns:minmax(220px,18%) minmax(0,1fr)!important}#worklistView .worklist-today-scroll{overflow-x:auto!important}#worklistView .worklist-today-table{min-width:1180px!important;table-layout:auto!important}@media(max-width:1100px){#worklistView .worklist-filter{grid-template-columns:repeat(2,minmax(0,1fr))!important}#worklistView .worklist-new-layout{grid-template-columns:1fr!important}}
 /* Annual corporate letter inside existing company-year edit modal. */
 .company-year-modal .company-circular-editor{grid-column:1/-1!important;min-width:0;border:1px solid #c8e0ed;border-radius:15px;background:#f7fbfe;padding:18px}
 .company-circular-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.company-circular-head strong{display:block;color:#104e78;font-size:16px}.company-circular-head span{display:block;margin-top:4px;color:#638095;font-size:11px}.company-circular-head small{color:#087a61;font-weight:700}
@@ -5900,7 +5930,8 @@ body.project-bulk-emr-active{overflow:hidden}
 #companyOverlay .company-year-v76395-fullpage>.modal-header{flex:0 0 auto!important;min-height:62px!important;padding:12px 22px!important;background:#fff!important;position:relative!important;z-index:5}
 #companyOverlay .company-year-v76395-fullpage>.modal-body{flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box!important;padding:0!important;scrollbar-gutter:auto!important}
 #companyOverlay .company-year-v76395-fullpage>.modal-footer{flex:0 0 auto!important;min-height:57px!important;position:relative!important;bottom:auto!important;padding:9px 22px!important;z-index:5!important;background:white!important}
-#companyOverlay .company-year-v76394-workspace{display:grid!important;grid-template-columns:198px minmax(390px,var(--company-year-middle-width,1fr)) 12px minmax(350px,var(--company-year-right-track,.85fr))!important;gap:0!important;height:100%!important;min-height:0!important;align-items:stretch!important}
+#companyOverlay .company-year-v76394-workspace{display:grid!important;grid-template-columns:198px minmax(390px,1fr) minmax(350px,.85fr)!important;gap:0!important;height:100%!important;min-height:0!important;align-items:stretch!important}
+#companyOverlay .company-year-v76394-workspace:has(.annual-workspace-divider){grid-template-columns:198px minmax(390px,var(--annual-form-width,52%)) 8px minmax(350px,1fr)!important}.annual-workspace-divider{cursor:col-resize;background:linear-gradient(90deg,transparent 2px,#b9d7e6 2px,#b9d7e6 6px,transparent 6px);position:relative;z-index:8}.annual-workspace-divider:hover,.annual-workspace-divider.dragging{background:linear-gradient(90deg,transparent 1px,#1599b5 1px,#1599b5 7px,transparent 7px)}
 #companyOverlay .company-year-v76395-nav{display:flex;flex-direction:column;gap:5px;padding:16px 9px;overflow-y:auto;min-height:0;background:#fff;border-right:1px solid #d9e7f0}
 #companyOverlay .company-year-v76395-nav>strong{font-size:12px;color:#104973;padding:5px 8px 12px}
 #companyOverlay .company-year-v76395-nav button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;border-radius:9px;padding:9px 8px;font:700 11px inherit;color:#27536c;cursor:pointer}
@@ -5931,7 +5962,7 @@ body.project-bulk-emr-active{overflow:hidden}
 #companyOverlay .company-year-v76395-document-card>button{align-self:flex-start;font-size:11px}
 #companyOverlay .company-year-v76395-document-card details{border-top:1px dashed #c7e1e5;padding-top:7px;font-size:11px;color:#266381}
 #companyOverlay .company-year-v76395-document-card details>summary{cursor:pointer;font-weight:800;margin-bottom:8px}
-@media(max-width:1320px){#companyOverlay .company-year-v76394-workspace{grid-template-columns:165px minmax(350px,var(--company-year-middle-width,1fr)) 12px minmax(330px,var(--company-year-right-track,.87fr))!important}#companyOverlay .company-year-v76395-nav button{font-size:10px}}
+@media(max-width:1320px){#companyOverlay .company-year-v76394-workspace{grid-template-columns:165px minmax(350px,1fr) minmax(330px,.87fr)!important}#companyOverlay .company-year-v76395-nav button{font-size:10px}}
 @media(max-width:1050px){#companyOverlay .company-year-v76394-workspace{grid-template-columns:150px minmax(0,1fr)!important;grid-template-rows:1fr!important}#companyOverlay .company-circular-preview{display:none!important}}
 @media(max-width:720px){#companyOverlay .company-year-v76394-workspace{grid-template-columns:1fr!important}#companyOverlay .company-year-v76395-nav{flex-direction:row!important;overflow-x:auto;overflow-y:hidden;max-height:65px;padding:5px!important;border-right:0;border-bottom:1px solid #d8e7f2}#companyOverlay .company-year-v76395-nav>strong{display:none}#companyOverlay .company-year-v76395-nav button{width:auto;flex-shrink:0;white-space:nowrap}#companyOverlay .company-year-v76394-fields.two,#companyOverlay .company-year-v76394-fields.three{grid-template-columns:1fr!important}}
 
@@ -5993,7 +6024,11 @@ body.project-bulk-emr-active{overflow:hidden}
 #companyOverlay #companyCircularPdfFrame{min-height:calc(100vh - 290px)}
 #companyOverlay .modal-footer #saveCompanyAndPrimary{background:linear-gradient(95deg,#0487bc,#0674b9);color:#fff;font-weight:700}
 @media(max-width:850px){#companyOverlay .annual-program-table-heading{display:none}#companyOverlay .annual-program-row{grid-template-columns:minmax(120px,1fr) 72px 58px 78px 30px;gap:4px}}
-/* v7.63.99: distinct section 09 comparison matrix and section 10 HIS additional packages. */
+.company-year-v76394-section>header{display:flex;align-items:center;gap:10px}.company-year-v76394-section>header .annual-section-save{margin-left:auto;white-space:nowrap}
+.company-circular-workspace{min-height:calc(100vh - 120px)}.company-circular-preview{min-width:360px}.company-circular-inline-preview,.company-circular-inline-preview iframe{width:100%;height:calc(100vh - 220px);min-height:620px}
+.annual-section-save.is-saving{opacity:.7;pointer-events:none}.annual-section-save.is-saved{border-color:#2a9d72;color:#147553;background:#effaf6}
+@media(max-width:980px){.company-circular-inline-preview,.company-circular-inline-preview iframe{min-height:520px;height:70vh}}
+
 #companyOverlay .company-matrix-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px}
 #companyOverlay .company-matrix-toolbar button{font-size:11px;padding:7px 10px}
 #companyOverlay .company-matrix-help{font-size:11px;color:#55778c;margin:6px 0 10px}
@@ -6008,67 +6043,710 @@ body.project-bulk-emr-active{overflow:hidden}
 #companyOverlay .company-matrix-table input,#companyOverlay .company-matrix-table select{min-width:0;width:100%;height:32px;border:1px solid #d3e2ed;border-radius:6px;background:#fff;padding:4px 6px;font-size:11px}
 #companyOverlay .company-matrix-table select{min-width:96px}
 #companyOverlay .company-matrix-table small{display:block;font-size:9px;color:#658092}
-#companyOverlay .matrix-column-heading,#companyOverlay .matrix-thai-edit{display:flex;align-items:center;gap:4px}
-#companyOverlay .matrix-remove{border:0;border-radius:6px;background:#ffecee;color:#b42b3c;font-weight:800;padding:5px 8px;flex:none;cursor:pointer}
 #companyOverlay .company-matrix-table tfoot td,#companyOverlay .company-matrix-table tfoot th{background:#e9f4fc;color:#0d577e}
-#companyOverlay .matrix-empty{padding:24px 12px!important;color:#688398;text-align:center}
 #companyOverlay .company-matrix-note{display:block;font-size:12px;color:#204d6a;font-weight:700;margin-top:12px}
 #companyOverlay .company-matrix-note textarea{width:100%;min-height:52px;margin-top:5px;border:1px solid #cbddea;border-radius:9px;padding:8px;font-size:12px;resize:vertical}
-#companyOverlay #companyAdditionalPackagesSection .cash-package-editor{margin:10px 0}
-#companyOverlay #companyProgramMatrixSection,#companyOverlay #companyAdditionalPackagesSection{scroll-margin-top:12px}
+/* Worklist: compact vertical confirmation rail and viewport-filling cases table. */
+#worklistView.workspace-fullpage.active{display:flex;flex-direction:column;min-height:calc(100dvh - 92px)}
+#worklistView .workflow-hero{padding:8px 12px;margin-bottom:8px;min-height:0}
+#worklistView .workflow-hero .hero-note{display:none}
+#worklistView .workflow-hero h1{font-size:18px;margin:0}
+#worklistView .worklist-filter{flex-shrink:0;margin-bottom:8px;padding:8px;grid-template-columns:minmax(160px,1.35fr) 145px minmax(120px,1fr) minmax(120px,.75fr) minmax(110px,.7fr) auto auto!important}
+#worklistView .workflow-kpis{flex-shrink:0;margin-bottom:8px}
+#worklistView .workflow-kpis article{padding:9px 13px}
+#worklistView .worklist-new-layout{flex:1;min-height:440px;height:calc(100dvh - 320px);grid-template-columns:clamp(215px,17%,280px) minmax(0,1fr)!important;overflow:hidden}
+#worklistView .worklist-confirmation-panel{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:10px;border-right:4px solid #e6f1f6}
+#worklistView .worklist-confirmation-panel>p{margin:7px 0;font-size:11px}
+#worklistView .worklist-pending-list{min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding-right:3px;align-content:start}
+#worklistView .worklist-pending-card{padding:9px;gap:3px}
+#worklistView .worklist-today-panel{display:flex;flex-direction:column;min-width:0;min-height:0;padding:10px}
+#worklistView .worklist-today-panel .worklist-bulk-toolbar{flex-shrink:0}
+#worklistView .worklist-today-scroll{flex:1;min-height:0;overflow:auto!important;overscroll-behavior:contain}
+#worklistView .worklist-today-table{min-width:1360px!important;table-layout:auto!important}
+#worklistView .worklist-today-table th{position:sticky;top:0;z-index:2;white-space:nowrap}
+#worklistView .worklist-today-table td{overflow-wrap:normal;white-space:normal}
+@media(max-width:1100px){#worklistView .worklist-new-layout{grid-template-columns:clamp(195px,25%,260px) minmax(0,1fr)!important}#worklistView .worklist-filter{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:700px){#worklistView .worklist-new-layout{height:auto;min-height:650px;grid-template-columns:1fr!important;overflow:visible}#worklistView .worklist-confirmation-panel{max-height:240px;border-right:0;border-bottom:4px solid #e6f1f6}#worklistView .worklist-today-scroll{min-height:390px}#worklistView .worklist-filter{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 
-/* Resizable divider between annual edit form and PDF preview — source-only UI change. */
-#companyOverlay .company-year-v76395-resizer {
-  display:flex;align-items:center;justify-content:center;align-self:stretch;
-  width:12px;min-width:12px;box-sizing:border-box;
-  background:#eaf3f9;border-inline:1px solid #d5e5ee;
-  cursor:col-resize;touch-action:none;user-select:none;
-  position:relative;z-index:3;
+/* 2026-10-09: Worklist two-column layout wins over old fullpage flex override.
+   Deliberately keep pending rail on the left and today's cases on the right. */
+#worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout{
+  display:grid!important;
+  grid-template-columns:clamp(215px,18%,280px) minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  align-items:stretch;
+  flex-direction:unset!important;
+  height:calc(100dvh - 315px);
+  min-height:440px!important;
+  overflow:hidden;
 }
-#companyOverlay .company-year-v76395-resizer::after {
-  content:"";position:absolute;inset:0 auto 0 50%;width:2px;
-  transform:translateX(-50%);background:#cadfe9;
-  transition:background .15s;
+#worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout>.worklist-confirmation-panel{
+  min-width:0;min-height:0;grid-column:1;grid-row:1;max-height:none;overflow:hidden;
+  border-right:4px solid #e6f1f6;border-bottom:0;
 }
-#companyOverlay .company-year-v76395-resizer-grip {
-  width:6px;height:58px;border-radius:8px;background:#96bacf;
-  box-shadow:0 0 0 4px #ecf7fc;position:relative;z-index:1;
+#worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout>.worklist-today-panel{
+  min-width:0;min-height:0;grid-column:2;grid-row:1;overflow:hidden;
 }
-#companyOverlay .company-year-v76395-resizer:hover,
-#companyOverlay .company-year-v76395-resizer:focus-visible,
-#companyOverlay .company-year-v76394-workspace.is-resizing-columns .company-year-v76395-resizer {
-  background:#d8edf9;outline:2px solid #1481b6;outline-offset:-2px;
+#worklistView.workspace-fullpage .worklist-new-layout .worklist-pending-list{overflow-y:auto;min-height:0;flex:1;}
+#worklistView.workspace-fullpage .worklist-new-layout .worklist-today-scroll{
+  max-height:none!important;min-height:0!important;overflow:auto!important;
 }
-#companyOverlay .company-year-v76394-workspace.is-resizing-columns iframe {pointer-events:none!important}
-#companyOverlay .company-year-v76394-workspace.is-resizing-columns {cursor:col-resize;user-select:none}
-@media(max-width:1050px){
-  #companyOverlay .company-year-v76395-resizer{display:none!important}
+@media(max-width:700px){
+  #worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:minmax(130px,220px) minmax(400px,1fr)!important;
+    height:auto;
+  }
+  #worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout>.worklist-confirmation-panel{
+    grid-column:1;grid-row:1;border-right:0;border-bottom:4px solid #e6f1f6;
+  }
+  #worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout>.worklist-today-panel{
+    grid-column:1;grid-row:2;
+  }
 }
 
-/* v7.64.00 — annual section saves, contact list, HIS Payor master and larger PDF preview. */
-#companyOverlay .company-year-v76394-section>header{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
-#companyOverlay .company-year-v76394-section>header>div{flex:1;min-width:180px}
-#companyOverlay .company-section-save{margin-left:auto;flex:none;font-size:10px!important;min-height:30px!important;padding:6px 9px!important;white-space:nowrap}
-#companyOverlay .company-section-actions{display:flex!important;flex:0 0 auto!important;gap:6px;align-items:center;min-width:0!important}
-#companyOverlay .company-payor-master-status{grid-column:1/-1;font-size:10px;color:#52778d;background:#f2f9fd;border:1px dashed #c5dfe9;border-radius:7px;padding:7px 9px}
-#companyOverlay .annual-company-contacts{margin-top:12px;padding:12px;border:1px solid #c9e0eb;border-radius:11px;background:#f8fcff}
-#companyOverlay .annual-company-contacts .editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-#companyOverlay .annual-company-contacts .editor-heading strong{font-size:12px;color:#0c5b80}
-#companyOverlay .annual-company-contacts .editor-heading span{display:block;color:#678294;font-size:10px;margin-top:2px}
-#companyOverlay .annual-company-contact-heading,#companyOverlay .annual-company-contact-row{display:grid;grid-template-columns:28px minmax(130px,1fr) minmax(105px,.8fr) minmax(130px,1fr) minmax(150px,1.15fr) 32px;gap:6px;align-items:center}
-#companyOverlay .annual-company-contact-heading{font-size:9px;color:#5c7b8e;font-weight:800;padding:4px 6px;background:#eaf5fb;border-radius:6px}
-#companyOverlay .annual-company-contact-heading span:first-child{visibility:hidden}
-#companyOverlay .annual-company-contact-rows{display:flex;flex-direction:column;gap:7px;margin-top:6px}
-#companyOverlay .annual-company-contact-row{padding:6px;border:1px solid #dce9f0;border-radius:8px;background:#fff}
-#companyOverlay .annual-company-contact-row input{width:100%;min-width:0;height:32px;border:1px solid #cfdfea;border-radius:6px;padding:5px 7px;font-size:11px;box-sizing:border-box}
-#companyOverlay .contact-index{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#e7f5fc;color:#0875a8;font-size:10px;font-weight:900}
-#companyOverlay .company-circular-preview{padding:8px!important;display:flex!important;flex-direction:column!important;min-height:0!important}
-#companyOverlay .company-circular-head{flex:0 0 auto}
-#companyOverlay .company-circular-inline-preview{display:flex!important;flex:1 1 auto!important;min-height:0!important;height:auto!important}
-#companyOverlay .company-circular-inline-preview[hidden]{display:none!important}
-#companyOverlay #companyCircularPdfFrame{display:block;width:100%!important;height:100%!important;min-height:calc(100vh - 205px)!important;border:1px solid #cbdde8;border-radius:8px;background:#fff}
-#companyOverlay .company-year-v76395-right{padding:8px!important;overflow:hidden!important}
-#companyOverlay .company-year-v76395-right>.company-circular-preview{flex:1 1 auto!important;height:100%!important;min-height:0!important;overflow:hidden!important;margin:0!important}
-#companyOverlay .company-year-v76394-preview-note,#companyOverlay #companyCircularStatus{flex:0 0 auto}
-#companyOverlay .company-year-v76395-nav button.is-saved::after{content:'✓';margin-left:auto;color:#0b9868;font-weight:900}
-@media(max-width:1200px){#companyOverlay .annual-company-contact-heading{display:none}#companyOverlay .annual-company-contact-row{grid-template-columns:28px repeat(2,minmax(120px,1fr)) 32px}#companyOverlay .annual-company-contact-row input:nth-of-type(3),#companyOverlay .annual-company-contact-row input:nth-of-type(4){grid-column:2/4}}
+
+/* 2026-10-10 — Search Workspace refinement (UI-only; preserve existing inputs, IDs and API). */
+#searchView.hc-search-refine .search-page-layout{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(258px,282px)!important;
+  align-items:start!important;gap:14px!important;min-height:0!important;
+}
+#searchView.hc-search-refine .search-main-stack{
+  display:flex!important;flex-direction:column!important;gap:12px!important;min-height:0!important;
+}
+#searchView.hc-search-refine .search-main-stack>.search-card{
+  display:block!important;flex:0 0 auto!important;padding:18px 20px!important;
+  border-radius:16px!important;border-top:3px solid #09a1a7!important;
+  min-height:0!important;box-shadow:0 6px 22px rgba(19,73,99,.045);
+}
+#searchView.hc-search-refine .hc-search-heading{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;
+  margin:0 0 16px;padding:0 0 13px;border-bottom:1px solid #e2edf3;
+}
+#searchView.hc-search-refine .hc-search-title{min-width:0}
+#searchView.hc-search-refine .hc-search-eyebrow{
+  display:block;color:#008b97;font-size:10px;letter-spacing:.11em;font-weight:850;margin-bottom:2px;
+}
+#searchView.hc-search-refine .hc-search-heading h2{
+  margin:0;color:#0b4770;font-size:18px;font-weight:850;line-height:1.4;
+}
+#searchView.hc-search-refine .hc-search-heading p{
+  margin:2px 0 0;font-size:11px;color:#6f8395;line-height:1.5;
+}
+#searchView.hc-search-refine .hc-search-quicktip{
+  white-space:nowrap;padding:7px 12px;border:1px solid #cdebe9;border-radius:999px;
+  background:#f0faf8;color:#11786f;font-size:11px;font-weight:700;
+}
+#searchView.hc-search-refine .search-grid{
+  display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  align-items:end!important;gap:10px!important;margin:0!important;
+}
+#searchView.hc-search-refine .search-grid>label.search-field{
+  grid-column:span 2!important;min-width:0!important;margin:0!important;
+}
+#searchView.hc-search-refine .search-grid>label.search-field:has(#companyFilter),
+#searchView.hc-search-refine .search-grid>label.search-field:has(#searchBooking){
+  grid-column:span 3!important;
+}
+#searchView.hc-search-refine .search-field>span{
+  color:#174e73!important;font-size:11px!important;font-weight:750!important;
+}
+#searchView.hc-search-refine .search-field input{
+  width:100%!important;height:43px!important;min-height:43px!important;
+  border-radius:9px!important;background:#fff!important;padding:0 11px!important;
+  font-size:12px!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405{
+  display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:10px!important;margin:12px 0 0!important;
+  padding:0!important;border-top:0!important;min-width:0!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>#searchSubmit{
+  grid-column:1 / span 2!important;grid-row:1!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>#clearSearch{
+  grid-column:3 / span 2!important;grid-row:1!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>.search-add-customer{
+  grid-column:5 / span 2!important;grid-row:1!important;min-width:0!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>#searchSubmit,
+#searchView.hc-search-refine .search-secondary-row-v76405>#clearSearch,
+#searchView.hc-search-refine .search-secondary-row-v76405>.search-add-customer,
+#searchView.hc-search-refine .search-secondary-row-v76405>.search-add-customer>.button{
+  width:100%!important;min-width:0!important;height:43px!important;min-height:43px!important;
+  border-radius:9px!important;margin:0!important;box-sizing:border-box!important;
+  font-size:12px!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>label{
+  grid-column:1 / span 4!important;grid-row:2!important;
+  display:grid!important;grid-template-columns:120px minmax(0,1fr)!important;
+  align-items:center!important;gap:9px!important;
+  background:#f5fafc;border:1px solid #e0edf3;
+  border-right:0;border-radius:10px 0 0 10px;
+  margin:3px -10px 0 0;padding:6px 9px;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>label>span{
+  display:block;color:#256586;font-size:11px!important;font-weight:800!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>label>input{
+  height:36px!important;min-height:36px!important;border-radius:7px!important;
+  background:#fff!important;font-size:12px!important;
+}
+#searchView.hc-search-refine .search-secondary-row-v76405>#openCompanyQuickLookup{
+  grid-column:5 / span 2!important;grid-row:2!important;
+  width:100%!important;height:auto!important;min-height:48px!important;
+  border-radius:0 10px 10px 0!important;margin:3px 0 0!important;
+  font-size:11px!important;background:#eff7fb!important;
+}
+#searchView.hc-search-refine .hint{
+  margin:9px 0 0!important;font-size:10px!important;line-height:1.5;color:#71899a;
+}
+#searchView.hc-search-refine .hint strong{color:#336883}
+#searchView.hc-search-refine .result-meta{margin-top:9px!important;min-height:0!important;}
+#searchView.hc-search-refine .search-main-stack>.search-card>.empty{
+  flex:0 0 auto!important;min-height:130px!important;padding:23px 15px!important;
+  margin-top:16px!important;border:1px dashed #d1e2ea;border-radius:12px;
+  background:#f9fcff!important;
+}
+#searchView.hc-search-refine .search-card .empty .empty-icon{
+  width:44px;height:44px;font-size:24px;margin-bottom:8px;
+}
+#searchView.hc-search-refine .sales-ranking-rail{
+  width:100%!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:0!important;margin:0!important;border:1px solid #dbeaf1;
+  box-shadow:none!important;border-radius:14px;
+}
+#searchView.hc-search-refine .sales-ranking-rail>header{
+  grid-column:1 / -1!important;display:flex;align-items:baseline;gap:8px;
+  padding:9px 14px!important;background:#f0faf9!important;
+}
+#searchView.hc-search-refine .sales-ranking-rail>header strong{font-size:13px!important}
+#searchView.hc-search-refine .sales-ranking-rail>header small{margin-left:auto}
+#searchView.hc-search-refine .sales-ranking-rail>section{
+  min-width:0!important;padding:10px 12px!important;border-bottom:0!important;
+  border-right:1px solid #e3edf2!important;
+}
+#searchView.hc-search-refine .sales-ranking-rail>section:last-child{border-right:0!important}
+#searchView.hc-search-refine .sales-ranking-rail>section h3{font-size:11px!important;}
+#searchView.hc-search-refine .search-side-stack{height:auto!important;min-width:0;}
+#searchView.hc-search-refine .today-registration-panel{
+  position:sticky!important;top:103px!important;display:flex!important;flex-direction:column!important;
+  height:auto!important;min-height:360px!important;max-height:calc(100dvh - 122px)!important;
+  border-radius:15px!important;overflow:hidden;
+}
+#searchView.hc-search-refine .today-registration-panel>header{padding:14px!important;}
+#searchView.hc-search-refine .today-registration-panel h2{font-size:15px!important;}
+#searchView.hc-search-refine .today-registration-count{margin:10px 12px!important;padding:12px!important;}
+#searchView.hc-search-refine .today-registration-list{
+  flex:1 1 auto!important;overflow-y:auto!important;min-height:100px!important;max-height:calc(100dvh - 320px)!important;
+}
+#searchView.hc-search-refine .button:focus-visible,
+#searchView.hc-search-refine input:focus-visible{
+  outline:2px solid #11a4b6!important;outline-offset:2px;
+}
+@media(max-width:1120px){
+  #searchView.hc-search-refine .search-page-layout{grid-template-columns:1fr!important;}
+  #searchView.hc-search-refine .today-registration-panel{
+    position:static!important;min-height:175px!important;max-height:none!important;
+  }
+  #searchView.hc-search-refine .today-registration-list{max-height:280px!important;}
+}
+@media(max-width:690px){
+  #searchView.hc-search-refine .search-card{padding:13px!important;}
+  #searchView.hc-search-refine .search-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  #searchView.hc-search-refine .search-grid>label.search-field,
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#companyFilter),
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#searchBooking){grid-column:span 1!important;}
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#searchName){grid-column:span 2!important;}
+  #searchView.hc-search-refine .search-secondary-row-v76405{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  #searchView.hc-search-refine .search-secondary-row-v76405>#searchSubmit{grid-column:1!important;grid-row:1!important;}
+  #searchView.hc-search-refine .search-secondary-row-v76405>#clearSearch{grid-column:2!important;grid-row:1!important;}
+  #searchView.hc-search-refine .search-secondary-row-v76405>.search-add-customer{grid-column:1/-1!important;grid-row:2!important;}
+  #searchView.hc-search-refine .search-secondary-row-v76405>label{grid-column:1/-1!important;grid-row:3!important;grid-template-columns:1fr!important;margin:0!important;border-right:1px solid #e0edf3;border-radius:10px;padding:9px;}
+  #searchView.hc-search-refine .search-secondary-row-v76405>#openCompanyQuickLookup{grid-column:1/-1!important;grid-row:4!important;margin:0!important;min-height:40px!important;border-radius:9px!important;}
+  #searchView.hc-search-refine .sales-ranking-rail{grid-template-columns:1fr!important;}
+  #searchView.hc-search-refine .sales-ranking-rail>section{border-right:0!important;border-bottom:1px solid #e3edf2!important;}
+  #searchView.hc-search-refine .hc-search-quicktip{display:none;}
+}
+@media(max-width:430px){
+  #searchView.hc-search-refine .search-grid{grid-template-columns:1fr!important;}
+  #searchView.hc-search-refine .search-grid>label.search-field,
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#searchName),
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#companyFilter),
+  #searchView.hc-search-refine .search-grid>label.search-field:has(#searchBooking){grid-column:1!important;}
+}
+
+
+/* 2026-10-10 — Customer Search single-line desktop toolbar.
+   The app.js relocation script moves the three actions and company lookup into
+   .search-secondary-row-v76405 after .search-grid; display:contents keeps all
+   original elements on one CSS grid without changing their JS event listeners. */
+#searchView.hc-search-one-row .hc-search-heading{
+  margin-bottom:12px!important;padding-bottom:10px!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row{
+  display:grid!important;
+  grid-template-columns:minmax(105px,1.12fr) minmax(108px,1.2fr) minmax(85px,.85fr) minmax(105px,1.2fr) minmax(110px,1.26fr) minmax(70px,.6fr) minmax(75px,.7fr) minmax(115px,1fr)!important;
+  gap:8px!important;align-items:end!important;position:relative;min-width:0;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405{
+  display:contents!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#searchName),
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#companyFilter),
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#searchBooking){
+  grid-column:auto!important;grid-row:auto!important;min-width:0!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row .search-field>span{
+  font-size:10px!important;line-height:1.2!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row .search-field input{
+  font-size:11px!important;height:42px!important;min-height:42px!important;padding:0 8px!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer{
+  grid-column:auto!important;grid-row:auto!important;display:block!important;
+  width:100%!important;height:42px!important;min-height:42px!important;margin:0!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer>.button{
+  height:42px!important;min-height:42px!important;padding:0 5px!important;
+  font-size:10px!important;white-space:nowrap!important;
+}
+#searchView.hc-search-one-row .hc-company-lookup-toggle{
+  cursor:pointer;border:1px solid #c8e4e9;background:#f1fafb;color:#08778b;
+  border-radius:9px;padding:7px 11px;font-size:11px;font-weight:800;white-space:nowrap;
+}
+#searchView.hc-search-one-row .hc-company-lookup-toggle:hover{background:#e4f6fa}
+#searchView.hc-search-one-row .hc-company-lookup-toggle:focus-visible{outline:2px solid #0597a7;outline-offset:2px}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>label,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#openCompanyQuickLookup{
+  display:none!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row.hc-lookup-open>.search-secondary-row-v76405>label{
+  display:grid!important;position:absolute!important;z-index:35;top:calc(100% + 8px)!important;
+  right:130px!important;width:min(350px,calc(100% - 155px))!important;
+  grid-template-columns:1fr!important;gap:5px!important;
+  background:#fff;border:1px solid #bfdde8;border-right:0;border-radius:11px 0 0 11px;
+  box-shadow:0 14px 35px #123c5730;padding:9px!important;margin:0!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row.hc-lookup-open>.search-secondary-row-v76405>#openCompanyQuickLookup{
+  display:block!important;position:absolute!important;z-index:36;top:calc(100% + 8px)!important;
+  right:0!important;width:130px!important;height:80px!important;min-height:80px!important;
+  grid-column:auto!important;grid-row:auto!important;
+  margin:0!important;border-radius:0 11px 11px 0!important;
+  border:1px solid #bfdde8!important;box-shadow:0 14px 35px #123c5725;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row.hc-lookup-open>.search-secondary-row-v76405>label>input{
+  height:41px!important;min-height:41px!important;
+}
+/* Keep the daily confirmation rail alongside results, but give search the room it needs. */
+@media (min-width:1261px){
+  #searchView.hc-search-one-row .search-page-layout{
+    grid-template-columns:minmax(0,1fr) minmax(215px,245px)!important;
+  }
+}
+/* Medium desktop: give the entire width to the toolbar, preserving the single row. */
+@media (min-width:981px) and (max-width:1260px){
+  #searchView.hc-search-one-row .search-page-layout{grid-template-columns:1fr!important;}
+  #searchView.hc-search-one-row .today-registration-panel{
+    position:static!important;min-height:180px!important;max-height:none!important;
+  }
+}
+/* Smaller screens should remain usable rather than forcing tiny 60px inputs. */
+@media(max-width:980px){
+  #searchView.hc-search-one-row .hc-one-line-search-row{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:9px!important;
+  }
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field{
+    grid-column:span 2!important;
+  }
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#companyFilter),
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#searchBooking){
+    grid-column:span 3!important;
+  }
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer{
+    grid-column:span 2!important;
+  }
+}
+@media(max-width:560px){
+  #searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#companyFilter),
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#searchBooking){grid-column:span 1!important;}
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field:has(#searchName){grid-column:span 2!important;}
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch{grid-column:span 1!important;}
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer{grid-column:span 2!important;}
+}
+
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer{
+  min-width:0!important;margin-top:18px!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer>.button{
+  min-width:0!important;width:100%!important;
+}
+#searchView.hc-search-one-row .hc-one-line-search-row>.search-grid>label.search-field input{
+  height:42px!important;min-height:42px!important;
+}
+@media(max-width:980px){
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#searchSubmit,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>#clearSearch,
+  #searchView.hc-search-one-row .hc-one-line-search-row>.search-secondary-row-v76405>.search-add-customer{
+    margin-top:0!important;
+  }
+}
+
+/* v7.64.13 source fix: the company fields belong to the toggle, not separate distant grid cells. */
+#searchView.hc-search-one-row .hc-search-heading{position:relative!important;overflow:visible!important}
+#searchView.hc-search-one-row .hc-company-lookup-popover{
+ position:absolute!important;z-index:100!important;top:calc(100% + 8px)!important;right:0!important;
+ width:min(430px,calc(100vw - 48px))!important;box-sizing:border-box!important;
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important;
+ gap:8px!important;padding:12px!important;background:#fff!important;
+ border:1px solid #bfdde8!important;border-radius:12px!important;
+ box-shadow:0 14px 35px #123c5730!important;
+}
+#searchView.hc-search-one-row .hc-company-lookup-popover[hidden]{display:none!important}
+#searchView.hc-search-one-row .hc-company-lookup-popover>label{display:grid!important;min-width:0!important;gap:5px!important;margin:0!important;padding:0!important;border:0!important;position:static!important;grid-column:auto!important;grid-row:auto!important;background:none!important}
+#searchView.hc-search-one-row .hc-company-lookup-popover>label>span{font-size:11px!important;color:#174e73!important}
+#searchView.hc-search-one-row .hc-company-lookup-popover input{min-width:0!important;width:100%!important;height:39px!important;min-height:39px!important;margin:0!important;padding:0 10px!important}
+#searchView.hc-search-one-row .hc-company-lookup-popover>#openCompanyQuickLookup{display:block!important;position:static!important;grid-column:auto!important;grid-row:auto!important;width:auto!important;min-width:118px!important;height:39px!important;min-height:39px!important;margin:0!important;padding:0 12px!important;border-radius:9px!important;box-shadow:none!important;white-space:nowrap!important}
+@media(max-width:480px){#searchView.hc-search-one-row .hc-company-lookup-popover{grid-template-columns:1fr!important}#searchView.hc-search-one-row .hc-company-lookup-popover>#openCompanyQuickLookup{width:100%!important}}
+
+/* v7.64.16: no legacy confirmation CTA in A4 summary */
+#confirmCheckup[hidden]{display:none!important}
+
+/* v7.64.16 A4 flash hotfix: legacy async renderers briefly clear [hidden].
+   Only the workflow guard may explicitly unlock the edit button. */
+#summaryOverlay #confirmCheckup:not([data-checkup-edit-ready="1"]) {display:none!important}
+#summaryOverlay #confirmCheckup[hidden] {display:none!important}
+
+/* v7.64.19 — corporate annual circular form & PDF mockup implementation */
+#companyOverlay .annual-v76419-main{padding:10px 12px!important}
+#companyOverlay .annual-v76419-internal-fields{display:none!important}
+#companyOverlay .annual-v76419-block{margin-top:10px;padding-top:8px;border-top:1px solid #e0ebf3;scroll-margin-top:15px}
+#companyOverlay .annual-v76419-block-head{display:flex;align-items:center;gap:9px;min-height:31px;padding:4px 7px;margin-bottom:5px;border-radius:8px;background:#eaf5fd;color:#105d8b}
+#companyOverlay .annual-v76419-block-head strong{font-size:12px;font-weight:900}
+#companyOverlay .annual-v76419-block-head>.button{margin-left:auto;min-height:29px;padding:4px 9px;font-size:11px}
+#companyOverlay .annual-v76419-block .annual-company-subsidiary-list{margin-top:5px;gap:7px}
+#companyOverlay .annual-v76419-block .annual-company-subsidiary{padding:8px 10px}
+#companyOverlay .annual-v76419-block .annual-company-subsidiary>header{margin-bottom:5px}
+#companyOverlay .annual-v76419-main .company-year-v76394-fields{gap:6px 9px}
+#companyOverlay .annual-v76419-main .company-year-v76394-fields input:not([type=checkbox]),#companyOverlay .annual-v76419-main .company-year-v76394-fields textarea{min-height:32px;height:auto;padding:6px 9px}
+#companyOverlay .annual-v76419-main .company-year-v76394-fields textarea{min-height:36px}
+#companyOverlay .annual-v76419-affiliate-fields{display:grid!important;grid-template-columns:1.2fr 1.2fr .8fr .8fr!important}
+#companyOverlay .annual-v76419-affiliate-fields>label:nth-child(1){grid-column:1}
+#companyOverlay .annual-v76419-affiliate-fields>label:nth-child(2){grid-column:2}
+#companyOverlay .annual-v76419-affiliate-fields>label:nth-child(3){grid-column:3}
+#companyOverlay .annual-v76419-affiliate-fields>label:nth-child(4){grid-column:4}
+#companyOverlay .annual-v76419-affiliate-fields>label:nth-child(5){grid-column:1}
+#companyOverlay .annual-v76419-affiliate-fields>label.wide{grid-column:2/-1}
+#companyOverlay .annual-v76419-coordinator-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,.85fr) minmax(0,1.2fr) auto!important;gap:7px!important;align-items:end}
+#companyOverlay .annual-v76419-coordinator-row>label{display:grid;gap:4px;min-width:0;color:#2a5974;font-size:11px;font-weight:800}
+#companyOverlay .annual-v76419-coordinator-row input{min-width:0;width:100%;height:32px;box-sizing:border-box;padding:5px 8px;border:1px solid #cfdfec;border-radius:8px;background:#fff;color:#134b6a;font-size:12px}
+#companyOverlay .annual-v76419-coordinator-row [data-remove-coordinator]{height:32px;min-height:32px;padding:3px 8px}
+@media(max-width:900px){
+ #companyOverlay .annual-v76419-affiliate-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #companyOverlay .annual-v76419-affiliate-fields>label{grid-column:auto!important}
+ #companyOverlay .annual-v76419-affiliate-fields>label.wide{grid-column:1/-1!important}
+ #companyOverlay .annual-v76419-coordinator-row{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:520px){#companyOverlay .annual-v76419-affiliate-fields,#companyOverlay .annual-v76419-coordinator-row{grid-template-columns:1fr!important}}
+@media print{#companyOverlay .annual-v76419-main .annual-v76419-block{break-inside:avoid}}
+
+
+/* v7.64.19-CORPORATE-ALIGN-R2: one height for all annual company inputs.
+   List-backed Payor fields must not expand taller than adjacent text inputs. */
+#companyOverlay .annual-v76419-main .annual-v76419-company-fields input:not([type=hidden]),
+#companyOverlay .annual-v76419-main .annual-v76419-affiliate-fields input:not([type=hidden]){
+  box-sizing:border-box!important;display:block!important;width:100%!important;
+  height:34px!important;min-height:34px!important;max-height:34px!important;
+  line-height:20px!important;padding:5px 9px!important;
+  margin:0!important;vertical-align:middle!important;
+}
+#companyOverlay .annual-v76419-main .annual-v76419-affiliate-fields label,
+#companyOverlay .annual-v76419-main .annual-v76419-company-fields label{
+  min-width:0!important;align-self:stretch!important;
+}
+
+/* v7.64.21: billing/cash delete actions use the same borderless red icon treatment. */
+#companyOverlay .cash-package-row .remove-billing-package,#companyOverlay .cash-package-row .remove-cash-package{border:0!important;outline:0!important;background:var(--danger-bg)!important;color:var(--danger)!important;box-shadow:none!important;min-height:34px!important;height:34px!important;border-radius:8px!important;font-size:18px!important;line-height:1!important;padding:0!important}
+
+/* v7.64.22: fixed top-level layer avoids inherited UI scale/density transforms. */
+#hcSparkleLayer{position:fixed;inset:0;width:100vw;height:100vh;overflow:visible;pointer-events:none!important;z-index:2147483647;transform:none!important;zoom:1!important}
+.hc-gold-sparkle{position:absolute;pointer-events:none;user-select:none;color:#ffc928;line-height:1;text-shadow:0 0 3px #fff4a3,0 0 6px rgba(255,193,7,.95),0 0 10px rgba(255,169,0,.55);transform:translate(-50%,-50%);animation:hcGoldSparkleFly var(--sparkle-duration,.65s) cubic-bezier(.16,.8,.28,1) forwards}
+@keyframes hcGoldSparkleFly{
+  0%{opacity:0;transform:translate(-50%,-50%) translate(0,0) scale(.2) rotate(0deg)}
+  12%{opacity:1}
+  65%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) translate(var(--sparkle-x),var(--sparkle-y)) scale(var(--sparkle-scale)) rotate(var(--sparkle-rotate))}
+}
+@media (prefers-reduced-motion:reduce){.hc-gold-sparkle{display:none!important}}
+
+/* v7.64.32 mandatory password dialog always precedes login in stacking order. */
+#firstLoginChangeOverlay.overlay{z-index:2147483001!important}
+
+/* Keep package contents inside one native table cell. */
+#worklistView .worklist-today-table td.worklist-ordered-packages{display:table-cell!important;min-width:220px;vertical-align:top}
+#worklistView .worklist-ordered-packages>div{display:block;padding:5px 0;border-bottom:1px solid #e7eef5}
+
+/* Audit windows share bounded sizing; data-entry and document dialogs retain their own layout. */
+@media screen {
+ body:has(#personalLogOverlay.open,#rolePermissionLogOverlay.open,#labScanLogOverlay:not([hidden])){zoom:1;overflow:hidden}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay,#labScanLogOverlay).overlay{
+   inset:0!important;width:auto!important;height:auto!important;padding:24px!important;overflow:hidden!important;overscroll-behavior:contain;
+ }
+ #labScanLogOverlay:not([hidden]){display:grid;place-items:center}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay,#labScanLogOverlay)>.modal{
+   width:min(960px,100%)!important;max-width:100%!important;max-height:min(780px,calc(100dvh - 48px))!important;
+   min-height:0;display:flex;flex-direction:column;overflow:hidden;border-radius:14px!important;
+ }
+ #rolePermissionLogOverlay>.modal{width:min(800px,100%)!important}
+ #labScanLogOverlay>.modal{width:min(1200px,100%)!important;padding:14px}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-header,
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-footer{
+   flex:0 0 auto;padding:10px 16px!important;min-height:48px;
+ }
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-header h2{font-size:18px;margin:2px 0;overflow-wrap:anywhere}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-header>div{min-width:0}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-header .icon-button{flex:0 0 auto}
+ :is(#personalLogOverlay,#rolePermissionLogOverlay) .modal-body{
+   flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 16px!important;scrollbar-gutter:stable;
+ }
+ #personalLogBody,.permission-role-log-list{align-content:start;grid-auto-rows:max-content;gap:8px}
+ #personalLogBody .log-detail-item{padding:10px 12px;border-radius:10px}
+ #personalLogBody .log-detail-item>header{grid-template-columns:90px minmax(0,1fr) auto;gap:8px}
+ #personalLogBody .log-change-list{margin-top:8px;gap:6px}
+ #personalLogBody .log-change-list section{padding:8px}
+ #personalLogBody .log-change-list section>strong{margin-bottom:5px}
+ #personalLogBody .log-change-list section>div{gap:8px}
+ #personalLogBody .log-change-list section>div>span{padding:7px}
+ #personalLogBody .log-created-note{margin-top:8px;padding:8px 10px}
+ #rolePermissionLogOverlay .permission-log-entry{padding:9px 11px}
+ #labScanLogOverlay> .modal>header,#labScanLogOverlay .lab-scan-log-toolbar{flex:0 0 auto;min-width:0}
+ #labScanLogOverlay .workflow-table-scroll{flex:1 1 auto;min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain}
+ #labScanLogOverlay th{position:sticky;top:0;z-index:1;background:#e7f3f4}
+ @media(max-width:620px){
+   :is(#personalLogOverlay,#rolePermissionLogOverlay,#labScanLogOverlay).overlay{padding:10px!important}
+   :is(#personalLogOverlay,#rolePermissionLogOverlay,#labScanLogOverlay)>.modal{max-height:calc(100dvh - 20px)!important}
+   #personalLogBody .log-detail-item>header{grid-template-columns:1fr auto}
+   #personalLogBody .log-detail-item>header>div{grid-column:1/-1;grid-row:2;flex-direction:row;flex-wrap:wrap;gap:4px}
+   #personalLogBody .log-change-list section>div{grid-template-columns:1fr}
+   #personalLogBody .log-detail-item header em{grid-column:2;grid-row:1}
+ }
+}
+
+/* HIS VisitStatus has its own column, independent of station workflow status. */
+.worklist-today-table th:nth-child(5){width:8%}.worklist-today-table th:nth-child(6){width:11%}.worklist-today-table th:nth-child(7){width:8%}.worklist-today-table th:nth-child(8){width:8%}.worklist-today-table th:nth-child(9){width:11%}.worklist-today-table th:nth-child(10){width:7%}.worklist-today-table th:nth-child(11){width:8%}.worklist-today-table th:nth-child(12){width:8%}.worklist-today-table th:nth-child(13){width:7%}.worklist-today-table th:nth-child(14){width:10%}
+.worklist-his-visit-status{display:inline-block;font-weight:700;overflow-wrap:anywhere}
+#worklistBulkVisitStatus{white-space:nowrap}
+
+/* PDF preview follows the visible viewport at browser zoom 100%. */
+@media screen {
+  body:has(#patientPdfPreviewOverlay.open){zoom:1!important;overflow:hidden}
+  #patientPdfPreviewOverlay.overlay{
+    inset:0!important;width:auto!important;height:auto!important;padding:16px!important;
+    overflow:hidden!important;overscroll-behavior:contain;
+  }
+  #patientPdfPreviewOverlay>.patient-pdf-preview-modal{
+    width:min(1180px,100%)!important;max-width:100%!important;
+    height:min(900px,calc(100vh - 32px))!important;
+    height:min(900px,calc(100dvh - 32px))!important;
+    max-height:calc(100vh - 32px)!important;
+    max-height:calc(100dvh - 32px)!important;
+    min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  }
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>header,
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>footer{flex:0 0 auto}
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>header>div{min-width:0}
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>header h2,
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>header span{overflow-wrap:anywhere}
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>header>button{flex:0 0 auto}
+  #patientPdfPreviewOverlay .patient-pdf-preview-body{display:flex;min-height:0;overflow:hidden}
+  #patientPdfPreviewOverlay .patient-pdf-preview-body iframe{
+    display:block;flex:1 1 auto;width:100%;height:100%;min-height:0!important;min-width:0;
+  }
+  #patientPdfPreviewOverlay .patient-pdf-preview-modal>footer{flex-wrap:wrap}
+  @media(max-width:760px),(max-height:500px){
+    #patientPdfPreviewOverlay.overlay{padding:6px!important}
+    #patientPdfPreviewOverlay>.patient-pdf-preview-modal{
+      height:calc(100vh - 12px)!important;height:calc(100dvh - 12px)!important;
+      max-height:calc(100vh - 12px)!important;max-height:calc(100dvh - 12px)!important;
+      border-radius:10px;
+    }
+    #patientPdfPreviewOverlay .patient-pdf-preview-modal>header,
+    #patientPdfPreviewOverlay .patient-pdf-preview-modal>footer{padding:8px 12px!important}
+  }
+}
+@media screen{
+#patientPdfPreviewOverlay .pdf-topic-nav{flex:0 0 185px;overflow:auto;min-height:0;padding:10px;background:#f3f9fb;border-right:1px solid #d4e5ec;box-sizing:border-box}
+#patientPdfPreviewOverlay .pdf-topic-nav[hidden]{display:none}
+#patientPdfPreviewOverlay .pdf-topic-nav>strong{display:block;margin-bottom:8px;color:#0b4055}
+#patientPdfPreviewOverlay .pdf-topic-nav>button{display:block;width:100%;padding:8px;margin:3px 0;text-align:left;border:1px solid transparent;border-radius:6px;background:transparent;color:#164a60;font:inherit;font-size:12px;cursor:pointer;overflow-wrap:anywhere}
+#patientPdfPreviewOverlay .pdf-topic-nav>button:hover,#patientPdfPreviewOverlay .pdf-topic-nav>button[aria-current]{background:#ddf2f0;border-color:#86c8c0}
+@media(max-width:760px){#patientPdfPreviewOverlay .patient-pdf-preview-body{flex-direction:column}#patientPdfPreviewOverlay .pdf-topic-nav{flex:0 0 auto;max-height:110px;width:100%;border-right:0;border-bottom:1px solid #d4e5ec}#patientPdfPreviewOverlay .pdf-topic-nav>button{display:inline-block;width:auto;max-width:240px;margin:2px}}
+}
+
+/* PDF preview close control: compact square, independent of header height. */
+#patientPdfPreviewOverlay .patient-pdf-preview-modal>header>.modal-close{
+ align-self:flex-start!important;flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-height:36px!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center;line-height:1;font-size:20px;border-radius:8px;box-sizing:border-box
+}
+#orderSetupView>.hero{display:flex;align-items:center;justify-content:space-between;gap:20px}
+#orderSetupView .order-excel-actions{display:flex;flex-wrap:wrap;gap:8px;flex:0 0 auto}
+#orderSetupView .order-excel-actions .button{white-space:nowrap}
+.order-excel-preview{width:min(1100px,94vw);max-height:90dvh;border:1px solid #bcd8e3;border-radius:14px;padding:22px;color:#164c5d}
+.order-excel-preview::backdrop{background:#123e5366}
+.order-excel-preview footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.order-excel-table{max-height:52dvh;overflow:auto}.order-excel-table table{width:100%;border-collapse:collapse;font-size:13px}.order-excel-table td,.order-excel-table th{padding:9px;text-align:left;border-bottom:1px solid #d7e5eb;overflow-wrap:anywhere;max-width:320px}.order-excel-table th{background:#e8f4f2;position:sticky;top:0}.order-excel-errors{max-height:120px;overflow:auto;background:#fff0f1;color:#a83042;padding:10px}.order-excel-result{white-space:pre-line;color:#a83042}
+@media(max-width:800px){#orderSetupView>.hero{align-items:flex-start;flex-direction:column}#orderSetupView .order-excel-actions{align-self:flex-end}}
+
+/* Independent saves for corporate subsections 02, 03 and 04. */
+#companyOverlay .annual-v76419-block-head{flex-wrap:wrap}
+#companyOverlay .annual-v76419-block-head>strong{flex:1;min-width:120px}
+#companyOverlay .annual-v76419-block-head>.button{margin-left:0;white-space:nowrap}
+
+/* Paired annual medical options wrap together on narrow editors. */
+.company-circular-options{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;min-width:0}
+
+.company-circular-service-options{display:flex;align-items:flex-start;flex-wrap:wrap;gap:12px 18px;min-width:0}
+.company-circular-service-other{flex:1 1 260px;min-width:0}
+.company-circular-service-other textarea:disabled{background:#f1f5f9;color:#64748b}
+
+.ops-login-filters{flex-wrap:wrap;align-items:end;gap:10px}
+.ops-login-filters>label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.ops-login-filters input[type="date"]{width:160px;max-width:100%}
+.ops-login-pagination{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:12px}
+
+/* Unified Worklist: one full-width service board, with no pending side rail. */
+#worklistView.workspace-fullpage .workflow-table-card.worklist-new-layout.worklist-unified-layout,
+#worklistView .worklist-new-layout.worklist-unified-layout{display:flex!important;flex-direction:column!important;min-width:0;overflow:hidden}
+#worklistView .worklist-new-layout.worklist-unified-layout>.worklist-today-panel{display:flex;flex-direction:column;flex:1;grid-column:auto!important;grid-row:auto!important;width:100%;min-width:0;min-height:0;overflow:hidden}
+.worklist-stage-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:8px;flex-shrink:0;border-bottom:1px solid #dbe9ef}
+.worklist-stage-tabs button{border:1px solid #cde1ed;background:#fff;color:#245a76;border-radius:8px;padding:8px 12px;cursor:pointer}
+.worklist-stage-tabs button.active{background:#078fc3;border-color:#078fc3;color:#fff}
+.worklist-stage-tabs button span{display:inline-block;border-radius:10px;background:#e5f4fb;color:#155478;padding:1px 6px;margin-left:4px}
+#worklistView .worklist-unified-layout .worklist-unified-table{min-width:1100px!important;width:100%;table-layout:fixed!important}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(1){width:3%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(2){width:15%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(3){width:14%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(4){width:13%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(5){width:13%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(6){width:15%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(7){width:11%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(8){width:8%}
+#worklistView .worklist-unified-layout .worklist-unified-table th:nth-child(9){width:8%}
+#worklistView .worklist-unified-layout .worklist-unified-table td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+#worklistView .worklist-unified-layout .worklist-unified-table td.worklist-ordered-packages{min-width:0}
+.worklist-unified-table td small{display:block;color:#647f91;margin-top:4px}
+.worklist-unified-table tr[data-worklist-row-stage="NOT_CONFIRMED"]{background:#fff9e9}
+.worklist-unified-table tr[data-worklist-row-stage="COMPLETE"]{background:#effbf3}
+.worklist-stage-badge{display:inline-block;padding:5px 8px;border-radius:8px;background:#e4f3fc;color:#116b9a;font-size:11px}
+.worklist-stage-badge.not_confirmed{background:#ffedbf;color:#976000}
+.worklist-stage-badge.complete{background:#dff5e6;color:#11834b}
+.worklist-unified-help{flex:none;margin:0;padding:8px 12px;font-size:11px;color:#58788f;border-top:1px solid #dbe9ef}
+
+/* EMR queue uses the full workspace; open a book in the same full-width area. */
+#emrView.workspace-fullpage .emr-table-workbench{display:flex!important;flex-direction:column!important;min-width:0!important;gap:0!important}
+#emrView .emr-table-panel{position:static!important;display:flex;flex-direction:column;flex:1;min-width:0;min-height:360px;padding:14px;overflow:hidden}
+#emrView .emr-table-scroll{flex:1;min-height:0;overflow:auto;max-height:calc(100vh - 330px)}
+#emrView .emr-case-table{width:100%;min-width:1120px;table-layout:fixed;border-collapse:collapse}
+#emrView .emr-case-table th{position:sticky;top:0;z-index:2;background:#2299e8;color:#fff}
+#emrView .emr-case-table th:nth-child(1){width:5%}#emrView .emr-case-table th:nth-child(2){width:16%}#emrView .emr-case-table th:nth-child(3){width:10%}#emrView .emr-case-table th:nth-child(4){width:16%}#emrView .emr-case-table th:nth-child(5){width:12%}#emrView .emr-case-table th:nth-child(6){width:10%}#emrView .emr-case-table th:nth-child(7){width:9%}#emrView .emr-case-table th:nth-child(8){width:8%}#emrView .emr-case-table th:nth-child(9){width:14%}
+#emrView .emr-case-table td{padding:12px 9px;vertical-align:top;overflow-wrap:anywhere;border-bottom:1px solid #e1edf5}
+#emrView .emr-case-table td small{display:block;color:#68859b;font-size:11px;margin-top:5px}
+#emrView .emr-table-row:nth-child(even){background:#f5faff}#emrView .emr-table-row:hover{background:#eaf7fd}
+#emrView .emr-table-actions{display:flex;gap:6px;flex-wrap:wrap}#emrView .emr-table-actions .button{white-space:nowrap}
+#emrView .emr-table-row.done .emr-queue-status{background:#def6e9;color:#168158}#emrView .emr-table-row.progress .emr-queue-status{background:#fff0ce;color:#906000}
+#emrView .emr-table-row.is-receiving{opacity:.65}
+#emrView .emr-book-navigation{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+#emrView:not(.emr-case-open) #emrBookPanel{display:none!important}
+#emrView.emr-case-open .emr-table-panel,#emrView.emr-case-open .emr-kpis,#emrView.emr-case-open .emr-list-filters{display:none!important}
+#emrView #emrBookPanel[hidden]{display:none!important}
+@media(max-width:780px){#emrView .emr-table-scroll{max-height:none}#emrView .emr-table-panel{padding:8px}#emrView .emr-book-navigation strong{font-size:12px}}
+#emrView .emr-table-panel{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;align-self:stretch}
+#emrView .emr-table-scroll{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+#emrView .emr-list-filters{grid-template-columns:minmax(120px,150px) minmax(120px,150px) minmax(120px,150px) minmax(150px,190px) minmax(0,1fr)}
+#emrView .emr-list-filters>*{min-width:0;box-sizing:border-box}
+@media(max-width:1000px){#emrView .emr-list-filters{grid-template-columns:repeat(2,minmax(0,1fr))}#emrView #emrQueueSearch{grid-column:1/-1}}
+@media(max-width:480px){#emrView .emr-list-filters{grid-template-columns:minmax(0,1fr)}}
+
+#worklistView .worklist-visible-count{margin-left:auto;padding:6px 10px;border-radius:999px;background:#e1f5fc;color:#087da5;font-weight:700}
+
+/* Keep the customer search toolbar compact after removing redundant headings. */
+#searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:minmax(100px,1.12fr) minmax(105px,1.2fr) minmax(85px,.85fr) minmax(100px,1.2fr) minmax(105px,1.26fr) minmax(65px,.6fr) minmax(70px,.7fr) minmax(110px,1fr) minmax(95px,.85fr)!important}
+#searchView.hc-search-one-row .hc-one-line-search-row>.hc-search-heading{margin:0!important;padding:0!important;border:0!important;min-width:0;align-self:end;display:block!important}
+#searchView.hc-search-one-row .hc-search-heading>.hc-company-lookup-toggle{height:42px;min-height:42px;width:100%;padding:0 6px}
+#searchView .search-card{padding-top:14px!important}
+#searchView .today-registration-panel{padding-top:12px!important}
+#searchView .today-registration-count{margin-top:0!important}
+#searchView .result-meta{margin:7px 0 5px!important}
+@media(max-width:980px){#searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:repeat(6,minmax(0,1fr))!important}#searchView.hc-search-one-row .hc-one-line-search-row>.hc-search-heading{grid-column:span 2!important}}
+@media(max-width:560px){#searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:980px){#searchView.hc-search-one-row .hc-one-line-search-row>.hc-search-heading{position:static!important}}
+#searchView #resultRows .customer-compact-card .cc-identity{display:grid!important;grid-template-columns:minmax(0,1.4fr) minmax(0,1.4fr) repeat(4,minmax(0,1fr));width:100%;box-sizing:border-box}
+#searchView #resultRows .customer-compact-card .cc-identity>*{min-width:0!important;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+@media(max-width:780px){#searchView #resultRows .customer-compact-card .cc-identity{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Company deletion review and workbook history stay inside the viewport. */
+#companyManagementOverlay { padding: 16px; }
+#companyManagementOverlay > .modal { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); width: min(1080px, 100%); }
+#companyManagementOverlay .modal-header { flex: 0 0 auto; }
+#companyManagementOverlay .modal-body { min-height: 0; overflow: auto; }
+#companyManagementOverlay .table-wrap { max-height: 55dvh; overflow: auto; margin: 16px 0; }
+#companyManagementOverlay label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 12px 8px 0; }
+#companyManagementOverlay input[type="checkbox"] { width: 20px; height: 20px; }
+
+/* v7.64.89: keep project creation inside the visible viewport at body zoom 110%. */
+@media screen {
+  body:has(#projectOverlay.open:not([hidden])) { zoom: 1 !important; overflow: hidden !important; }
+  #projectOverlay.open:not([hidden]) {
+    position: fixed !important; inset: 0 !important;
+    width: 100% !important; height: 100dvh !important; max-height: 100dvh !important;
+    padding: 16px !important; box-sizing: border-box; overflow: hidden !important;
+    display: grid !important; place-items: center !important;
+  }
+  #projectOverlay > .workflow-project-modal {
+    display: flex !important; flex-direction: column !important;
+    width: min(1040px, 100%) !important; max-width: 100% !important;
+    height: min(900px, calc(100dvh - 32px)) !important;
+    max-height: calc(100dvh - 32px) !important; min-height: 0 !important;
+    box-sizing: border-box; overflow: hidden !important;
+  }
+  #projectOverlay > .workflow-project-modal > header,
+  #projectOverlay > .workflow-project-modal > footer {
+    flex: 0 0 auto !important; position: static !important;
+  }
+  #projectOverlay > .workflow-project-modal > .project-create-form {
+    flex: 1 1 auto !important; min-height: 0 !important; min-width: 0;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    overscroll-behavior: contain; box-sizing: border-box;
+  }
+  #projectOverlay .project-field { min-width: 0; }
+  #projectOverlay > .workflow-project-modal > footer { flex-wrap: wrap; }
+}
+@media screen and (max-width: 760px) {
+  #projectOverlay > .workflow-project-modal > .project-create-form,
+  #projectOverlay .project-advanced-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  #projectOverlay > .workflow-project-modal > header { padding: 14px 16px !important; }
+  #projectOverlay > .workflow-project-modal > .project-create-form { padding: 16px !important; }
+}
+
+/* Search fields with an explicit clear action must not also show the browser clear icon.
+   Keep native clearing on all other search fields. IDs cover older Chromium builds. */
+#companySearch::-webkit-search-cancel-button,
+#customerListSearch::-webkit-search-cancel-button{
+  -webkit-appearance:none;appearance:none;display:none;width:0;height:0;
+}
+#companySearch::-ms-clear,#customerListSearch::-ms-clear{display:none;width:0;height:0}
+
+input[type="search"]:has(+ button[aria-label="ล้างคำค้น"])::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none;width:0;height:0}

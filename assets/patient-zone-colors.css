@@ -1,0 +1,35 @@
+/* Six semantic regions; preserve existing clinical button and package-row status colors. */
+html body #resultRows .cc-colored-zones .cc-identity{background:#e8eeff!important;border:1px solid #b8c5ef!important;border-left:4px solid #6576cf!important;border-radius:9px!important}
+html body #resultRows .cc-colored-zones .cc-patient-column{padding:8px!important;background:#fff1e6!important;border:1px solid #ebc5a2!important;border-left:4px solid #c98a45!important;border-radius:9px!important;min-width:0}
+html body #resultRows .cc-colored-zones .cc-patient-panel{background:transparent!important;border:0!important;padding:0!important}
+html body #resultRows .cc-colored-zones .cc-patient-panel h3{background:#fce8d4!important;border-color:#ebc5a2!important}
+html body #resultRows .cc-colored-zones .cc-data th{background:#fff0dc!important}html body #resultRows .cc-colored-zones .cc-data td{background:#fff!important}
+html body #resultRows .cc-colored-zones .cc-package-panel{padding:8px!important;background:#e7f5ee!important;border:1px solid #acd7c2!important;border-left:4px solid #369679!important;border-radius:9px!important;min-width:0}
+html body #resultRows .cc-colored-zones .cc-columns{gap:10px!important;align-items:stretch!important}
+html body #resultRows .cc-colored-zones .cc-actions{background:#eaf0f5!important;border:1px solid #bacbd9!important;border-left:4px solid #6a879f!important;border-radius:9px!important;padding:7px!important;gap:7px!important}
+html body #resultRows .cc-colored-zones .post-checkup-tools{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)!important;align-items:stretch!important;gap:8px!important;min-width:0!important}
+html body #resultRows .cc-colored-zones .cc-zone-clinical,html body #resultRows .cc-colored-zones .cc-zone-print{display:flex;flex-wrap:wrap;gap:5px;padding:7px;border-radius:8px;align-items:center;min-width:0}
+html body #resultRows .cc-colored-zones .cc-zone-clinical{background:#fcecef;border:1px solid #dfabb7;border-left:3px solid #c87889}
+html body #resultRows .cc-colored-zones .cc-zone-print{background:#f0ebfa;border:1px solid #cdb8e7;border-left:3px solid #9473be}
+html body #resultRows .cc-colored-zones .cc-zone-clinical[hidden],html body #resultRows .cc-colored-zones .cc-zone-print[hidden]{display:none!important}
+html body #resultRows .cc-colored-zones .cc-log,html body #resultRows .cc-colored-zones .clinical-controls{background:#eaf0f5!important;border-color:#bacbd9!important}
+@media(max-width:900px){html body #resultRows .cc-colored-zones .post-checkup-tools{grid-template-columns:1fr!important}}
+@media print{html body #resultRows .cc-colored-zones .cc-zone-clinical,html body #resultRows .cc-colored-zones .cc-zone-print{display:none!important}}
+
+/* Refined mockup: white reporting/contact cards and quieter region fills. */
+html body #resultRows .cc-colored-zones .cc-identity{background:#edf1fb!important}
+html body #resultRows .cc-colored-zones .cc-patient-column{background:#faf5ef!important}
+html body #resultRows .cc-colored-zones .cc-patient-panel h3{background:#f3e8dc!important}
+html body #resultRows .cc-colored-zones .cc-package-panel{background:#f0f7f3!important}
+html body #resultRows .cc-colored-zones .cc-zone-clinical{background:#fbf1f3!important}
+html body #resultRows .cc-colored-zones .cc-zone-print{background:#f4f1fa!important}
+html body #resultRows .cc-colored-zones .cc-actions{background:#eef3f7!important}
+html body #resultRows .cc-colored-zones .company-service-info .report-condition-box,html body #resultRows .cc-colored-zones .company-service-info .sales-contact-box{background:#fff!important;border-color:var(--border,#c8dce5)!important;box-shadow:none!important}
+/* Theme affects structural borders only; status buttons, arrival and package rows retain meaning. */
+html body #resultRows .cc-colored-zones :is(.cc-identity,.cc-patient-column,.cc-package-panel,.cc-zone-clinical,.cc-zone-print,.cc-actions){border-color:var(--border,#c8dce5)!important;border-left-color:var(--primary,#089cac)!important;border-left-width:3px!important;box-shadow:none!important}
+html body #resultRows .cc-colored-zones .cc-package-panel>h3{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:8px!important;margin:0 0 8px!important;padding:7px!important;min-height:36px!important;box-shadow:none!important}
+html body #resultRows .cc-colored-zones .cc-package-panel>h3 .csr-access-strip{display:contents!important}
+html body #resultRows .cc-colored-zones .cc-package-panel>h3 .csr-access-title{display:none!important}
+html body #resultRows .cc-colored-zones .cc-package-panel>h3 .csr-access-actions{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;margin-left:auto!important;gap:6px!important}
+html body #resultRows .cc-colored-zones .cc-package-panel>h3 .csr-access-actions>*{white-space:nowrap!important;font-size:11px!important}
+@media(max-width:900px){html body #resultRows .cc-colored-zones .cc-package-panel>h3{flex-wrap:wrap!important}html body #resultRows .cc-colored-zones .cc-package-panel>h3 .csr-access-actions{margin-left:0!important;flex-wrap:wrap!important}}

@@ -12,7 +12,8 @@ guiPath = fso.BuildPath(scriptDir, "production-installer-gui.ps1")
 logPath = fso.BuildPath(rootDir, "installer-launcher.log")
 ' Windows can return an unusable 8.3 alias for the profile-based Downloads folder
 ' after elevation. PowerShell must not inherit that folder as its working directory.
-safeWorkDir = shell.ExpandEnvironmentStrings("%SystemRoot%")
+safeWorkDir = fso.BuildPath(shell.ExpandEnvironmentStrings("%SystemRoot%"), "Temp")
+If Not fso.FolderExists(safeWorkDir) Then safeWorkDir = shell.ExpandEnvironmentStrings("%SystemRoot%")
 If Not fso.FolderExists(safeWorkDir) Then safeWorkDir = "C:\Windows"
 If Not fso.FolderExists(safeWorkDir) Then
   MsgBox "Windows system folder is unavailable. Cannot safely launch the installer.", vbCritical, "Health Check Up Smart Search"
@@ -26,9 +27,9 @@ If Not fso.FileExists(guiPath) Then
   WScript.Quit 2
 End If
 
-args = "-NoProfile -ExecutionPolicy Bypass -STA -File """ & guiPath & """"
+args = "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File """ & guiPath & """"
 Err.Clear
-shellApp.ShellExecute "powershell.exe", args, safeWorkDir, "runas", 1
+shellApp.ShellExecute "powershell.exe", args, safeWorkDir, "runas", 0
 
 If Err.Number <> 0 Then
   Dim ts

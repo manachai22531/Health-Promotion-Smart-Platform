@@ -1,0 +1,14 @@
+v7.64.87 Production Windows Installer
+
+All functionality through v7.64.79 is retained.
+- Customer appointment type follows the selected project: Mobile -> company OUTREACH; Inhouse -> shared HOSPITAL. Removed the customer type selector. Backend also rejects wrong-type booking/rescheduling and explains unconfigured project types.
+- New third staff tab Customer Bookings, after Create Schedule. Uses only real self-service slots/reservations, with day/week/month views, business-day 08:00 to next-day 08:00, initially 30-minute rows.
+- Calendar scale follows interval selected when creating schedules; changing scale does not rewrite existing slots, durations, quotas or reservations. Empty cells are not advertised as available.
+- Click a slot for names/HN/company/project/status; shows actual capacity/occupancy and unique customer counts. Cancelled appointments remain in details but do not consume quota.
+- Read-only calendar requires appointmentView; schedule changes still require appointmentScheduleManage. Clears calendar/details on logout/user change and protects against stale requests.
+- Original imported hospital appointment view remains unchanged. No fixed-time-grid changes were applied there.
+- Generator supports overnight schedules; default creation window reduced to one week to fit the existing 1,000-slot limit for 24-hour schedules.
+
+Extract all ZIP contents, run INSTALL-REPAIR.vbs, allow UAC, wait for Complete SUCCESS, then press Ctrl+F5 and verify v7.64.87.
+Schema remains 0218; existing configuration/credentials/data are preserved and backed up.
+Native Windows GUI/UAC/VBS/Robocopy/Task Scheduler installation was not executed in Linux.

@@ -1,0 +1,147 @@
+.cf-master-active>.api-tester-head,.cf-master-active>.nationality-master-tools,.cf-master-active>.package-api-browser-search,.cf-master-active>#hisPayorRows{display:none!important}
+#checkupFormatsPanel{padding:16px 0}#checkupFormatsPanel header{display:flex;align-items:center;justify-content:space-between}#checkupFormatsPanel table{width:100%;border-collapse:collapse;margin:12px 0}#checkupFormatsPanel td,#checkupFormatsPanel th{padding:9px;border:1px solid #d5e6ed;text-align:left}#checkupFormatsPanel th{background:#e8f4f7}#checkupFormatsPanel input{padding:9px;border:1px solid #c8dce7;border-radius:7px}#cfEditor form{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:16px;background:#eef8fa}#cfEditor label{display:grid;gap:5px}#cfEditor input[type=checkbox]{width:18px}#cfStatus,.cf-edit-status{color:#ad3045}
+.cf-confirm-overlay{position:fixed;inset:0;z-index:2147482000;background:#12374870;display:grid;place-items:center;padding:20px}.cf-confirm-overlay>section{width:min(680px,100%);max-height:90dvh;overflow:auto;background:#fff;border:1px solid #c5dfe8;border-radius:16px;box-shadow:0 20px 60px #062b4660;padding:24px}.cf-confirm-overlay header,.cf-confirm-overlay footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.cf-confirm-overlay header button{border:1px solid #f1bbc4;border-radius:50%;padding:8px 13px;background:#fff0f2;color:#ae3449}.cf-confirm-overlay select{width:100%;min-height:44px;margin:10px 0;border:1px solid #bed8e5;border-radius:8px;padding:8px}.cf-confirm-overlay p{font-size:13px;color:#517184}.cf-confirm-overlay footer{justify-content:flex-end;margin-top:20px}
+#detailOverlay.cf-unified>.modal{width:98vw!important;max-width:none!important;height:98dvh!important;max-height:98dvh!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.cf-workspace{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);flex:1;min-height:0;gap:12px;padding:8px 12px;background:#eaf4f8}
+#detailOverlay.cf-unified #detailBody{min-width:0;min-height:0;overflow:auto!important;padding:10px!important;background:#f7fcfe;border-radius:10px}
+#detailOverlay.cf-unified .patient-edit-layout{display:block!important}#detailOverlay.cf-unified .detail-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}#detailOverlay.cf-unified .field{padding:5px!important;min-height:0!important;font-size:11px}#detailOverlay.cf-unified .field input,#detailOverlay.cf-unified .field select{min-height:30px!important;height:30px!important;padding:4px 7px!important;font-size:12px}#detailOverlay.cf-unified .section{padding:8px!important;margin:6px 0!important}#detailOverlay.cf-unified .patient-his-panel{margin-top:6px!important}#detailOverlay.cf-unified .patient-lookup-empty,#detailOverlay.cf-unified .patient-appointment-empty{padding:8px!important;min-height:0!important}#detailOverlay.cf-unified .package-option{min-height:40px!important;padding:6px!important}
+.cf-preview-pane{display:flex;flex-direction:column;min-width:0;min-height:0;background:#dfe9ed;border-radius:10px;overflow:hidden}.cf-preview-pane>header{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px;background:#fff}.cf-preview-pane #cfPreviewState{font-size:11px;color:#86631a}.cf-preview-scroll{overflow:auto;min-height:0;flex:1;padding:12px;display:flex;justify-content:center;align-items:flex-start}
+#detailOverlay.cf-unified>.modal>.modal-footer{flex:0 0 auto;padding:7px 10px!important;gap:5px;flex-wrap:wrap}#detailOverlay.cf-unified .modal-footer .button{min-height:31px;font-size:11px;padding:5px 9px}.cf-format-editor{display:flex;gap:12px;padding:8px;border:1px solid #b4dbe3;background:#e0f4f5;border-radius:7px;font-size:12px;margin-bottom:8px}
+#a4Summary.cf-a4-compact{box-sizing:border-box!important;width:196mm!important;min-width:196mm!important;min-height:277mm!important;padding:7mm!important;margin:0!important;background:#fff!important;box-shadow:0 3px 12px #284b6230;font-size:10px!important;transform:none!important;line-height:1.25!important}
+#a4Summary.cf-a4-compact .a4-head{padding:0 0 5px!important;margin:0 0 5px!important;min-height:0!important}#a4Summary.cf-a4-compact .a4-head h1{font-size:19px!important;margin:3px 0!important}#a4Summary.cf-a4-compact .a4-head p{font-size:9px!important;margin:0!important}#a4Summary.cf-a4-compact .a4-info{margin:4px 0!important;gap:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#a4Summary.cf-a4-compact .a4-info>div{padding:4px!important;min-height:0!important;font-size:10px!important}#a4Summary.cf-a4-compact .a4-info>div span,#a4Summary.cf-a4-compact .a4-info>div strong{font-size:10px!important}#a4Summary.cf-a4-compact .a4-section{margin:5px 0!important;padding:0!important}#a4Summary.cf-a4-compact h3{padding:4px 6px!important;margin:4px 0!important;font-size:11px!important}#a4Summary.cf-a4-compact td,#a4Summary.cf-a4-compact th{font-size:11px!important;padding:3px 4px!important;line-height:1.25!important}#a4Summary.cf-a4-compact .a4-sign{margin-top:10px!important;padding-top:6px!important;gap:12px!important;font-size:10px!important}#a4Summary.cf-a4-compact .a4-total{padding:5px!important;margin:5px 0!important;font-size:10px!important}#a4Summary.cf-a4-compact .a4-total strong{font-size:12px!important}#a4Summary.cf-a4-compact .a4-hn-qr img{width:48px!important;height:48px!important}#a4Summary.cf-a4-compact .cc-a4-entitlements{margin:5px 0!important;padding-top:3px!important}#a4Summary.cf-a4-compact .cc-a4-entitlements>p{margin:3px!important;font-size:9px!important}.cf-format-band{background:#e0f3f1;border:1px solid #b6dcd9;padding:5px 7px;margin:5px 0;font-size:11px;font-weight:bold;color:#184c60}
+@media(max-width:1000px){.cf-workspace{grid-template-columns:1fr;overflow:auto}#detailOverlay.cf-unified #detailBody{overflow:visible!important}.cf-preview-pane{min-height:650px}.cf-preview-scroll{min-height:580px}}
+@media print{#a4Summary.cf-a4-compact{zoom:1!important;min-height:0!important;box-shadow:none!important;width:196mm!important;padding:0!important;overflow:visible!important}.cf-format-band{break-inside:avoid}.a4-section tr{break-inside:avoid}}
+/* Full-screen workspace uses physical viewport size rather than body zoom. */
+body:has(#detailOverlay.cf-unified.open){zoom:1!important;width:100%!important}
+#detailOverlay.cf-unified{inset:0!important;width:100%!important;height:100dvh!important;box-sizing:border-box!important}
+#detailOverlay.cf-unified>.modal{width:100%!important;height:100%!important;max-height:100%!important;box-sizing:border-box!important;margin:0!important}
+#detailOverlay.cf-unified>.modal>.modal-footer{position:static!important;display:flex!important;flex-shrink:0!important;min-height:40px!important}
+#detailOverlay.cf-unified .patient-data-layout{display:grid!important;grid-template-columns:1fr!important;min-height:0!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field{grid-column:auto!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailAddress){grid-column:1/-1!important}
+#detailOverlay.cf-unified .cf-summary-actions #backToDetail{display:none!important}
+/* v7.64.42: wider editor, bounded controls, one action row grouped by pane. */
+.cf-workspace{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
+#detailOverlay.cf-unified .cf-combined-actions{display:grid!important;grid-template-columns:minmax(0,3fr) minmax(0,2fr)!important;align-items:center;gap:12px!important;padding:7px 12px!important}
+.cf-editor-actions,.cf-summary-actions{display:flex;align-items:center;gap:5px;min-width:0;flex-wrap:nowrap}
+.cf-summary-actions{border-left:1px solid #c7dfe8;padding-left:10px}
+#detailOverlay.cf-unified .cf-combined-actions .button{min-width:0!important;min-height:32px!important;white-space:nowrap;font-size:11px!important;padding:5px 8px!important;flex:0 1 auto}
+.cf-more-print{position:relative;flex:0 0 auto;font-size:11px;color:#175571}.cf-more-print>summary{cursor:pointer;list-style:none;border:1px solid #c4ddea;background:#fff;border-radius:7px;padding:8px}.cf-more-print>div{position:absolute;right:0;bottom:calc(100% + 10px);width:190px;padding:8px;border:1px solid #c6dde8;border-radius:9px;box-shadow:0 6px 22px #183e6130;background:white;z-index:60;display:grid;gap:6px}.cf-more-print .button{width:100%;justify-content:flex-start}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.cf-phone-field{grid-column:1!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td){padding:6px!important;box-sizing:border-box;overflow-wrap:anywhere;vertical-align:middle}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(1){width:4%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(2){width:13%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(3){width:34%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(4){width:14%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(5){width:16%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(6){width:13%!important}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(th,td):nth-child(7){width:6%!important;text-align:center}
+#detailOverlay.cf-unified #customerHisPackage .package-station-editor{display:flex;flex-direction:column;align-items:stretch;min-width:0!important;width:100%;gap:2px}
+#detailOverlay.cf-unified #customerHisPackage :is(select,.order-row-actions,.order-type-cell){min-width:0!important;max-width:100%!important;box-sizing:border-box}
+#detailOverlay.cf-unified #customerHisPackage select{width:100%!important;min-width:0!important;font-size:11px!important;min-height:32px;padding:4px!important;text-overflow:ellipsis}
+#detailOverlay.cf-unified #customerHisPackage .customer-package-table :is(button,.tag){max-width:100%!important;box-sizing:border-box;white-space:normal!important;font-size:11px!important;min-width:0!important;padding:5px!important;overflow-wrap:anywhere}
+@media(max-width:1300px){#detailOverlay.cf-unified .cf-combined-actions{grid-template-columns:1fr!important;gap:6px!important}.cf-editor-actions,.cf-summary-actions{flex-wrap:wrap}.cf-summary-actions{padding:5px 0 0;border-left:0;border-top:1px solid #d9e6ed}}
+@media(max-width:1000px){.cf-workspace{grid-template-columns:1fr}}
+#detailOverlay.cf-unified>.modal>.cf-combined-actions{display:grid!important;grid-template-columns:minmax(0,3fr) minmax(0,2fr)!important}
+@media(max-width:1300px){#detailOverlay.cf-unified>.modal>.cf-combined-actions{grid-template-columns:1fr!important}}
+/* v7.64.43: explicit visual slots survive asynchronous field decoration. */
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailPhone){grid-row:6!important;grid-column:1!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailNationality){grid-row:6!important;grid-column:2!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailMaritalStatus){grid-row:6!important;grid-column:3!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailAddress){grid-row:7!important;grid-column:1/-1!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailPositionName){grid-row:8!important;grid-column:1!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailEmployeeCode){grid-row:8!important;grid-column:2!important}
+#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailDepartmentName){grid-row:8!important;grid-column:3!important}
+#detailOverlay.cf-unified>.modal>.cf-combined-actions{grid-template-columns:minmax(0,1fr)!important;gap:5px!important}
+.cf-editor-actions,.cf-summary-actions{flex-wrap:wrap;overflow:visible}.cf-summary-actions{border-left:0;border-top:1px solid #d0e2e9;padding:5px 0 0}
+.cf-pdf-frame{width:100%;height:100%;min-height:450px;border:0;background:#dfe7eb}.cf-preview-scroll.cf-pdf-mode{display:block;padding:0;overflow:hidden}
+@media(max-width:600px){#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailPhone),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailNationality),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailMaritalStatus),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailAddress),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailPositionName),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailEmployeeCode),#detailOverlay.cf-unified .customer-edit-section .detail-grid>.field:has(#detailDepartmentName){grid-row:auto!important;grid-column:auto!important}}
+
+/* v7.64.44: one visible action row, compact adaptive labels; no hidden menu. */
+#detailOverlay.cf-unified>.modal>.cf-combined-actions{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;padding:8px!important;overflow:visible!important}
+#detailOverlay.cf-unified .cf-editor-actions,#detailOverlay.cf-unified .cf-summary-actions{display:flex;flex-wrap:nowrap!important;gap:4px;min-width:0;align-items:center}
+#detailOverlay.cf-unified .cf-editor-actions{flex:0.85 1 0}
+#detailOverlay.cf-unified .cf-summary-actions{flex:1.3 1 0;border-top:0;border-left:1px solid #d1e2eb;padding:0 0 0 8px}
+#detailOverlay.cf-unified .cf-combined-actions .button{font-size:clamp(8px,.63vw,12px)!important;padding:5px clamp(2px,.35vw,8px)!important;min-height:35px!important;flex:1 1 auto!important;white-space:nowrap!important;letter-spacing:0!important;max-width:none!important}
+.cf-visibility-status{display:block;font-size:10px;color:#168168;margin-top:3px}.cf-visibility-status.is-error{color:#bd3349}
+.cf-hidden-order{background:#edf1f5!important}.cf-hidden-order>td:nth-child(-n+3){color:#8495a4!important}
+.cf-contract-payment{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#f2edfb;border-radius:8px;margin-bottom:5px;font-size:12px}.cf-contract-payment select{min-height:30px!important;width:150px!important;border:1px solid #d6c8ed;border-radius:6px;background:white}
+#a4Summary.cf-a4-compact .cc-a4-selected-extras .a4-section:nth-child(n){border:0}
+#a4Summary.cf-a4-compact .a4-section[data-pdf-kind=billing] h3{background:#def0ff!important}
+#a4Summary.cf-a4-compact .a4-section[data-pdf-kind=cash] h3{background:#e0f5e9!important}
+#a4Summary.cf-a4-compact .a4-section[data-pdf-kind=contract] h3{background:#eee5fa!important}
+
+/* Revised grouped actions and a clipped HTML source: only the PDF is displayed. */
+.cf-summary-source{position:fixed!important;left:-100000px!important;top:0!important;width:780px!important;height:1px!important;overflow:hidden!important;clip-path:inset(100%)!important;pointer-events:none!important;visibility:hidden!important}
+#summaryOverlay.cf-retired-summary{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#detailOverlay.cf-unified>.modal>.cf-combined-actions{display:grid!important;grid-template-columns:minmax(0,3fr) minmax(0,2fr)!important;grid-template-rows:auto auto;gap:6px 10px!important;align-items:start!important}
+#detailOverlay.cf-unified .cf-editor-actions{grid-column:1;grid-row:1;flex-wrap:wrap!important;flex:none}
+#detailOverlay.cf-unified .cf-print-actions{grid-column:2;grid-row:1;display:flex;gap:4px;flex-wrap:wrap}
+#detailOverlay.cf-unified .cf-his-actions{grid-column:1;grid-row:2;display:flex;gap:4px;flex-wrap:wrap}
+#detailOverlay.cf-unified .cf-summary-actions{display:none!important}
+#detailOverlay.cf-unified .cf-combined-actions .button{flex:0 1 auto!important;font-size:11px!important;padding:6px 9px!important;min-height:34px!important}
+@media(max-width:1250px){#detailOverlay.cf-unified .cf-combined-actions .button{font-size:10px!important;padding:5px 6px!important}}
+
+.cf-html-frame{display:block;width:100%;height:100%;min-height:450px;border:0;background:#e5eef2}.cf-preview-scroll.cf-html-mode{display:block;padding:0;overflow:hidden}.cf-document-dialog{position:fixed;inset:0;z-index:2147481000;background:#153b5677;display:grid;place-items:center;padding:18px}.cf-document-dialog>section{width:min(1200px,96vw);height:94dvh;display:flex;flex-direction:column;background:white;border-radius:14px;overflow:hidden;box-shadow:0 12px 50px #123a4c66}.cf-document-dialog header{display:flex;align-items:center;gap:14px;padding:12px;border-bottom:1px solid #d3e3ea}.cf-document-dialog header span{flex:1;font-size:12px;color:#718793}.cf-document-dialog a{color:#007c77}.cf-document-dialog button{border:1px solid #efc5ce;background:#fff0f3;color:#ad3a50;border-radius:8px;padding:8px 16px}.cf-document-dialog iframe{flex:1;min-height:0;width:100%;border:0}
+
+#detailOverlay.cf-unified #receiveCheckup.cf-reconfirm{background:linear-gradient(#fff4de,#ffe0b5)!important;color:#914b13!important;border:1px solid #efbc78!important;box-shadow:inset 0 1px 0 #fff,0 3px 7px #a65b1520}
+#detailOverlay.cf-unified #receiveCheckup.cf-reconfirm:hover{background:#ffd599!important}
+#detailOverlay.cf-unified .cf-editor-actions>[data-save-all-source]{display:none!important}
+
+#detailOverlay.cf-unified .cf-editor-actions .cf-workspace-close{margin-left:auto!important;flex:0 0 auto!important}
+
+/* Confirmation first, then Save Data and the complete HIS action group on one toolbar. */
+#detailOverlay.cf-unified>.modal>.cf-combined-actions{grid-template-rows:auto!important}
+#detailOverlay.cf-unified .cf-editor-actions #receiveCheckup{order:0}
+#detailOverlay.cf-unified .cf-editor-actions #saveCustomerAll{order:1}
+#detailOverlay.cf-unified .cf-editor-actions .cf-his-actions{order:2;display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;min-width:0;flex:0 1 auto;padding-left:5px;border-left:1px solid #d9e6ed}
+#detailOverlay.cf-unified .cf-editor-actions .cf-workspace-close{order:3}
+@media(max-width:1100px){
+ #detailOverlay.cf-unified>.modal>.cf-combined-actions{grid-template-columns:minmax(0,1fr)!important}
+ #detailOverlay.cf-unified .cf-print-actions{grid-column:1;grid-row:2}
+}
+
+#detailOverlay.cf-unified .cf-coverage-editor .field{display:block!important;min-width:0}
+#detailOverlay.cf-unified .cf-coverage-editor input{width:100%;text-align:left}
+@media(max-width:700px){#detailOverlay.cf-unified .cf-coverage-editor .detail-grid{grid-template-columns:1fr!important}}
+#detailOverlay.cf-unified .cf-coverage-editor .master-value-name{display:none}
+
+/* Block interaction through writes and saved-preview refresh. */
+.cf-saving-overlay{position:fixed;inset:0;z-index:2147483646;background:#153f5266;backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;cursor:wait}.cf-saving-overlay[hidden]{display:none}.cf-saving-overlay section{width:min(420px,90vw);padding:32px;border-radius:20px;background:white;text-align:center;box-shadow:0 18px 60px #163a4d44;outline:none}.cf-saving-overlay h2{font-size:21px;color:#103f52;margin:18px 0 10px}.cf-saving-overlay p{color:#567382}.cf-saving-spinner{width:42px;height:42px;margin:auto;border:4px solid #dcefeb;border-top-color:#087c72;border-radius:50%;animation:cf-saving-spin .8s linear infinite}@keyframes cf-saving-spin{to{transform:rotate(360deg)}}.cf-location-editor{padding:12px;background:#f6fcfd;border:1px solid #cbdfe7;border-radius:12px}.cf-location-editor>.field{margin-top:6px}.cf-location-editor>.field>label{display:none}.cf-location-editor input{width:100%}
+.booking-defaults-toolbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eaf7f5;padding:14px;border:1px solid #b9dfd9;border-radius:12px}.booking-defaults-toolbar small{display:block;color:#52747c;margin-top:4px}.booking-package-row,.booking-payor-row{display:grid;grid-template-columns:minmax(120px,.85fr) minmax(130px,1fr) minmax(180px,1.8fr) auto;gap:10px;align-items:end;width:100%;padding:12px;border:1px solid #cee1e9;border-radius:10px;background:#fbfdff;margin:6px 0}.booking-payor-row{grid-template-columns:repeat(3,minmax(0,1fr)) auto}.booking-package-row label,.booking-payor-row label{display:block;min-width:0;font-size:12px}.booking-package-row input,.booking-package-row select,.booking-payor-row input{width:100%;min-width:0;margin-top:4px}.booking-package-name{min-width:0;overflow-wrap:anywhere;padding-bottom:8px}.booking-package-name small{display:block;color:#75929d}.booking-package-name strong{font-weight:normal}.cf-location-editor .master-value-name{display:none}.cf-location-editor>.field>label{display:none!important}@media(max-width:750px){.booking-package-row,.booking-payor-row{grid-template-columns:1fr}.booking-defaults-toolbar{align-items:stretch;flex-direction:column}}
+
+/* Individual actions flow after Save Data; close stays at the right of the editor pane. */
+#detailOverlay.cf-unified .cf-editor-actions{position:relative;padding-right:43px;min-height:34px}
+#detailOverlay.cf-unified .cf-editor-actions .cf-his-actions,
+#detailOverlay.cf-unified .cf-editor-actions .clinical-footer-buttons{display:contents!important}
+#detailOverlay.cf-unified .cf-editor-actions .cf-his-actions>button,
+#detailOverlay.cf-unified .cf-editor-actions .clinical-footer-buttons>button{order:2}
+#detailOverlay.cf-unified .cf-editor-actions .cf-workspace-close{position:absolute;right:0;top:0;margin:0!important;order:3}
+#cfCustomerQrNotice{padding:8px 12px;background:#fff6e5;color:#875d20;border-bottom:1px solid #ead8b1;font-size:12px;overflow-wrap:anywhere}
+#cfCustomerQrNotice[hidden]{display:none}
+@media print{#cfCustomerQrNotice{display:none!important}}
+
+.cf-customer-url-dialog input{display:block;width:100%;margin-top:7px;padding:10px 12px;border:1px solid #b9d6e2;border-radius:9px;font:inherit;color:#17465b;background:white}.cf-customer-url-dialog .cf-url-status{color:#a53c43;min-height:1.5em}.cf-customer-url-dialog button:disabled{opacity:.6;cursor:wait}
+/* Location: keep one input border, without the nested field frame or shadows. */
+#detailOverlay.cf-unified .cf-location-editor{box-shadow:none!important}
+#detailOverlay.cf-unified .cf-location-editor>.field{display:block;min-width:0;padding:0!important;border:0!important;border-radius:0;background:transparent;box-shadow:none!important}
+#detailOverlay.cf-unified .cf-location-editor #detailLocationCode{display:block;width:100%;margin-top:0;box-shadow:none!important}
+#detailOverlay.cf-unified .cf-location-editor #detailLocationCode:focus-visible{outline:2px solid var(--brand,#159ca4);outline-offset:2px}
+
+/* A customer save owns the busy dialog; nested generic work retains its depth. */
+body.cf-customer-saving #processingOverlay{display:none!important}
+
+/* The editor accordion is independent of A4 visibility and the PDF template. */
+#detailBody .customer-package-items{margin-top:12px;border:1px solid #c5dfeb;border-radius:9px;background:#fff;overflow:hidden;min-width:0}
+#detailBody .customer-package-items>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;cursor:pointer;list-style:none;background:#eef8fc;color:#075180}
+#detailBody .customer-package-items>summary::-webkit-details-marker{display:none}
+#detailBody .customer-package-items>summary:focus-visible{outline:3px solid #00a5ad;outline-offset:-3px}
+#detailBody .customer-package-items-label{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-weight:700}
+#detailBody .customer-package-items-count{padding:3px 8px;border-radius:16px;background:#dceff6;font-size:12px;font-weight:400;white-space:nowrap}
+#detailBody .customer-package-items-toggle{border:1px solid #50a8c3;border-radius:7px;padding:7px 10px;color:#057798;background:white;font-size:12px;text-align:center}
+#detailBody .customer-package-items .when-expanded{display:none}
+#detailBody .customer-package-items[open] .when-expanded{display:inline}
+#detailBody .customer-package-items[open] .when-collapsed{display:none}
+#detailBody .customer-package-items>.table-wrap{margin:0;padding:0 8px 8px}
+@media(max-width:600px){#detailBody .customer-package-items>summary{gap:8px;padding:10px}#detailBody .customer-package-items-toggle{max-width:46%;flex-shrink:0}}

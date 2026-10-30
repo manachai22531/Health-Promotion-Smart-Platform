@@ -1,0 +1,7 @@
+HealthCheck v7.64.54 validation
+PASS targeted Chromium layout: one Package cell, correctly paired multiple packages, escaped text, Payor twice Plan width, Office omitted only in rendered document.
+PASS generated PDF text contains both package code/name pairs and Payor/Plan, with Office excluded.
+PASS actual workspace payer controls remain editable; canonical Office code persists; shared saved HTML and PDF model remain consistent.
+PASS direct print workflow, explicit PDF viewer, desktop and narrow action layouts.
+PASS npm run typecheck.
+LIMITS: controlled fixtures; Windows installer execution, live HIS, production upgrade and physical printing not executed here.

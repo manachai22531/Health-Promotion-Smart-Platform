@@ -1,0 +1,4 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+Reviewed both result-card label sites, inner printSummary HTML, restored label and processing message. Print handlers unchanged.
+Windows GUI/UAC: NOT RUN

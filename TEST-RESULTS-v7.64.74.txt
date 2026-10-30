@@ -1,0 +1,42 @@
+HealthCheck v7.64.74 validation — 2026-10-24 Asia/Bangkok
+PASS TypeScript build and 35 current Node release tests.
+PASS fresh PostgreSQL startup and initial admin protection.
+PASS real isolated upgrade v7.64.73 -> v7.64.74 including repair-admin:
+ company/year, circular, credentials, password age, Role policy and custom config
+ preserved; existing login and exact public production readiness succeed.
+PASS marketing standalone setup: exact-role one-time permission migration,
+ idempotence and later revocation, no extra API permission, other roles unchanged,
+ API-only/ordinary roles denied; own login/password-change/logout/session-expiry
+ hook; main-company shortcut opens an authenticated new window; no patient-state
+ fetch by the standalone page. Settings/audit/revision conflict/defaults validation,
+ sandbox preview, safe text, language/color/visibility/contact/mobile all verified.
+PASS EMR PDF API on real PostgreSQL:
+ actual draft watermark and approved PDF bytes/text; only the requested VN included;
+ doctor assignment, permission, draft official-print, mixed-case and batch bounds
+ enforced; review/print audited. Bundled Thai font fallback exercised on Linux.
+PASS actual Chromium EMR UI: Bangkok current-day defaults, all-date reset,
+ approved/completeness filters, safe selection, draft PDF review and cleanup,
+ approved bulk print PDF fetch, and actual native popup navigation to PDF blob.
+ Native popup opener is captured before the legacy app modal open function.
+ Browser physical print dialogs and actual printers were not exercised.
+PASS search UI: hidden confirmation drawer, full-width search, equal action button
+ heights in normal/compact/dense, open/Escape/close/focus cleanup and no resize;
+ lookup viewport checks at 1920/1360/1100/780/390.
+PASS existing Worklist stage/selection/read-only transitions; EMR open/back/receive
+ error recovery; circular subsection saves, XLSX template/import/rejection/save,
+ typed PDF attachment lifecycle; login audit filtering/permissions and security
+ idle/activity/shared-tabs/password-change regression through browser/server/DB.
+PASS PowerShell source backup core and updater repair core on Linux 7.5.4:
+ streaming ZIP round-trip/hidden files/uploads, exclusions, low-space-before-stop,
+ failure cleanup, no overwrite, exact backup, checksum rejection/idempotence,
+ active-job guard, preserved .env and paths with spaces/apostrophes.
+Package publication requires ZIP CRC, exact manifest coverage/source hashes,
+ PowerShell syntax and integrity/corruption/traversal verification; download-back
+ from the published Git branch must match the external SHA256 checksum.
+
+Limits: full Windows GUI/UAC/VBS/Robocopy/Task Scheduler deployment and real
+ printer output were not executed. No user's Production database or external HIS
+ was used. Historical test/report files are retained as history; only the checks
+ listed above are claimed for this release. Disk estimate is a minimum, not an
+ exact database/dependency-space guarantee. Existing legacy endpoints are not a
+ claim of a whole-application security audit; new EMR PDF actions are scoped.

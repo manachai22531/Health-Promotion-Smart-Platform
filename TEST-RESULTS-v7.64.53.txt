@@ -1,0 +1,10 @@
+HealthCheck v7.64.53 targeted validation — 16 October 2026 (Bangkok)
+PASS name resolver: exact codes and selected payer/plan scope, office code distinct from payer code, code/display parsing, request dedup/cache, unrelated master rows rejected, partial lookup failure retains known names without guessing remaining labels.
+PASS Chromium real coverage editor and Save Data module: code-name values in all three inputs; A4 HTML and PDF request contain names only; saved record retains canonical payer/plan/office codes; clean saved state despite display-name decoration; read-only Role remains disabled.
+PASS actual setupCustomerMasterFields function: initial code-name datalist decoration and dependent Payor/Plan queries strip display names and use canonical codes.
+PASS direct-print path, separate explicit saved PDF preview, saved-state cache and delayed-response guard, toolbar behavior and dirty/no-op-save regressions.
+PASS 33 confirmation/workflow/EXP unit checks; TypeScript typecheck; changed JavaScript syntax; runtime version/assets including coverage-names.js and protected endpoint checks.
+PASS ZIP CRC, complete source hashes including new resolver asset, migration byte identity, consistent version identity and unchanged dependencies after version normalization.
+
+Limits: controlled Chromium/API/Master fixtures were used. Windows installer execution, live HIS/Master, production database upgrade and physical printer were not performed. Native print was intercepted in automation. Full historical suite is not claimed as passing. Missing or ambiguous Master names are reported rather than replaced with guessed names. Existing project payer validation and patient/settings partial-success behavior remain.
+PDF preview requires installed Edge/Chrome. Earlier npm EPERM root cause is not claimed fixed. Example manifest URL must be replaced for automatic download; Drive ZIP supports manual Application Update upload.

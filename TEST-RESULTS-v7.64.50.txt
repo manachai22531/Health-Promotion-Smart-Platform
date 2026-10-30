@@ -1,0 +1,11 @@
+HealthCheck v7.64.50 targeted validation — 16 October 2026 (Bangkok)
+PASS Chromium overview component: service conditions and sales in left patient column, absent from right package column; VN fallback, project/contract details, 40/60 column ratio and narrow stacking retained.
+PASS actual shared workspace: confirmation precedes Save Data and all five HIS buttons share the editor toolbar; buttons remain visible on desktop and narrow layout without footer overflow.
+PASS direct A4 print path: browser window.print invoked from dedicated saved-template HTML after fonts/images are ready, no PDF POST and no PDF viewer; unsaved patient text excluded; Ctrl+P uses the same direct-print path. Native print call was intercepted in browser automation; physical printer output was not executed.
+PASS explicit Preview PDF still opens saved viewer separately. Existing saved-PDF caching, stale response guard, draft edits, save baseline, unsaved-close guard, and orange reconfirmation remain functional.
+PASS stale-dirty/no-op-save regression, correct saved VN QR next to expenses and immutable VN in PDF while live form differs.
+PASS 33 workflow/confirmation/EXP unit regressions, TypeScript typecheck, changed JavaScript syntax, production startup/version/assets and protected QR/font endpoint access rejection.
+PASS ZIP CRC, complete source SHA256 hashes, migration byte identity, version stamps and dependency equality after stripping release version identity.
+
+Limits: controlled browser/API fixtures were used. Windows installer execution, native Windows print dialog interaction, physical printer, live HIS and production database upgrade were not performed. Full historical test suite is not claimed as passing. Printing uses the saved snapshot; long reports paginate with the shared print stylesheet. Existing patient/settings partial-success behavior remains. Prior npm EPERM root cause is not claimed fixed.
+Example manifest URL must be replaced with a hosted ZIP URL for automatic download. Drive ZIP supports manual Application Update upload. Explicit PDF preview still requires installed Edge/Chrome on the server.

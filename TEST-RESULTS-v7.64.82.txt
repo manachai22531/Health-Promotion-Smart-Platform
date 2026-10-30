@@ -1,0 +1,17 @@
+v7.64.87 validation — 27 October 2026
+
+PASS npm ci, TypeScript build, 77 release tests (69 + 8).
+PASS PostgreSQL upgrade81→82 with custom credentials, password age/policies, company/year, circulars, imported personal note, pending selection/receipt and examination education preserved.
+PASS actual selection-review API and Chromium customer-service UI with customerSelectionApply but neither customerEdit nor receiveEdit: alert→modal→six-row review→save→A4→received badge after reload.
+PASS auth/read-only rejection, stale version, altered price, unknown item, partial acceptance, existing-item merge, duplicate receipt no-op, conflicting existing price, historical/Order/UNKNOWN-operation locks and atomic audit rollback. Customer identity rows and other company/year membership unchanged.
+PASS unrelated profile edits preserve passport-only identity columns; explicit duplicate correction returns409 without a customer merge or partial update.
+PASS customer PNG footer bounds, total43,230 and native download with unchanged session, zero navigation, authenticated /me200.
+PASS card native print invocation with print-only role, no editor opened/no record writes, draft preservation, repeated print, rendering-failure cleanup and existing editor print.
+PASS customer QR decode from integer-scale PNG, actual40mm HTML at100%/80% and A4 PDF at150dpi for two URL lengths.
+PASS single busy dialog, nested-depth preservation, error cleanup, focus/inert restoration, and flat Location input at desktop/mobile.
+PASS full prior clinical UI integration: appointment calendars/booking/details, notes, read-only front overview, package count/columns, payment colors, profile dialog/context/logout and mobile fit.
+PASS Desktop/Phone production-template preview at320/390/430 and demo isolation.
+PASS PowerShell repair core and source backup/preflight with SHA guards, preserved .env, quoted paths, active-update and low-space protection.
+PASS package CRC and per-file hashes checked during packaging and public download-back.
+
+Physical Windows GUI/UAC/VBS/Task Scheduler, physical phone camera/scanning and physical printer not tested.

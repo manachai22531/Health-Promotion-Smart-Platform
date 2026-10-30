@@ -1,0 +1,59 @@
+HealthCheck v7.64.75 validation results — 2026-10-24 (Asia/Bangkok)
+TypeScript build: PASS
+Current release unit/regression suite: 35 + 6 = 41 tests passed.
+
+v75-services-results.txt
+PASS multi-company identity, context ownership, approved-only PDFs, stranger/draft rejection, session and staff permissions.
+PASS outreach isolation, shared hospital quota, concurrent last-slot booking, duplicate protection, reschedule frees old slot, cancellation, closed slots, valid status changes and ownership.
+PASS actual customer booking, rescheduling and cancellation through UI and persisted PostgreSQL state.
+PASS actual customer table and moved account UI, company context switch, books filters and real PDF popup, appointment slots, responsive screens, and staff schedule/booking UI.
+
+v75-regression-browser-results.txt
+PASS fresh database boot and first-login protection for a new admin
+PASS default 15-minute idle, background polling does not renew, remember cannot bypass, expired session cannot revive
+PASS explicit activity renews idle; two roles enforce different idle deadlines
+PASS policy authorization/validation, immediate active-session policy enforcement, password expiry challenge/change/replay protection and first-login flow
+PASS full-state policy/password-age tampering rejected; privilege escalation denied; logout invalidates server session
+PASS saves 02/03/04 persist independently without changing another subsection or PDF header
+PASS medical choices persist through actual section PATCH and GET without touching other sections
+PASS custom service multiline text persists via real section PATCH/GET and preserves unrelated fields
+PASS actual PostgreSQL: typed PDF upload/list/download/merge/delete/cache invalidation, reject unreadable PDF, deny unauthorized upload, matrix section PATCH/GET
+PASS login history: successful/failed/challenged/throttled logins, no credential leakage, audit permission, server filtering/pagination, Bangkok date boundaries and honest legacy status
+PASS real PostgreSQL unified Worklist: all five stages, filters, unique rows, no invented Visit or confirmation
+PASS marketing permission: one-time exact-role grant, no API permission, other roles unchanged, revocation respected, API-only role denied display setup
+PASS customer display API: public allowlisted settings, authorized save/audit, denied staff without permission, validated input, optimistic conflict, no session override
+PASS EMR PDF: real draft watermark and approved PDF, exact VN data isolation, doctor-assignment/permission checks, draft print/mixed-case/oversize denial and audit
+PASS actual setup/public browser: live sandbox preview, safe Unicode/HTML text, English default and remembered language, visibility/color/contact settings, save/reload, conflict guard, reset is draft only
+PASS standalone access flows: forced password change, session-expiry hook hides editor, API-only role gets denied screen, marketing company-page shortcut opens authenticated separate window
+PASS standalone marketing browser: own login window, marketing saves without System/API or patient-state access, audited config persists, logout hides editor
+PASS search drawer: hidden by default, full-width main, matching button heights in normal/compact/dense, accessible open/close and no resize
+PASS compact search: marked headings/hint/database label removed, search returns results, company lookup works and fits at five widths
+PASS actual browser unified Worklist: one full-width table, stage tabs, safe select-all, responsive widths, review button does not auto-confirm, transition remains one row
+PASS compact Worklist: removed marked summary and board heading
+PASS EMR today/review/print UI: Bangkok default dates, all-date reset, draft review/print gate, PDF cleanup, approved filter/selection and real PDF fetch for bulk print
+PASS actual EMR browser: full-width nine-column table at 1920/1360/780/390, safe text, search/status/doctor/date/empty filters, open book/back, receive error recovers without opening book
+PASS actual browser/server/DB: download real XLSX, import, section save, reject invalid file without data loss, attach PDF, reload retains attachment, delete attachment
+PASS real browser login-history tab: search, outcome filtering, pagination/reset/empty state, escaped user content
+PASS trusted mouse input renews activity; activity across two browser tabs prevents premature logout
+PASS actual browser login/reload, admin role policy save persists in PostgreSQL, suspended-tab idle logout returns to login
+PASS actual expired-password dialog, change password, and re-login through the browser
+
+v75-upgrade-results.txt
+PASS real PostgreSQL upgrade v7.64.74 -> v7.64.75 including repair-admin: company/year, circular, custom credentials, password age, Role policy and configuration preserved; existing login works.
+
+v75-powershell-results.txt
+PASS PowerShell syntax and UTF-8 BOM: 22 scripts
+
+v75-source-backup-results.txt
+PASS streaming ZIP round-trip: binary/Thai/hidden .env/user uploads/nested user folder preserved; generated caches excluded
+PASS backup failure cleanup and no-overwrite guard; old backup remains intact
+PASS actual deploy preflight refuses low space before stopping Production
+PASS linked user content rejected explicitly
+
+v75-repair-results.txt
+PASS repair core: real file replacement/backup, checksum rejection, idempotency, active-update guard, preserved .env, paths with spaces/apostrophes
+
+Header EXP popover: initial closed state, server values, no duplicate LV label, placement, mutual exclusion with appearance, logout, role gating, short/mobile bounds: PASS.
+Search buttons: same top and bottom at 1920/1360, normal/compact/dense; responsive 1100/780/390: PASS.
+Packaging integrity and download-back SHA256 are verified after generating the ZIP.
+Not exercised: actual Windows GUI/UAC/VBS/Robocopy/Task Scheduler installation and physical printer output. PowerShell core tests ran on Linux PowerShell 7.5.4.

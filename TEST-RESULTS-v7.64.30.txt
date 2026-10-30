@@ -1,0 +1,11 @@
+HealthCheck v7.64.30 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: application and server
+PASS  PowerShell syntax: Production installer GUI, worker, and update helper
+PASS  v7.64.30 targeted regression: 4/4
+PASS  TOP 5 package box removed from Customer Search
+PASS  Full-width User / Role task tabs render and switch panels
+PASS  HIS sync, first-login password, add/edit/delete, bulk actions, Mapping, and Audit hooks retained
+PASS  Summary KPI wiring and compact grouped user table verified
+PASS  Existing appearance feature regression: 6/6 behavior checks (legacy version-identity assertion excluded)
+NOTE  Historical aggregate release suite contains version-locked assertions for older v7.63.x builds and is not a valid current-version release gate.

@@ -5,7 +5,7 @@
 )
 $ErrorActionPreference='Stop'
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.62.93'
+$version='v7.65.00'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
@@ -50,6 +50,28 @@ function Emit([string]$Stage,[string]$State,[string]$Message='') {
   Add-LineShared -Path $StatusFile -Text ($obj|ConvertTo-Json -Compress)
   Write-Log "production / $Stage : $State $Message"
 }
+function Test-PayloadIntegrity([string]$Root) {
+  $manifest=Join-Path $Root 'SOURCE-MANIFEST-SHA256.txt'
+  if(-not(Test-Path -LiteralPath $manifest)){throw 'Payload SHA256 manifest is missing.'}
+  $prefix=[IO.Path]::GetFullPath($Root).TrimEnd([IO.Path]::DirectorySeparatorChar)+[IO.Path]::DirectorySeparatorChar
+  $count=0
+  foreach($line in [IO.File]::ReadAllLines($manifest,[Text.Encoding]::UTF8)){
+    if([string]::IsNullOrWhiteSpace($line)){continue}
+    $entry=[regex]::Match($line,'^([a-fA-F0-9]{64})  (.+)$')
+    if(-not $entry.Success){throw 'Invalid payload manifest entry.'}
+    $relative=$entry.Groups[2].Value
+    if([IO.Path]::IsPathRooted($relative)){throw 'Absolute manifest paths are not allowed.'}
+    $file=[IO.Path]::GetFullPath((Join-Path $Root $relative.Replace([char]'/',[IO.Path]::DirectorySeparatorChar)))
+    if(-not $file.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)){throw 'Manifest path escapes the payload folder.'}
+    if(-not(Test-Path -LiteralPath $file -PathType Leaf)){throw "Payload file is missing: $relative"}
+    $actual=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
+    if($actual -ine $entry.Groups[1].Value){throw "Payload checksum mismatch: $relative"}
+    $count++
+  }
+  if($count -eq 0){throw 'Payload manifest is empty.'}
+  Write-Log "Payload SHA256 manifest verified: $count files"
+}
+
 function Test-PortOwner {
   try{$listener=Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction Stop|Select-Object -First 1}catch{return @{ok=$true;message='free'}}
   if(-not $listener){return @{ok=$true;message='free'}}
@@ -75,6 +97,8 @@ function Test-PortOwner {
 }
 function Preflight {
   Emit 'Preflight' 'RUNNING'
+  . (Join-Path $PSScriptRoot 'assert-no-downgrade.ps1')
+  Assert-NoApplicationDowngrade -SourceRoot $sourceRoot -TargetRoot $targetRoot
   if(-not(Test-Path 'D:\')){throw 'Drive D: is required by the current deployment layout.'}
   New-Item -ItemType Directory -Force -Path 'D:\HealthCheck'|Out-Null
   $probe='D:\HealthCheck\.installer-write-test'; 'ok'|Set-Content -LiteralPath $probe -Encoding ASCII; Remove-Item $probe -Force
@@ -111,14 +135,14 @@ function Wait-Health {
       $lastObserved="version=$seenVersion environment=$seenEnvironment"
       if($seenVersion -eq $version -and $seenEnvironment -eq 'production'){
         try {
-          $h=Invoke-RestMethod -Uri 'http://127.0.0.1:3000/api/system/health' -TimeoutSec 4 -ErrorAction Stop
-          if($h.database -and $h.database.ok -eq $true){
+          $h=Invoke-RestMethod -Uri 'http://127.0.0.1:3000/api/health' -TimeoutSec 4 -ErrorAction Stop
+          if($h.ok -eq $true -and [string]$h.database -eq 'PostgreSQL'){
             Emit 'Health Check' 'SUCCESS' "http://localhost:3000 | $lastObserved | database=ok"
             return
           }
           $lastError='API version is correct but database health is not OK yet.'
         } catch {
-          # /api/system/health may require app initialization a little longer.
+          # Public readiness includes a database query without bypassing staff login.
           $lastError="Version API is ready; system health pending: $($_.Exception.Message)"
         }
       } else {
@@ -138,25 +162,52 @@ function Invoke-DeployChild {
   $psi=New-Object System.Diagnostics.ProcessStartInfo
   $psi.FileName=(Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe')
   $escapedPath=$ScriptPath.Replace('"','\"')
-  $psi.Arguments="-NoProfile -ExecutionPolicy Bypass -File `"$escapedPath`" -Environment $EnvironmentName"
+  $psi.Arguments="-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$escapedPath`" -Environment $EnvironmentName"
+  $psi.WorkingDirectory=Split-Path -Parent (Split-Path -Parent $ScriptPath)
   $psi.UseShellExecute=$false
   $psi.CreateNoWindow=$true
   $psi.RedirectStandardOutput=$true
   $psi.RedirectStandardError=$true
+  $psi.RedirectStandardInput=$true
   $process=New-Object System.Diagnostics.Process
   $process.StartInfo=$psi
   try {
     if(-not $process.Start()){throw "Could not start $EnvironmentName deployment."}
-    $stdoutTask=$process.StandardOutput.ReadToEndAsync()
-    $stderrTask=$process.StandardError.ReadToEndAsync()
-    $process.WaitForExit()
-    foreach($line in (($stdoutTask.GetAwaiter().GetResult()) -split "`r?`n")){if($line){Write-Log $line}}
-    foreach($line in (($stderrTask.GetAwaiter().GetResult()) -split "`r?`n")){if($line){Write-Log $line}}
-    if($process.ExitCode -ne 0){throw "Deploy $EnvironmentName failed with exit code $($process.ExitCode). Review the final installer log lines above."}
+    $process.StandardInput.Close()
+    Write-Log "Deployment started (PID $($process.Id)). Progress follows live; large backups may take several minutes."
+    $stdoutTask=$process.StandardOutput.ReadLineAsync()
+    $stderrTask=$process.StandardError.ReadLineAsync()
+    $started=[Diagnostics.Stopwatch]::StartNew()
+    $lastHeartbeat=0
+    $exitObserved=$null
+    while($true){
+      foreach($streamName in @('stdout','stderr')){
+        $task=if($streamName -eq 'stdout'){$stdoutTask}else{$stderrTask}
+        # Bound each batch so a noisy stream cannot starve the other stream.
+        for($batch=0;$batch -lt 100 -and $null -ne $task -and $task.IsCompleted;$batch++){
+          $line=$task.GetAwaiter().GetResult()
+          if($null -eq $line){$task=$null;break}
+          if($line){Write-Log $line}
+          $task=if($streamName -eq 'stdout'){$process.StandardOutput.ReadLineAsync()}else{$process.StandardError.ReadLineAsync()}
+        }
+        if($streamName -eq 'stdout'){$stdoutTask=$task}else{$stderrTask=$task}
+      }
+      if($process.HasExited){
+        if($null -eq $exitObserved){$exitObserved=$started.Elapsed.TotalSeconds}
+        if(($null -eq $stdoutTask -and $null -eq $stderrTask) -or ($started.Elapsed.TotalSeconds-$exitObserved -ge 2)){break}
+      } elseif($started.Elapsed.TotalSeconds-$lastHeartbeat -ge 15){
+        $lastHeartbeat=$started.Elapsed.TotalSeconds
+        Write-Log ("Deployment still running (PID {0}, elapsed {1}s). See the latest step above; do not start a second installer." -f $process.Id,[int]$lastHeartbeat)
+      }
+      Start-Sleep -Milliseconds 100
+    }
+    $exitCode=$process.ExitCode
+    Write-Log "Deployment process finished with exit code $exitCode."
+    if($exitCode -ne 0){throw "Deploy $EnvironmentName failed with exit code $exitCode. Review the final installer log lines above."}
   } finally {if($process){$process.Dispose()}}
 }
 function New-StagedPayload {
-  $stageRoot=Join-Path $env:TEMP ("HealthCheck-Production-Payload-"+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[Guid]::NewGuid().ToString('N').Substring(0,8))
+  $stageRoot=Join-Path 'D:\HealthCheck' ("HealthCheck-Production-Payload-"+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[Guid]::NewGuid().ToString('N').Substring(0,8))
   New-Item -ItemType Directory -Force -Path $stageRoot|Out-Null
   $args=@($sourceRoot,$stageRoot,'/E','/R:2','/W:1','/XJ','/COPY:DAT','/DCOPY:DAT','/NFL','/NDL','/NJH','/NJS','/NP','/XD',(Join-Path $sourceRoot 'logs'),(Join-Path $sourceRoot 'node_modules'),(Join-Path $sourceRoot 'backups'),(Join-Path $sourceRoot 'tmp'))
   & robocopy.exe @args | Out-Null
@@ -167,7 +218,7 @@ function New-StagedPayload {
 }
 
 try{
-  $env:HEALTH_CHECK_NONINTERACTIVE='1' 
+  $env:HEALTH_CHECK_NONINTERACTIVE='1'
   if($PgCredentialFile){$env:HEALTH_CHECK_PG_ADMIN_SEC_FILE=$PgCredentialFile}
   $env:PGCONNECT_TIMEOUT='8'
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogFile)|Out-Null
@@ -175,6 +226,16 @@ try{
   [System.IO.File]::WriteAllBytes($StatusFile,[byte[]]@())
   Write-Log "Health Check Up Smart Search $version PRODUCTION Installer started."
   Write-Log 'Target: D:\HealthCheck\Production | Port 3000 | DB health_check_smart_search'
+  # Refuse a payload whose API release does not match the installer label.
+  $serverSource=Join-Path $sourceRoot 'server.js'
+  if(-not(Test-Path -LiteralPath $serverSource)){throw 'Payload validation failed: server.js missing'}
+  $serverText=[System.IO.File]::ReadAllText($serverSource)
+  $releaseMatch=[regex]::Match($serverText, 'const\s+RELEASE_NAME\s*=\s*[\x27\x22](v[0-9.]+-production)[\x27\x22]')
+  if(-not $releaseMatch.Success){throw 'Payload validation failed: RELEASE_NAME missing'}
+  $expectedRelease=$version+'-production'
+  if($releaseMatch.Groups[1].Value -ne $expectedRelease){throw "Payload version mismatch: installer=$expectedRelease server=$($releaseMatch.Groups[1].Value)"}
+  Write-Log "Payload release verified: $expectedRelease"
+  Test-PayloadIntegrity -Root $sourceRoot
   Preflight
   Emit 'Backup' 'RUNNING' 'Source and database backups are mandatory before upgrade.'
   Emit 'Deploy' 'RUNNING'

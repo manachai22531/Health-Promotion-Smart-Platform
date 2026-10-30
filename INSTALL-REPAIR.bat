@@ -10,5 +10,5 @@ if not exist "%~dp0tools\start-production-installer.vbs" (
   pause
   exit /b 2
 )
-start "" /wait wscript.exe "%~dp0tools\start-production-installer.vbs"
+start "" wscript.exe "%~dp0tools\start-production-installer.vbs"
 exit /b %errorlevel%

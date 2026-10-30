@@ -1,0 +1,13 @@
+HealthCheck v7.64.91 verification
+
+PASS: npm run build
+PASS: npm run test:release (109 + 8 = 117 tests, includes 15 matching unit tests)
+PASS: PostgreSQL HIS fixture/HTTP integration (16 tests)
+PASS: Chromium/Excel workflow including manual selection and the user-uploaded workbook (12 tests)
+Total: 145 passing tests
+
+The attached names-only workbook was read as 24 rows, and every row reached NAME_ONLY lookup without DOB or gender against the disposable HIS fixture. No real hospital matching or patient demographics were invented or validated.
+Manual selection tested: before choosing, exported HN is blank and candidates have CandidateHN; after choosing and confirming, only the selected patient enters the verified worksheet.
+Date/gender constraints remain applied when provided; ID and Passport retain priority. Ambiguous names never auto-select. HIS connections remain read-only.
+
+NOT RUN: actual hospital HIS; Windows GUI/UAC/VBS/Robocopy installer execution.

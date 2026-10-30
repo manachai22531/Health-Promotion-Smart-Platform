@@ -1,0 +1,46 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ตั้งค่าหน้าลูกค้า · ฝ่ายการตลาด</title><link rel="stylesheet" href="/assets/style.css?v=7.64.87-customer-setup"><link rel="stylesheet" href="/assets/customer-display-settings.css?v=7.64.87-mobile-compact"><link rel="stylesheet" href="/assets/customer-setup-page.css?v=7.64.87-preview"><link rel="stylesheet" href="/assets/button-theme.css?v=7.64.87"/>
+<script src="/assets/theme-sync.js?v=7.64.87"></script>
+</head><body class="cd-standalone">
+<header class="cs-topbar"><div><strong>ตั้งค่าหน้าลูกค้า</strong><small>พื้นที่จัดการสำหรับฝ่ายการตลาดและผู้ได้รับสิทธิ์</small></div><nav><span id="customerSetupActor"></span><a href="/" target="_blank" rel="noopener noreferrer">ระบบหลัก ↗</a><button type="button" id="customerSetupLogout" class="button secondary mini" hidden>ออกจากระบบ</button></nav></header>
+<form id="customerSetupLogin" class="cs-access"><img src="/assets/vimut-logo.png" alt="โรงพยาบาลวิมุต"><h1>เข้าสู่หน้าตั้งค่าหน้าลูกค้า</h1><p>ใช้ชื่อผู้ใช้และรหัสผ่านบัญชีเดิมของคุณ</p><label>ชื่อผู้ใช้<input id="customerSetupUsername" autocomplete="username" required></label><label>รหัสผ่าน<input id="customerSetupPassword" type="password" autocomplete="current-password" required></label><button class="button primary" id="customerSetupLoginSubmit" type="submit">เข้าสู่ระบบ</button><p role="status" id="customerSetupLoginStatus"></p></form>
+<form id="customerSetupPasswordChange" class="cs-access" hidden><h1 id="customerSetupChangeTitle">ตั้งรหัสผ่านส่วนตัว</h1><p>กรุณาเปลี่ยนรหัสผ่านก่อนเข้าใช้งาน</p><label>รหัสผ่านใหม่<input id="customerSetupNewPassword" type="password" autocomplete="new-password" required></label><label>ยืนยันรหัสผ่านใหม่<input id="customerSetupConfirmPassword" type="password" autocomplete="new-password" required></label><div><button class="button primary" type="submit" id="customerSetupChangeSubmit">บันทึกรหัสผ่านใหม่</button><button class="button secondary" type="button" id="customerSetupChangeCancel">กลับเข้าสู่ระบบ</button></div><p id="customerSetupChangeStatus" role="status"></p></form>
+<section id="customerSetupDenied" class="cs-access" hidden><h1>ยังไม่มีสิทธิ์ตั้งค่าหน้าลูกค้า</h1><p>ให้ผู้ดูแลเพิ่มสิทธิ์ “ตั้งค่าหน้าลูกค้า” ให้ Role ของคุณ แล้วเข้าสู่ระบบใหม่</p></section>
+<div class="app-view" id="customerDisplaySetupView" hidden>
+<section class="hero"><div><p class="eyebrow">CUSTOMER PAGE SETUP</p><h1>ตั้งค่าหน้าลูกค้า</h1><p class="hero-note">ปรับการแสดงผลหน้า /customer · พรีวิวก่อนบันทึก · ใช้ร่วมกันทุกบริษัท</p></div><div class="cd-preview-launchers"><a class="button secondary" href="/customer" target="_blank" rel="noopener noreferrer">เปิดหน้าลูกค้า ↗</a><button type="button" class="button primary" id="cdOpenShopPreview">ดูตัวอย่างหน้าเลือกรายการ ↗</button></div></section>
+<div class="cd-settings-layout"><form id="customerDisplaySetupForm" class="cd-controls" novalidate><p class="cd-settings-note">บันทึกแล้วจะมีผลเมื่อเปิดหรือรีเฟรชหน้าลูกค้าใหม่ การยืนยันตัวตนและระยะเวลา Session ยังคงใช้การตั้งค่าความปลอดภัยเดิม</p><nav id="cdTabs" class="cd-section-tabs" aria-label="หมวดการตั้งค่า"></nav><div id="cdFields"></div><div class="cd-actions"><button id="cdSave" class="button primary" type="submit" disabled>บันทึกการตั้งค่า</button><button id="cdReload" class="button secondary" type="button">โหลดค่าล่าสุด</button><button id="cdReset" class="button secondary" type="button" disabled>คืนค่าเริ่มต้น</button></div><p id="cdStatus" role="status" aria-live="polite"></p></form>
+<section class="cd-preview"><div class="cd-preview-head"><h2>พรีวิวหน้าลูกค้า</h2><div><button type="button" class="button secondary mini" data-cd-preview-lang="th">ไทย</button><button type="button" class="button secondary mini" data-cd-preview-lang="en">EN</button><select id="cdPreviewSize" aria-label="ขนาดพรีวิว"><option value="desktop">จอทั่วไป</option><option value="mobile">มือถือ</option></select></div></div><iframe id="cdPreview" title="ตัวอย่างหน้าลูกค้า" sandbox="allow-same-origin"></iframe><p class="cd-preview-hint">พรีวิวไม่มีข้อมูลผู้ป่วยและไม่ส่งคำขอยืนยันตัวตน</p><a href="/customer" target="_blank" rel="noopener noreferrer">เปิดหน้าลูกค้าจริง ↗</a></section></div>
+</div>
+<div class="auth-screen hidden" id="customerPortalScreen">
+<div class="customer-portal-shell">
+<header class="customer-portal-head">
+<img alt="โรงพยาบาลวิมุต" src="/assets/vimut-logo.png"/>
+<div>
+<p>CHECKUP CENTER</p>
+<h1 data-i18n="portalTitle">ข้อมูลการตรวจสุขภาพของฉัน</h1>
+<span data-i18n="portalSubtitle">ดูแพ็กเกจและเลือกรายการตรวจเพิ่มเติมระหว่างรอเรียก</span>
+</div>
+<nav aria-label="Language" class="customer-language">
+<button class="active" data-lang="th" type="button">🇹🇭 ไทย</button>
+<button data-lang="en" type="button">🇬🇧 EN</button>
+</nav>
+<button id="closeCustomerPortal" type="button">
+            กลับหน้าเจ้าหน้าที่
+          </button>
+</header>
+<section class="customer-verify-card" id="customerVerifyPanel" aria-label="ยืนยันตัวตน">
+<form id="customerVerifyForm">
+<div class="customer-login-fields" id="customerIdLoginFields">
+<label>ID / Passport<input autocomplete="off" id="customerSelfId" inputmode="text" placeholder="กรอกเลขประจำตัวหรือ Passport"/></label>
+</div>
+<div class="customer-login-fields customer-name-login" hidden="" id="customerNameLoginFields">
+<label>ชื่อ<input autocomplete="off" id="customerSelfFirst"/></label>
+<label>นามสกุล<input autocomplete="off" id="customerSelfLast"/></label>
+</div>
+<label>วันเกิด<input id="customerSelfBirth" required="" type="date"/></label>
+<div class="customer-id-actions"><button class="button secondary customer-card-reader" id="readThaiIdCard" type="button">อ่านบัตรประชาชน</button><button class="customer-no-id-link" id="customerNoId" type="button">ไม่ทราบ ID / Passport</button></div>
+<div class="customer-portal-status" id="customerVerifyStatus"></div>
+<button class="button primary" type="submit">ดูข้อมูลของฉัน</button>
+</form>
+<small>เพื่อความปลอดภัย เซสชันจะหมดอายุเมื่อไม่มีการใช้งาน 20 นาที</small>
+</section>
+</div></div><script src="/assets/auth-session.js?v=7.64.87-customer-setup"></script><script src="/assets/customer-display-model.js?v=7.64.87-knowledge"></script><script src="/assets/customer-setup-access.js?v=7.64.87-customer-setup"></script><script src="/assets/customer-knowledge-editor.js?v=7.64.87"></script><script src="/assets/customer-knowledge.js?v=7.64.87"></script><script src="/assets/customer-display-settings.js?v=7.64.87-mobile-compact"></script></body></html>

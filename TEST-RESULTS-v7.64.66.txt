@@ -1,0 +1,130 @@
+HealthCheck v7.64.66 — Validation report
+Base: complete v7.64.65 Production installer; v7.64.61 performance base retained.
+Schema 0217 unchanged; dependency lock unchanged except application version.
+
+New: ViMUT blue/green circular PDF, logo and metadata header, pale matrix cells, Code column before additional-item names, right-aligned prices, dynamic page flow, Thai/Latin Sarabun font embedding with OFL. Existing attachment PDFs remain unchanged.
+Performance: shared bounded per-render text wrapper; immutable font/logo byte cache invalidated by mtime/size; normalized Order search strings cached in existing catalog. No HIS query or identity/lifecycle rules changed.
+
+Benchmark against v7.64.65 in the same container, same data and font. Isolated workload timing, not total request or live hospital latency. Thai wrapping: 45 paragraphs, exact greedy break equality and line width bounds. Order catalog: 20,000 rows and 36 searches after warm-up; search results compared for Thai/English/code/no-match/empty query.
+
+performance66.txt
+{"test":"Thai PDF wrapping, 45 paragraphs","beforeMs":2291.32,"afterMs":453.36,"beforeMeasurements":16530,"afterMeasurements":1505,"linesIdentical":true}
+{"test":"Order search, 20000 rows, 36 searches","beforeMs":2351.02,"afterMs":398.76,"resultsIdentical":true}
+
+
+tests66.txt
+✔ canonical identity removes formatting and normalizes case (1.934198ms)
+✔ same-file duplicate strong identities collapse to one customer record (0.737701ms)
+✔ formatted strong identity matches an existing record (1.462734ms)
+✔ different strong IDs never merge through the same employee code (0.391015ms)
+✔ HN can fill a legacy record that has no strong identity (0.42442ms)
+✔ name plus DOB is review-only and does not auto-merge (0.241537ms)
+✔ opdvisit takes priority, no Patient Log IO for found rows (3.655869ms)
+✔ only missing VNs fall back, all requested HN/VN pairs are retained (0.317515ms)
+✔ connection failures do not trigger fallback or become NOT_FOUND (0.530276ms)
+✔ Patient Log error propagates instead of erasing status (0.217378ms)
+✔ missing both is distinct from missing identifier and HN mismatch (5.87206ms)
+✔ batch stays bounded at 500 VNs per query, not one query per patient (9.724719ms)
+✔ cancelled and charge-close facts stay attached only to actual source (2.573833ms)
+✔ all screen routes are wired to shared reader (23.263857ms)
+✔ real Patient Log SQL matches HN+VN and orders by latest timestamp/id (16.247277ms)
+✔ clinical consumer accepts Patient Log fallback without claiming finance closed (21.519293ms)
+✔ expired / last day / calendar month threshold are distinct (20.453423ms)
+✔ calendar month clamp and Bangkok midnight (0.92333ms)
+✔ future, unset and urgent periods (1.279404ms)
+✔ round trip preserves leading zero code and changes only named columns (1.816836ms)
+✔ blank clears supplied field; omitted fields stay unchanged (0.363621ms)
+✔ unknown, duplicate code and bad values are rejected before save (0.441281ms)
+✔ unchanged exported settings do not generate an audit change (0.249651ms)
+✔ specimen and sort order can be updated, missing rows remain untouched (0.17864ms)
+✔ import endpoint commits settings and audit in one transaction, with server permission (6.438189ms)
+✔ stale revision, bad data and audit failure roll back without commit (19.551874ms)
+✔ bundled font covers Thai, Latin, digits, codes and punctuation (4.622003ms)
+✔ binary wrapper keeps exact greedy line breaks and bounds in mixed Thai/Latin (487.739197ms)
+✔ actual circular renderer retains codes, data, A4, topics and dynamic overflow (305.083265ms)
+Warning: Please use the `legacy` build in Node.js environments.
+✔ long content flows to more pages without dropping tail marker (899.824384ms)
+Checkup is saved, but audit logging needs follow-up: Error: LOG FAILED
+    at Object.saveConfirmedCheckupV76416 (evalmachine.<anonymous>:45:27)
+    at async TestContext.<anonymous> (/workspace/work/release62/single-confirmation-v76417.test.js:43:15)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+✔ one confirmation persists all packages and both timestamps before enabling HIS Order (3.405989ms)
+✔ failed database save never modifies patient confirmation (2.522338ms)
+✔ audit failure is distinguishable from saved confirmation (2.133211ms)
+✔ no first confirmation without receiveCreate permission (0.758489ms)
+✔ existing confirmation does not allow duplicate confirmation (0.886741ms)
+✔ changed selections save as an edit while retaining original confirmed timestamps (1.006675ms)
+✔ no edits after HIS order until cancelled (0.832606ms)
+✔ legacy records with no stored price are not falsely marked as changed (0.897127ms)
+✔ A4 footer does not contain the old confirmation call to action (5.977886ms)
+✔ OrderHIS remains gated by persisted visitedAt, HN, VN, and an active order guard (4.905041ms)
+✔ A4 status buttons keep receiveFinalize for HIS Order, receiveEdit for changed selections (1.046043ms)
+✔ legacy checkupConfirmedAt prevents an initial duplicate and permits a permission-checked repeat edit (5.275148ms)
+✔ all 100 level transitions and 10 shield ranks follow the EXP thresholds (2.09251ms)
+✔ invalid and negative totals start at level one (0.265838ms)
+✔ a newly confirmed patient first appears in pending, not TODAY cases (17.800764ms)
+✔ HIS OpenVisit alone does not advance a patient (0.159006ms)
+✔ only successfully ordered patients move to TODAY cases (3.712772ms)
+✔ canceling HIS Order moves the case back to pending (0.247037ms)
+✔ older cancellation does not override a newer successful order (0.188235ms)
+✔ unconfirmed records do not appear in either Worklist panel (0.144723ms)
+✔ status and company filters are honored (0.630044ms)
+✔ existingKeys prevent duplicate true visits and fallback rows (0.194556ms)
+✔ Order on a later date moves the record onto its order date, not confirmation date (0.96255ms)
+✔ frontend partitions by explicit backend workflow_stage, not confirmed flag (2.29098ms)
+✔ API uses a successful order as the gate, not a nonempty VN (3.953539ms)
+✔ new PDF workflow saves existing company/circular through one company-scoped API (17.537406ms)
+✔ no extra PDF parsing and save for an empty attachments list (5.806082ms)
+✔ Thai text wrapping runs at close to linear glyph measuring cost (9.493357ms)
+✔ company-scoped PDF API commits company/circular once without patient table writes (8.369606ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3140.586454
+
+
+typecheck66.txt
+
+> health-check-smart-search-postgresql@7.64.66 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+
+browser66-excel.txt
+PASS real XLSX round trip: leading-zero code, export instructions, invalid code blocks save, preview, API revision and imported state
+PASS Excel heading toolbar at 1920/1366/390px
+
+
+browser66-layout.txt
+PASS PDF: sidebar retained, toggle removed, close 36×36
+PASS footer one-row across screen widths, whole-field copy rightmost 18px
+
+
+browser66-existing.txt
+PASS copies individual date/age/sex and whole cell, email, package code; no record-open; rebinds async coverage names
+PASS footer relocation idempotent: append after OrderHIS, status and case controls below, no duplicate check button, append remains disabled
+PASS all five due-period backgrounds override card background
+
+
+performance-preservation66.txt
+UNCHANGED server.js let stateResponseBuild=null;
+UNCHANGED server.js app.get('/api/state',
+UNCHANGED assets/app.js async function runAutoRefresh(
+PRESERVED server.js app.use(compression({threshold:1024}))
+PRESERVED server.js max-age=31536000, immutable
+PRESERVED server.js max-age=3600
+PRESERVED assets/app.js 20000+Math.floor(Math.random()*5000)
+PRESERVED assets/app.js document.hidden
+PRESERVED assets/app.js visibilitychange
+Modified base files: assets/app.js, assets/checkup-summary-template.js, assets/clinical-lifecycle.css, assets/clinical-lifecycle.js, assets/customer-compact.css, assets/flow-v76384.js, assets/pdf-topic-navigation.js, assets/style.css, assets/user-experience.js, tools/install.ps1, tools/production-installer-gui.ps1, tools/production-installer-worker.ps1, app.html, clinical-lifecycle.js, company-program-matrix.js, corporate-circular-pdf.js, corporate-circular-sections.js, EXTRACT-FIRST.txt, package-lock.json, package.json, release-v76460.test.js, server.js, SOURCE-MANIFEST-SHA256.txt, SOURCE-SHA256.txt, UPDATE-MANIFEST.example.json, VERSION.txt, workflow-regression.test.js
+All 600 base paths retained.
+
+
+PDF acceptance: actual pdf-lib generation; 35-row/5-program supplied example produced 3 generated A4 pages. Original 2 attachment pages preserved to produce a 5-page sample. Font glyph coverage checked for Thai, Latin, digits, codes and punctuation. Long content pagination and final ORDER-54/tail marker verified with PDF.js extraction. Actual draw coordinates checked within page bounds. Rendered pages visually inspected.
+
+Limits: No live HIS or production PostgreSQL measurements. No Windows installation, Task Scheduler execution or physical printer tested. Excel browser tests use a mocked save API; transaction unit tests use mocked PostgreSQL. Only listed tests run; no claim that all historical tests passed. Existing saved PDFs require regeneration to use the new theme; originals are not overwritten by installation.

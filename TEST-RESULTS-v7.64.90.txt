@@ -1,0 +1,12 @@
+HealthCheck v7.64.90 verification
+
+PASS: npm run build
+PASS: npm run test:release (104 + 8 = 112 tests; includes 10 new matching unit tests)
+PASS: PostgreSQL HIS fixture + HTTP integration (14 tests)
+PASS: Real Chromium + Excel upload/export/worksheet selection/cancellation/permissions/mobile/session clearing (10 tests)
+Total: 136 passing tests
+
+HIS fixture covers ID -> Passport -> name/DOB/gender; duplicate IDs normalized across spaces/hyphens; LOV gender; Thai/English names; Buddhist/Gregorian DOB; soft-deleted patient exclusion; SQL-like input; read-only DB enforcement; bounded candidate results.
+Excel/browser tests cover text leading zeros, numerical precision rejection, DOB serials including 1904 workbooks, column mapping, Thai headers starting at C5, all-candidate export for ambiguous rows, template download and clearing on expiry.
+
+NOT RUN: real hospital HIS; Windows GUI/UAC/VBS/Robocopy installation; production data or hospital network performance tests.

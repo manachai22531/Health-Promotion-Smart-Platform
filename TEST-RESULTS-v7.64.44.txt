@@ -1,0 +1,14 @@
+HealthCheck v7.64.44 validation
+PASS targeted tests, not the entire historical test suite.
+PASS actual PostgreSQL-engine PGlite visibility route: metadata-only update, patient/company untouched, other item fields retained, audit/revision transaction, stale-value conflict, invalid key rejection. No customer table queries.
+PASS actual browser hide-handler: immediate feedback while request pending, duplicate click prevention, scoped PATCH only, server failure rollback and retry.
+PASS 25 actual-handler workflow/EXP integration checks, including contract payer permission and active Order rejection.
+PASS actual draft/A4 renderer and extras wrapper: simultaneous billing/cash/contract selections, payer label, no eligibility duplicate, amount moves between payment buckets once without changing grand total.
+PASS real serializer/PDF builder: sample 20 medical rows and all three extras plus totals/signatures fits one A4; 100 rows paginate. Thai/Latin fonts and native PDF viewer remain supported.
+PASS Chromium workspace: one-row buttons within 1920 and 1366 viewports, no hidden print menu, table controls fit columns, personal field positions, required active-only format selection, re-confirmation, SetUpMaster edits.
+PASS 33 confirmation/workflow/EXP unit regressions; TypeScript typecheck and changed JavaScript syntax checks.
+PASS existing card/supplement-save and 71 global dismiss button checks.
+PASS server startup and v7.64.44 asset/version smoke check (DB bootstrap deliberately skipped).
+
+Limitations: controlled UI/API/HIS fixtures and embedded PostgreSQL engine were used. No execution of Windows installer, live HIS or production PostgreSQL upgrade. The local visibility timing is not a production latency guarantee. Long clinical reports intentionally continue onto additional pages.
+Drive ZIP is for manual download/upload to Application Update. The external example manifest URL must be replaced with a hosted ZIP URL for automatic downloading.

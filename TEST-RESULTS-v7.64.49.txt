@@ -1,0 +1,11 @@
+HealthCheck v7.64.49 targeted validation — 16 October 2026 (Bangkok)
+PASS Chromium actual shared workspace plus Save Data module: no-op acknowledgement clears stale dirty status without a redundant patient write; package search text does not trigger dirty state; clean close has no confirmation; edits made after save snapshot remain dirty and continue to warn. Close button aligned to editor-group right edge.
+PASS Save Data regression: one patient write plus one settings batch, patient failure retains acknowledged state, partial settings failure retains drafts, permission and active-Order guards, confirmed edit uses guarded workflow once. Edited VN persists in vn and hisLastVisitUID.
+PASS VN browser path: exact saved VN QR displayed beside expense table; PDF request uses saved VN while the live input contains an unsaved VN.
+PASS actual shared HTML/browser PDF: separate HN and VN QR images, VN label retained, expense table lies to right of QR without overlap; sample 20 clinical rows plus extra groups/signatures fits one A4; 100 rows paginate; HTML/PDF column positions match within 1.5 pt.
+PASS shared workspace regression: live HTML without automatic PDF generation, saved PDF caching, unsaved warning, partial-save baseline, orange reconfirmation, pending PDF cannot reopen a closed workspace.
+PASS 33 workflow/confirmation/EXP unit regressions; TypeScript typecheck; JavaScript syntax; production startup/version/assets; anonymous VN-QR/font endpoint access rejected.
+PASS ZIP CRC, complete source hashes, unchanged migrations, consistent version stamps and unchanged production dependencies after stripping release version identity.
+
+Limits: controlled Chromium/API fixtures and browser PDF generation were used. Windows installer execution, live HIS and production database upgrade were not performed. Full historical suite is not claimed as passing. Long reports intentionally paginate. Patient saves and package-master settings remain separate endpoints with explicit partial-success reporting. Prior Windows npm EPERM root cause still requires the original log; this release does not claim to fix it.
+PDF creation requires installed Edge/Chrome. Example manifest URL must be replaced with a hosted ZIP URL for automatic download; Drive ZIP supports manual Application Update upload.

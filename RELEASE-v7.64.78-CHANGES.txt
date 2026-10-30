@@ -1,0 +1,9 @@
+v7.64.87 Production Windows Installer
+Includes all v7.64.77 changes plus:
+- Separate marketing preview button opens the real customer shop renderer with fictional data; supports unsaved branding, no real orders.
+- Separate login/shop advertising image, optional link and description; HTTPS only, default disabled, responsive, editable in customer setup.
+- Health knowledge button and searchable published articles, references/reviewer/date; related package codes resolve only to the current customer company/year choices.
+- Marketing article editor and publication controls; drafts excluded from public settings.
+Schema remains 0218. Existing credentials, patient notes, company data and settings are preserved.
+Unzip all files, run INSTALL-REPAIR.vbs, wait for Complete SUCCESS, then refresh the browser with Ctrl+F5.
+Native Windows GUI/UAC/Task Scheduler were not executed in this Linux verification environment.

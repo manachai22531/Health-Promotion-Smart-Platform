@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference='Stop'
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.62.93 PRODUCTION'
+$version='v7.65.00 PRODUCTION'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
@@ -9,7 +9,14 @@ try {
     if($pkg.version){$version=('v'+([string]$pkg.version).TrimStart('v')+' PRODUCTION')}
   }
 } catch {}
-$runtimeRoot=Join-Path $env:TEMP 'HealthCheck-Production-Installer'
+# WPF consults .NET's process working directory, not only PowerShell's location.
+# Elevated launches can inherit an unusable 8.3 profile alias, so normalize both.
+$safeProcessRoot=Join-Path $env:WINDIR 'Temp'
+if(-not(Test-Path -LiteralPath $safeProcessRoot -PathType Container)){$safeProcessRoot=$env:WINDIR}
+if(-not(Test-Path -LiteralPath $safeProcessRoot -PathType Container)){throw 'Windows system working directory is unavailable.'}
+Set-Location -LiteralPath $safeProcessRoot -ErrorAction Stop
+[Environment]::CurrentDirectory=$safeProcessRoot
+$runtimeRoot=Join-Path $safeProcessRoot 'HealthCheck-Production-Installer'
 New-Item -ItemType Directory -Force -Path $runtimeRoot | Out-Null
 $stamp=Get-Date -Format 'yyyyMMdd-HHmmss'
 $logFile=Join-Path $runtimeRoot "installer-production-$stamp.log"
@@ -142,13 +149,26 @@ function Refresh-LogBox {
 }
 function Show-Result([bool]$Success,[string]$Message){if($Success){$ResultBadge.Background='#E1F3E9';$ResultKind.Text='SUCCESS';$ResultKind.Foreground='#176844';$ResultTitle.Text='Production installation completed';$ResultMessage.Text=$Message}else{$ResultBadge.Background='#FBE3E1';$ResultKind.Text='FAILED';$ResultKind.Foreground='#A52C25';$ResultTitle.Text='Installation stopped safely';$ResultMessage.Text=$Message};$ResultLogPath.Text="Log: $logFile";$ResultOverlay.Visibility='Visible'}
 function Open-Log {
-  if(-not(Test-Path -LiteralPath $logFile)){return}
+  # An elevated Windows shell may inherit a broken 8.3 alias to C:\Users\...
+  # Do not let this optional log-viewer action escape into WPF ShowDialog().
   try {
+    if(-not (Test-Path -LiteralPath $logFile -PathType Leaf)) {
+      [Windows.MessageBox]::Show('No installer log has been written yet.','Installer log','OK','Information') | Out-Null
+      return
+    }
+    $safeWorkDir=Join-Path $env:WINDIR 'Temp'
+    if(-not(Test-Path -LiteralPath $safeWorkDir -PathType Container)){$safeWorkDir=$env:WINDIR}
+    if(-not(Test-Path -LiteralPath $safeWorkDir -PathType Container)){$safeWorkDir=$runtimeRoot}
+    if(-not(Test-Path -LiteralPath $safeWorkDir -PathType Container)) {throw 'No valid working directory for log viewer.'}
+    $notepad=Join-Path $env:WINDIR 'System32\notepad.exe'
+    if(-not(Test-Path -LiteralPath $notepad -PathType Leaf)){$notepad='notepad.exe'}
     $snapshot=Join-Path $runtimeRoot ("installer-log-view-{0}-{1}.txt" -f (Get-Date -Format 'yyyyMMdd-HHmmss'),[Guid]::NewGuid().ToString('N').Substring(0,6))
     [System.IO.File]::WriteAllText($snapshot,(Read-SharedText $logFile),(New-Object System.Text.UTF8Encoding($true)))
-    Start-Process notepad.exe -ArgumentList @($snapshot)
+    Start-Process -FilePath $notepad -ArgumentList ('"{0}"' -f $snapshot) -WorkingDirectory $safeWorkDir -ErrorAction Stop | Out-Null
   } catch {
-    Start-Process notepad.exe -ArgumentList @($logFile)
+    $message="Cannot open installer log viewer: $($_.Exception.Message)"
+    try {[System.IO.File]::AppendAllText($logFile,"[$(Get-Date -Format 's')] $message`r`n",[System.Text.Encoding]::UTF8)} catch {}
+    try {[Windows.MessageBox]::Show("$message`n`nLog: $logFile",'Installer log','OK','Warning') | Out-Null} catch {}
   }
 }
 $OpenLogButton.Add_Click({Open-Log});$ResultOpenLogButton.Add_Click({Open-Log});$ResultCloseButton.Add_Click({$ResultOverlay.Visibility='Collapsed'})
@@ -157,9 +177,21 @@ $CloseButton.Add_Click({if($script:worker -and -not $script:worker.HasExited){Sh
 
 $timer=New-Object Windows.Threading.DispatcherTimer;$timer.Interval=[TimeSpan]::FromMilliseconds(500)
 $timer.Add_Tick({
- Refresh-LogBox
- if(Test-Path $statusFile){$statusFileText=Read-SharedText $statusFile;$statusLines=@($statusFileText -split "`r?`n"|Where-Object{$_});if($statusLines.Count -gt $script:lastStatusCount){for($i=$script:lastStatusCount;$i -lt $statusLines.Count;$i++){try{$event=$statusLines[$i]|ConvertFrom-Json;Set-StepState $event.stage $event.state;$StatusText.Text=("{0} - {1} {2}" -f $event.stage,$event.state,$event.message);if($event.state -eq 'FAILED'){$script:lastError=$event.message;$CopyErrorButton.IsEnabled=$true}}catch{}};$script:lastStatusCount=$statusLines.Count;$success=@($statusLines|ForEach-Object{try{$_|ConvertFrom-Json}catch{}}|Where-Object{$_.state -eq 'SUCCESS' -and $_.stage -in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')}).Count;$Progress.Value=[Math]::Min(95,$success*16)}}
+ try {
+  try { if(Test-Path -LiteralPath $env:WINDIR -PathType Container){Set-Location -LiteralPath $env:WINDIR -ErrorAction Stop} } catch {}
+  Refresh-LogBox
+ if(Test-Path -LiteralPath $statusFile -PathType Leaf){$statusFileText=Read-SharedText $statusFile;$statusLines=@($statusFileText -split "`r?`n"|Where-Object{$_});if($statusLines.Count -gt $script:lastStatusCount){for($i=$script:lastStatusCount;$i -lt $statusLines.Count;$i++){try{$event=$statusLines[$i]|ConvertFrom-Json;Set-StepState $event.stage $event.state;$StatusText.Text=("{0} - {1} {2}" -f $event.stage,$event.state,$event.message);if($event.state -eq 'FAILED'){$script:lastError=$event.message;$CopyErrorButton.IsEnabled=$true}}catch{}};$script:lastStatusCount=$statusLines.Count;$success=@($statusLines|ForEach-Object{try{$_|ConvertFrom-Json}catch{}}|Where-Object{$_.state -eq 'SUCCESS' -and $_.stage -in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')}).Count;$Progress.Value=[Math]::Min(95,$success*16)}}
  if($script:worker -and $script:worker.HasExited){$timer.Stop();$InstallButton.IsEnabled=$true;$PgPasswordBox.IsEnabled=$true;Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue;if($script:worker.ExitCode -eq 0){$Progress.Value=100;$StatusText.Text='Production installation completed successfully.';$FooterText.Text='Production is ready at http://localhost:3000';Show-Result $true 'Backup, deployment, migration, start and health check completed successfully.'}else{if(-not $script:lastError){$script:lastError='The installer worker exited with an error. Review the log for the final details.'};$StatusText.Text='Installation stopped. Review the log.';$FooterText.Text='Production installation stopped safely. Existing backups were retained.';Show-Result $false $script:lastError};$script:worker=$null}
+ } catch {
+   # A failed preflight must not trigger a second WPF exception in ShowDialog.
+   $uiError="Installer status display error: $($_.Exception.Message)"
+   try { [System.IO.File]::AppendAllText($logFile,"[$(Get-Date -Format 's')] $uiError`r`n",[System.Text.Encoding]::UTF8) } catch {}
+   try { $timer.Stop() } catch {}
+   try { $script:lastError=$uiError; $CopyErrorButton.IsEnabled=$true } catch {}
+   try { $StatusText.Text='Installer status could not be displayed. Review the installer log.' } catch {}
+   try { $FooterText.Text='Do not restart until the installer log and running service have been checked.' } catch {}
+   try { Show-Result $false $uiError } catch {}
+ }
 })
 
 # Keep all installer callbacks inside a try/catch. PowerShell surfaces uncaught
@@ -199,7 +231,7 @@ $InstallButton.Add_Click({
 })
 
 $window.Add_Closing({if($script:worker -and -not $script:worker.HasExited){$_.Cancel=$true;Show-Result $false 'Production installation is still running. This window will remain open until the worker finishes.'}else{Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue}})
-try { $window.ShowDialog() | Out-Null } catch {
+try { if(Test-Path -LiteralPath $runtimeRoot -PathType Container){Set-Location -LiteralPath $runtimeRoot -ErrorAction SilentlyContinue}; $window.ShowDialog() | Out-Null } catch {
   $message="Installer window error: $($_.Exception.Message)"
   try {[System.IO.File]::AppendAllText($logFile,"[$(Get-Date -Format 's')] $message`r`n",[System.Text.Encoding]::UTF8)} catch {}
   Write-Host $message -ForegroundColor Red

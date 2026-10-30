@@ -1,0 +1,4 @@
+HealthCheck v7.64.54
+ปรับหน้าสรุป A4: รวม Package Code และ Package Name เป็นแถวเดียว Package: CODE NAME รองรับหลายแพ็กเกจและชื่อยาว ตัด Payor Office เฉพาะแถบเอกสารและเพิ่มพื้นที่ Payor เป็นสองเท่าของ Payor Plan ใช้รูปแบบเดียวกันใน HTML การพิมพ์ และ PDF
+
+Office ยังคงแก้ไข บันทึก และส่งให้ HIS ตามเดิม ไม่มีการเปลี่ยน dependency หรือ migration

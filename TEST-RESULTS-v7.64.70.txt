@@ -1,0 +1,32 @@
+HealthCheck v7.64.70 validation results
+
+PASS clean npm ci and npm run build.
+PASS npm run test:release: 26/26 tests.
+PASS updater readiness against real HTTP fixtures: public /api/health + /api/version,
+  protected /api/system/health returns 401, unhealthy/503/wrong version/environment rejected.
+PASS fixed readiness against real v7.64.69 and v7.64.70 servers with PostgreSQL,
+  without a staff session. Protected system-health route still requires login.
+PASS real PostgreSQL upgrade from the published v7.64.69 source to v7.64.70:
+  company/year, circular, credentials, password age, role policies and custom settings preserved.
+PASS fresh database bootstrap and initial admin password-change flow.
+PASS actual browser/HTTP/PostgreSQL: login history filters, pagination, Bangkok dates,
+  access control and no password/hash/token in new authentication audit details.
+PASS Excel template download/import/save, invalid workbook rejection without data loss,
+  program PDF upload/reload/merge/delete, corrupted PDF rejection and permissions.
+PASS browser subsidiary Payor/Plan lookup, row isolation, stale-response protection,
+  code-only saves and preservation of legacy values when Master is unavailable.
+PASS browser selected-package layout at multiple viewport widths and item counts.
+PASS security regression: password expiry/change, role-specific idle policies,
+  trusted activity, polling does not extend idle, shared tabs and logout after sleep.
+PASS bootstrap repair core executed using PowerShell on Linux: actual atomic replacement,
+  verified original backup, hash validation, idempotency, active-update guard and preserved .env.
+
+Packaging checks: ZIP CRC and all source hashes, PowerShell syntax, payload verifier
+must pass before publication. The downloadable ZIP is then fetched back from GitHub
+and checked against the external SHA256 file.
+
+Limits: no full Windows updater deployment, Robocopy/Task Scheduler/WPF/VBS/UAC
+execution was performed here. PowerShell core tests used 7.5.4 on Linux.
+The bootstrap repair does not stop the app or change the database.
+Source compression/backup speed is unchanged. Tests used isolated disposable databases,
+not the user's Production database or external HIS.

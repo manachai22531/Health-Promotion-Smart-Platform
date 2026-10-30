@@ -1,8 +1,10 @@
 'use strict';
+const {validatePolicy,policyForRole,passwordExpired,sessionFailure,sessionMetadata,preserveSecurityFields}=require('./security-policy');
 const installHealthCheck = process.env.HEALTH_CHECK_INSTALL_TEST === '1';
 const dotenvResult = require('dotenv').config();
 if (!installHealthCheck && dotenvResult.parsed) Object.assign(process.env, dotenvResult.parsed);
 const express = require('express');
+const compression = require('compression');
 const path = require('path');
 const crypto = require('crypto');
 const https = require('https');
@@ -14,7 +16,7 @@ const { spawn } = require('child_process');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const { normalizeCircular, defaultCircular, buildCorporateCircularPdf } = require('./corporate-circular-pdf');
-const {mergeCircularAndAttachments} = require('./company-circular-attachment-merge');
+const {authenticationAudit,registerLoginHistory}=require('./login-history');
 const { Pool } = require('pg');
 const QRCode = require('qrcode');
 const bwipjs = require('bwip-js');
@@ -26,13 +28,21 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.64.00-production';
+const RELEASE_NAME = 'v7.65.00-production';
 const { registerDataCenter } = require('./datacenter');
-const SCHEMA_VERSION = '0211';
+const SCHEMA_VERSION = '0218';
+const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
+const {importSignature,importBatchKey}=require('./experience-rules');
+const {registerSummaryPdf}=require('./checkup-summary-pdf');
+const customerCatalog=require('./customer-catalog');
+const {registerOrderVisibility}=require('./order-visibility');
+const {ensureCheckupFormats,validateFormatChange,registerCheckupFormats}=require('./checkup-formats');
+const {registerExperienceApis}=require('./experience-workflows');
 
 const RUNTIME_ENVIRONMENT = 'production';
 const PRODUCTION_PORT = 3000;
 const PRODUCTION_DATABASE = 'health_check_smart_search';
+// Preserve main's existing hosted runtime while keeping Windows production on 3000.
 const renderDeployment = String(process.env.RENDER_DEPLOYMENT || '').trim().toLowerCase() === 'true'
   || Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID || process.env.RENDER_EXTERNAL_URL);
 const renderPort = 10000;
@@ -77,6 +87,9 @@ if (!process.env.DATABASE_URL && !process.env.PGDATABASE) {
 }
 
 const app = express();
+// Compress text/JSON responses. /api/state already sets Content-Encoding when it
+// serves its prebuilt gzip body, so compression automatically skips that path.
+app.use(compression({threshold:1024}));
 // v7.63.74 - baseline production security headers for LAN/HTTPS deployments.
 app.disable('x-powered-by');
 app.use((req,res,next)=>{res.set({'X-Content-Type-Options':'nosniff','X-Frame-Options':'SAMEORIGIN','Referrer-Policy':'same-origin','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Cross-Origin-Resource-Policy':'same-origin'});next()});
@@ -251,8 +264,7 @@ function lanBasicAccess(req, res, next) {
   // to the server computer without stopping the Node process.
   const address = normalizeClientAddress(req.socket.remoteAddress || '');
   const loopback = address === '127.0.0.1' || address === '::1';
-  // Render probes this non-sensitive version endpoint from its private
-  // network. Keep the regular LAN boundary in place for every other route.
+  // Preserve only the existing non-sensitive hosted version probe exception.
   const renderHealthCheck = renderDeployment && req.path === '/api/version';
   if (loopback || runtimeLanEnabled || renderHealthCheck) return next();
   res.status(503).type('text/plain; charset=utf-8').send('Local Network Server is currently OFF. Please use the application on the server computer.');
@@ -262,21 +274,35 @@ function lanBasicAccess(req, res, next) {
 // production snapshots can already exceed 15 MB, so leave enough import headroom.
 app.use(express.json({ limit: '100mb' }));
 app.use(lanBasicAccess);
+// All staff APIs enforce password age and idle expiry. Public/customer/integration
+// routes keep their own authentication, and only explicit activity renews idle time.
+app.use(async(req,res,next)=>{
+  if(!req.path.startsWith('/api/')||req.path.startsWith('/api/auth/')||['/api/version','/api/health'].includes(req.path))return next();
+  try{const access=await staffPermissionContext(req,null);if(!access.ok)return res.status(access.status).json({error:access.error,code:access.code});next();}
+  catch(error){console.error('[STAFF SESSION]',error);res.status(500).json({error:'ตรวจสอบ Session ไม่สำเร็จ'});}
+});
 
 // v7.63.16 - staff RBAC guard for standalone OCR pages and OCR APIs.
 // The main SPA still has legacy endpoints protected by the Local/LAN boundary;
 // this closes the OCR gap that previously bypassed the Role/Permission UI entirely.
 async function staffPermissionContext(req,permission){
-  cleanupStaffSessions();
-  const token=staffSessionToken(req),session=staffSessions.get(token);
-  if(!session)return {ok:false,status:401,error:'กรุณาเข้าสู่ระบบก่อนใช้งาน'};
-  const state=await readState(),user=(state.users||[]).find(item=>String(item.id)===String(session.userId)&&item.active!==false);
-  if(!user){staffSessions.delete(token);return {ok:false,status:401,error:'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่'};}
-  const role=(state.roles||[]).find(item=>String(item.id)===String(user.roleId)),permissions=new Set(Array.isArray(role?.permissions)?role.permissions:[]);
+  let access=req.staffSecurityContext;
+  if(!access){
+    cleanupStaffSessions();
+    const token=staffSessionToken(req),session=staffSessions.get(token);
+    if(!session)return {ok:false,status:401,code:'AUTH_REQUIRED',error:'กรุณาเข้าสู่ระบบก่อนใช้งาน'};
+    const row=(await pool.query("SELECT data->'users' AS users,data->'roles' AS roles FROM app_state WHERE id=1")).rows[0]||{};
+    const user=(row.users||[]).find(item=>String(item.id)===String(session.userId)&&item.active!==false);
+    const role=(row.roles||[]).find(item=>String(item.id)===String(user?.roleId));
+    const code=sessionFailure(session,user,role);
+    if(code){staffSessions.delete(token);return {ok:false,status:401,code,error:code==='PASSWORD_EXPIRED'?'รหัสผ่านหมดอายุ กรุณาเข้าสู่ระบบเพื่อเปลี่ยนรหัสผ่าน':code==='SESSION_IDLE'?'ออกจากระบบเนื่องจากไม่ได้ใช้งาน กรุณาเข้าสู่ระบบใหม่':'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่'};}
+    access={ok:true,user,role,token,session};req.staffSecurityContext=access;
+  }
+  const {user,role}=access,permissions=new Set(Array.isArray(role?.permissions)?role.permissions:[]);
   const admin=String(role?.id||user.roleId||'')==='admin';
-  const legacyAllowed=permission==='ocrDocumentView'&&(permissions.has('documentView')||permissions.has('ocrDocumentManage')||permissions.has('apiManage'))||permission==='ocrDocumentManage'&&(permissions.has('documentEdit')||permissions.has('apiManage'));
-  if(!admin&&!permissions.has(permission)&&!legacyAllowed)return {ok:false,status:403,error:'บัญชีนี้ไม่มีสิทธิ์ใช้งานส่วนนี้'};
-  session.expiresAt=Date.now()+session.ttl;return {ok:true,user,role,token,session};
+  const legacyAllowed=['projectCreate','projectEdit','projectDelete'].includes(permission)&&permissions.has('projectManage')||permission==='ocrDocumentView'&&(permissions.has('documentView')||permissions.has('ocrDocumentManage')||permissions.has('apiManage'))||permission==='ocrDocumentManage'&&(permissions.has('documentEdit')||permissions.has('apiManage'));
+  if(permission&&!admin&&!permissions.has(permission)&&!legacyAllowed)return {ok:false,status:403,error:'บัญชีนี้ไม่มีสิทธิ์ใช้งานส่วนนี้'};
+  return access;
 }
 function staffPermissionRequired(permission){return async(req,res,next)=>{try{const access=await staffPermissionContext(req,permission);if(!access.ok)return res.status(access.status).json({error:access.error});req.staffUser=access.user;req.staffRole=access.role;res.set('Set-Cookie',staffSessionCookie(access.token,access.session.ttl));return next()}catch(error){console.error('[STAFF PERMISSION]',error);return res.status(500).json({error:'ตรวจสอบสิทธิ์ผู้ใช้ไม่สำเร็จ'})}}}
 function staffPagePermissionRequired(permission){return async(req,res,next)=>{try{const access=await staffPermissionContext(req,permission);if(!access.ok){if(access.status===401)return res.redirect('/');return res.status(403).type('text/plain; charset=utf-8').send(access.error)}req.staffUser=access.user;req.staffRole=access.role;res.set('Set-Cookie',staffSessionCookie(access.token,access.session.ttl));return next()}catch(error){console.error('[STAFF PAGE PERMISSION]',error);return res.status(500).type('text/plain; charset=utf-8').send('ตรวจสอบสิทธิ์ผู้ใช้ไม่สำเร็จ')}}}
@@ -288,10 +314,16 @@ app.get('/ocr-review-mockup.html',staffPagePermissionRequired('ocrDocumentView')
 app.get('/OCR-Real-Pilot-v7.63.06.html',staffPagePermissionRequired('ocrDocumentView'),(req,res)=>res.sendFile(path.join(__dirname,'OCR-Real-Pilot-v7.63.06.html')));
 app.get('/downloads/healthcheck-scan-agent-v7.63.53.zip',staffPagePermissionRequired('ocrDocumentView'),(req,res)=>res.download(path.join(__dirname,'tools','ocr-scan-agent','OCR-SCAN-AGENT-NO-ADMIN.zip'),'HealthCheck-Scan-Agent-v7.63.53-TWAIN-MEMORY.zip'));
 
+app.use('/assets',(req,res,next)=>{
+  // Versioned asset URLs are immutable for a release. Unversioned images/icons
+  // receive a short cache so an update can still replace them promptly.
+  if(req.query.v)res.setHeader('Cache-Control','public, max-age=31536000, immutable');
+  else res.setHeader('Cache-Control','public, max-age=3600');
+  next();
+});
 app.use(express.static(__dirname,{setHeaders:(res,filePath)=>{
-  // UI releases change app.html/style.css/app.js frequently. Prevent browsers on
-  // workstations from keeping an old frontend after INSTALL-REPAIR upgrades.
-  if(/\.(?:html|css|js)$/i.test(filePath)){
+  // HTML must revalidate so clients discover the new versioned asset URLs.
+  if(/\.html$/i.test(filePath)){
     res.setHeader('Cache-Control','no-cache, no-store, must-revalidate');
     res.setHeader('Pragma','no-cache');
     res.setHeader('Expires','0');
@@ -534,7 +566,9 @@ async function recordSystemActionAudit(req,statusCode,durationMs){
     await ensureOperationsSchema();
     const token=staffSessionToken(req),session=staffSessions.get(token);let actor=String(req.staffUser?.username||'');
     if(!actor&&session)actor=String(session.username||session.displayName||'');
-    const detail={query:Object.fromEntries(Object.entries(req.query||{}).slice(0,20).map(([k,v])=>[k,String(v).slice(0,120)])),contentLength:Number(req.headers['content-length']||0)||0};
+    const authentication=authenticationAudit(req,Number(statusCode));
+    if(authentication?.username)actor=authentication.username;
+    const detail={query:Object.fromEntries(Object.entries(req.query||{}).slice(0,20).map(([k,v])=>[k,String(v).slice(0,120)])),contentLength:Number(req.headers['content-length']||0)||0,...(authentication?{authentication}:{})};
     await pool.query('INSERT INTO system_action_audit(request_id,method,route,status_code,actor,client_address,duration_ms,detail) VALUES($1,$2,$3,$4,$5,$6,$7,$8::jsonb)',[String(req.headers['x-request-id']||crypto.randomUUID()).slice(0,100),String(req.method||''),pathname,Number(statusCode)||0,actor||'anonymous',clientAddress(req),Math.max(0,Math.round(Number(durationMs)||0)),JSON.stringify(detail)]);
   }catch(error){console.warn('[ACTION AUDIT]',error.message)}
 }
@@ -614,7 +648,7 @@ async function operationsWorkItems(){
   return {items,records:state.records||[],bookingCount:bookings.length};
 }
 
-registerDataCenter(app,{localOnly,rootDir:__dirname,settingsPool:pool,encryptPassword:encryptAppointmentPassword,decryptPassword:decryptAppointmentPassword,configSessionRequired:packageConfigSessionRequired});
+registerDataCenter(app,{localOnly,rootDir:__dirname,settingsPool:pool,encryptPassword:encryptAppointmentPassword,decryptPassword:decryptAppointmentPassword,configSessionRequired:packageConfigSessionRequired,staffPermissionRequired});
 
 function customerCors(req, res, next) {
   const configured = String(process.env.CUSTOMER_ALLOWED_ORIGINS || '').trim();
@@ -660,7 +694,7 @@ async function maintenanceGuard(req, res, next) {
 }
 app.use(maintenanceGuard);
 app.use((req,res,next)=>{
-  if(!String(req.path||'').startsWith('/api/')||!['POST','PUT','PATCH','DELETE'].includes(String(req.method||'').toUpperCase()))return next();
+  if(req.path==='/api/auth/activity'||!String(req.path||'').startsWith('/api/')||!['POST','PUT','PATCH','DELETE'].includes(String(req.method||'').toUpperCase()))return next();
   const started=Date.now();res.on('finish',()=>{recordSystemActionAudit(req,res.statusCode,Date.now()-started).catch(()=>{})});next();
 });
 
@@ -693,9 +727,10 @@ function customerSession(req) {
   session.expiresAt = Date.now() + 20 * 60 * 1000;
   return session;
 }
-function customerSessionRequired(req, res, next) {
+async function customerSessionRequired(req, res, next) {
   const session = customerSession(req);
   if (!session) return res.status(401).json({ error: 'เซสชันหมดอายุ กรุณายืนยันตัวตนใหม่' });
+  try{if(session.customerGrantId)await customerAccess.validateSession(session)}catch(error){if(error.status!==423)customerSessions.delete(String(req.headers['x-customer-token']||''));return res.status(error.status||410).json({error:error.message})}
   req.customerSession = session;
   next();
 }
@@ -710,29 +745,16 @@ function safeCustomerProfile(record, company, state) {
     birthDate: record.birth || '', sex: record.sex || '',
     company: company ? { name: company.name || '', year: company.year || '' } : null,
     primaryPackages: Array.isArray(record.primaryPackages) ? record.primaryPackages : (record.code || record.packageName ? [{ code:record.code || '', name:record.packageName || '' }] : []),
-    choices: {
-      billing: (company?.billingPackages || []).map(item => ({ id:String(item.id || item.name), name:item.name || '', price:Number(item.price || 0) })),
-      cash: (company?.cashPackages || []).map(item => ({ id:String(item.id || item.name), name:item.name || '', price:Number(item.price || 0) })),
-      contract: (state.packages || []).map(item => ({ id:String(item.id || item.code || item.packagecode), code:item.code || item.packagecode || '', name:item.name || item.packagename || '', price:Number(item.price || 0) }))
-    },
-    locked: Boolean(record.visitedAt), confirmedAt: record.visitedAt || null,
-    pendingSelection: pending ? { billingIds:pending.billingIds || [], cashIds:pending.cashIds || [], contractIds:pending.contractIds || [], note:pending.note || '', submittedAt:pending.submittedAt || null, status:'PENDING' } : null
+    choices: customerCatalog.choices(company,state),
+    locked: customerCatalog.locked(record), confirmedAt: record.visitedAt || null,
+    pendingSelection: pending ? { billingIds:pending.billingIds || [], cashIds:pending.cashIds || [], contractIds:pending.contractIds || [], note:pending.note || '', submittedAt:pending.submittedAt || null, status:'PENDING',orderId:pending.orderId||'',items:pending.items||[],billingTotal:pending.billingTotal||0,selfPayTotal:pending.selfPayTotal||0,total:pending.total||0 } : null
   };
 }
 
-function buildCustomerSelection(req, company, state) {
-  const allowedBilling = new Set((company?.billingPackages || []).map(item => String(item.id || item.name)));
-  const allowedCash = new Set((company?.cashPackages || []).map(item => String(item.id || item.name)));
-  const allowedContract = new Set((state.packages || []).map(item => String(item.id || item.code || item.packagecode)));
-  const uniqueAllowed = (items, allowed) => [...new Set((Array.isArray(items) ? items : []).map(String))].filter(id => allowed.has(id));
-  return {
-    billingIds:uniqueAllowed(req.body?.billingIds, allowedBilling), cashIds:uniqueAllowed(req.body?.cashIds, allowedCash),
-    contractIds:uniqueAllowed(req.body?.contractIds, allowedContract), note:String(req.body?.note || '').trim().slice(0,500)
-  };
-}
+async function buildCustomerSelection(req, company, state) {const rows=(await pool.query(`SELECT c.code,c.name,c.active,COALESCE(json_agg(json_build_object('name',s.name,'active',s.active)) FILTER(WHERE s.id IS NOT NULL),'[]'::json) subcategories FROM package_categories c LEFT JOIN package_subcategories s ON s.category_id=c.id GROUP BY c.id`)).rows;return customerCatalog.buildSelection(req.body,company,{...state,customerCategoryMaster:rows})}
 async function saveCustomerSelection(record, company, state, selection) {
-  selection.submittedAt = new Date().toISOString(); selection.status = 'PENDING';
-  record.customerPendingSelection = selection; state.at = new Date().toISOString(); await writeState(state);
+  selection.orderId=record.customerPendingSelection?.orderId||crypto.randomUUID();selection.submittedAt = new Date().toISOString(); selection.status = 'PENDING';
+  record.customerPendingSelection = selection; await patchRecordHisFields(String(record.key||record.id),{customerPendingSelection:selection});
   await pool.query(`INSERT INTO checkup_audit_log
     (record_key,customer_name,id_passport,company_id,company_name,company_year,package_code,package_name,action,
      performed_by_user_id,performed_by_username,performed_by_display_name,details)
@@ -869,7 +891,7 @@ async function readState() {
   return { ...hydrated, _revision:Number(result.rows[0]?.revision || 0) };
 }
 
-async function writeState(data) {
+async function writeState(data,{beforeCommit}={}) {
   const clean={...data};delete clean._revision;
   const client=await pool.connect();
   try {
@@ -881,6 +903,7 @@ async function writeState(data) {
     const result=await client.query('UPDATE app_state SET data = $1::jsonb, revision=$2, updated_at = NOW() WHERE id = 1 RETURNING revision', [JSON.stringify(compact),nextRevision]);
     const revision=Number(result.rows[0]?.revision||0);
     await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
+    if(beforeCommit)await beforeCommit(client);
     await client.query('COMMIT');
     compressedStateCache={revision:null,body:null};
     data._revision=revision;
@@ -950,9 +973,7 @@ async function ensureDatabase() {
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`);
 
-  // Tables created below reference the normalized company schema. Bootstrap
-  // it first so a brand-new PostgreSQL database can start without an
-  // installer-specific preflight step.
+  // Create company/year tables before the circular foreign keys on fresh installs.
   await ensureRelationalSchema(pool);
 
 await pool.query(`DO $$ DECLARE legacy_audit text := 'ocr_' || 'sta' || 'ging_audit'; BEGIN
@@ -1015,13 +1036,16 @@ END $$`);
     adminState.users=Array.isArray(adminState.users)?adminState.users:[];
     let admin=adminState.users.find(item=>normalizedPersonName(item?.username)==='admin');
     let adminChanged=false;
+    adminState.roles=Array.isArray(adminState.roles)?adminState.roles:[];
+    if(!adminState.roles.some(role=>String(role.id)==='admin')){adminState.roles.push({id:'admin',name:'ผู้ดูแลระบบ',permissions:[],securityPolicy:policyForRole(null)});adminChanged=true;}
+
     if(!admin){
-      admin={id:crypto.randomUUID(),displayName:'ผู้ดูแลระบบ',username:'admin',passwordHash:DEFAULT_ADMIN_PASSWORD_HASH,roleId:'admin',active:true,createdAt:new Date().toISOString()};
+      admin={id:crypto.randomUUID(),displayName:'ผู้ดูแลระบบ',username:'admin',passwordHash:DEFAULT_ADMIN_PASSWORD_HASH,roleId:'admin',active:true,mustChangePassword:true,passwordChangedAt:null,createdAt:new Date().toISOString()};
       adminState.users.push(admin);adminChanged=true;
     }else{
       admin.displayName=admin.displayName||'ผู้ดูแลระบบ';admin.username='admin';admin.roleId='admin';admin.active=true;
       const currentHash=String(admin.passwordHash||'');
-      if(!currentHash||currentHash===LEGACY_DEFAULT_ADMIN_PASSWORD_HASH){admin.passwordHash=DEFAULT_ADMIN_PASSWORD_HASH;adminChanged=true;}
+      if(!currentHash||currentHash===LEGACY_DEFAULT_ADMIN_PASSWORD_HASH){admin.passwordHash=DEFAULT_ADMIN_PASSWORD_HASH;admin.mustChangePassword=true;admin.passwordChangedAt=null;adminChanged=true;}
     }
     if(adminState.adminPasswordBaselineVersion!==ADMIN_PASSWORD_BASELINE_VERSION){adminState.adminPasswordBaselineVersion=ADMIN_PASSWORD_BASELINE_VERSION;adminChanged=true;}
     if(adminChanged)await pool.query('UPDATE app_state SET data=$1::jsonb,revision=revision+1,updated_at=NOW() WHERE id=1',[JSON.stringify(adminState)]);
@@ -1217,6 +1241,7 @@ END $$`);
     uploaded_by TEXT NOT NULL DEFAULT 'system'
   )`);
   await pool.query('CREATE INDEX IF NOT EXISTS company_year_attachments_recent_idx ON company_year_attachments(company_year_id,id DESC)');
+  await pool.query("ALTER TABLE company_year_attachments ADD COLUMN IF NOT EXISTS attachment_kind TEXT NOT NULL DEFAULT 'general'");
   await pool.query(`CREATE TABLE IF NOT EXISTS company_year_import_files (
     company_id TEXT PRIMARY KEY,
     file_name TEXT NOT NULL,
@@ -1227,6 +1252,20 @@ END $$`);
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     uploaded_by TEXT NOT NULL DEFAULT 'system'
   )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS company_import_history (
+    id BIGSERIAL PRIMARY KEY, company_id TEXT NOT NULL, file_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL, file_data BYTEA NOT NULL, file_size BIGINT NOT NULL,
+    row_count INTEGER NOT NULL, uploaded_at TIMESTAMPTZ NOT NULL, uploaded_by TEXT NOT NULL
+  )`);
+  await pool.query('CREATE INDEX IF NOT EXISTS company_import_history_company_idx ON company_import_history(company_id,id DESC)');
+  await pool.query(`INSERT INTO company_import_history(company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by)
+    SELECT company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by FROM company_year_import_files f
+    WHERE NOT EXISTS(SELECT 1 FROM company_import_history h WHERE h.company_id=f.company_id)`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS company_deletion_backups (
+    id BIGSERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    performed_by TEXT NOT NULL, source_revision BIGINT NOT NULL, data JSONB NOT NULL
+  )`);
+  await pool.query("ALTER TABLE company_deletion_backups ADD COLUMN IF NOT EXISTS reason TEXT NOT NULL DEFAULT ''");
   await pool.query(`CREATE TABLE IF NOT EXISTS user_guide_documents (
     view_id TEXT PRIMARY KEY,
     file_name TEXT NOT NULL DEFAULT '',
@@ -1303,6 +1342,8 @@ END $$`);
     created_by TEXT NOT NULL DEFAULT 'system',
     updated_by TEXT NOT NULL DEFAULT 'system'
   )`);
+  await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
+  await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS booking_defaults JSONB NOT NULL DEFAULT '{}'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS payor_options JSONB NOT NULL DEFAULT '[]'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS default_location_code TEXT NOT NULL DEFAULT ''");
   await pool.query('CREATE INDEX IF NOT EXISTS checkup_projects_company_idx ON checkup_projects(company_id,screening_year,status)');
@@ -1761,6 +1802,12 @@ function visitTimestamp(value){const t=Date.parse(String(value||''));return Numb
 function chooseHisVisitLegacy(patient,requestedVisitUID=''){const visits=Array.isArray(patient?.Visit)?patient.Visit:[];if(requestedVisitUID){const exact=visits.find(v=>String(v?.VisitUID||'')===String(requestedVisitUID));if(exact)return exact}return [...visits].sort((a,b)=>{const aData=(Array.isArray(a?.Item)&&a.Item.length)||(Array.isArray(a?.Package)&&a.Package.length)?1:0,bData=(Array.isArray(b?.Item)&&b.Item.length)||(Array.isArray(b?.Package)&&b.Package.length)?1:0;return bData-aData||visitTimestamp(b?.VisitDate)-visitTimestamp(a?.VisitDate)})[0]||null}
 const findHisEmrPayloadServer=typedHisPayload?.findHisEmrPayload||findHisEmrPayloadLegacy;
 const chooseHisVisit=typedHisPayload?.chooseHisVisit||chooseHisVisitLegacy;
+const clinicalLifecycle=require('./clinical-lifecycle').registerClinicalLifecycle({app,pool,localOnly,staffPermissionRequired,callHis:(...args)=>callConfiguredHisJson(...args),queryVisitStatus:queryHisVisitStatusBatch,hisResponseFailed,patchRecordHisFields,invalidate:()=>{compressedStateCache={revision:null,body:null}},revokeActivities,activityResult,onOpenVisitRecovered:recoverMonitoredOpenVisit});
+callConfiguredHisJson=clinicalLifecycle.wrapTransport(callConfiguredHisJson);
+require('./personal-notes').registerPersonalNotes({app,pool,localOnly,staffPermissionRequired,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
+const customerAccess=require('./customer-access').registerCustomerAccess({app,pool,localOnly,staffPermissionRequired,clinical:clinicalLifecycle,customerSessions,readState});
+require('./customer-selection-review').registerCustomerSelectionReview({app,pool,localOnly,staffPermissionRequired,clinical:clinicalLifecycle,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
+require('./customer-display-settings').registerCustomerDisplay({app,pool,localOnly,staffPermissionRequired});
 if(typedHisResultRoutes?.registerHisResultRoutes){typedHisResultRoutes.registerHisResultRoutes({app,localOnly,callConfiguredHisJson,readState,writeState,contextKey:String(process.env.HIS_CONTEXT_KEY||'Vimut2022')})}else{
 app.post('/api/his/visit',localOnly,async(req,res)=>{try{const HN=String(req.body?.HN||req.body?.hn||'').trim(),recordKey=String(req.body?.recordKey||'').trim(),requestedVisitUID=String(req.body?.VisitUID||'').trim();if(!HN)return res.status(400).json({error:'กรุณาระบุ HN'});const contextKey=String(req.body?.ContextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022'),visitRequest={HN,Location:String(req.body?.Location||''),ContextKey:contextKey},visitCall=await callConfiguredHisJson('GET_VISIT',visitRequest),visitRoot=Array.isArray(visitCall.data)?visitCall.data[0]:(visitCall.data?.Patient||visitCall.data||{}),selectedVisit=chooseHisVisit(visitRoot,requestedVisitUID);let revision=null;if(recordKey){revision=await patchRecordHisFields(recordKey,{hisLastVisitUID:String(selectedVisit?.VisitUID||''),hisLastVisitAt:new Date().toISOString(),hisVisitResult:{patient:{UID:visitRoot?.UID||null,HN:visitRoot?.HN||HN,FirstName:visitRoot?.FirstName||'',LastName:visitRoot?.LastName||'',Company:visitRoot?.Company||'',PackageName:visitRoot?.PackageName||'',CheckupDate:visitRoot?.CheckupDate||''},visits:Array.isArray(visitRoot?.Visit)?visitRoot.Visit:[]}}).catch(error=>{console.error('Patch record HIS visit fields failed',error);return null})}res.set('Cache-Control','no-store');res.json({ok:true,revision,visitRequest,visitResponse:visitCall.data,selectedVisit})}catch(error){res.status(502).json({error:`ตรวจสอบ Visit/VN จาก HIS ไม่สำเร็จ: ${error.message||error}`})}});
 app.post('/api/his/emr',localOnly,async(req,res)=>{try{const HN=String(req.body?.HN||req.body?.hn||'').trim(),recordKey=String(req.body?.recordKey||'').trim(),VisitUID=String(req.body?.VisitUID||'').trim(),deferPersist=req.body?.deferPersist===true;if(!HN)return res.status(400).json({error:'กรุณาระบุ HN'});if(!VisitUID)return res.status(400).json({error:'กรุณาระบุ VisitUID'});const contextKey=String(req.body?.ContextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022'),emrRequest={HN,VisitUID,Request:String(req.body?.Request||''),DoctorNumber:String(req.body?.DoctorNumber||''),Licensenumber:String(req.body?.Licensenumber||''),ContextKey:contextKey},emrCall=await callConfiguredHisJson('GET_EMR_RESULT',emrRequest),emrData=findHisEmrPayloadServer(emrCall.data);let revision=null,relationalEmr=null;if(recordKey&&!deferPersist){relationalEmr=await persistEmrPayload(pool,{recordKey,hn:HN,visitUid:VisitUID,payload:emrData,rawPayload:emrCall.data}).catch(error=>{console.error('Relational EMR persist failed',error);return null});revision=await patchRecordHisFields(recordKey,{hisLastVisitUID:VisitUID,hisLastResultAt:new Date().toISOString(),hisEmrResult:emrData}).catch(error=>{console.error('Patch record HIS emr fields failed',error);return null})}res.set('Cache-Control','no-store');res.json({ok:true,revision,relationalEmr,emrRequest,emrResponse:emrData,rawEmrResponse:emrCall.data})}catch(error){res.status(502).json({error:`รับ EMR จาก HIS ไม่สำเร็จ: ${error.message||error}`})}});
@@ -1796,6 +1843,16 @@ async function hisActionAudit(req,state,record,action,details={}){
     ]);
   }catch(error){console.warn(`HIS action audit ${action} failed`,error.message)}
 }
+const {existingVisitHint,verifyExistingVisit}=require('./his-visit-recovery');
+async function recoverMonitoredOpenVisit({req,key,meta,vn,location,at}){
+  // Only the booking resolved by the original validated request may be updated.
+  if(!meta.bookingId||/^PROJECT:/i.test(meta.bookingId))return;
+  const booking=await require('./open-visit-booking-scope').selectedBookingForRecord(pool,key,meta.bookingId);
+  if(!booking)throw new Error('Booking เดิมเปลี่ยนแปลง กรุณาให้ผู้ดูแลตรวจสอบ');
+  const actor=workflowActor(req),date=new Date(Date.parse(at)+7*60*60*1000).toISOString().slice(0,10);
+  await pool.query(`INSERT INTO checkup_visits(id,booking_id,visit_date,checkin_at,vn,location,visit_status,updated_by) VALUES($1,$2,$3::date,$4,$5,$6,'CHECKED_IN',$7) ON CONFLICT(booking_id) DO UPDATE SET vn=EXCLUDED.vn,location=EXCLUDED.location,visit_status='CHECKED_IN',updated_at=NOW(),updated_by=EXCLUDED.updated_by WHERE checkup_visits.vn='' OR checkup_visits.vn IS NULL OR checkup_visits.vn=EXCLUDED.vn RETURNING id`,[crypto.randomUUID(),meta.bookingId,date,at,vn,location,actor]).then(result=>{if(!result.rows.length)throw new Error('Booking มี VN อื่นแล้ว')});
+  await pool.query("UPDATE checkup_bookings SET booking_status='ARRIVED',updated_at=NOW(),updated_by=$2 WHERE id=$1",[meta.bookingId,actor]);
+}
 app.post('/api/his/open-visit',localOnly,async(req,res)=>{
   try{
     const recordKey=String(req.body?.recordKey||'').trim();let bookingId=String(req.body?.bookingId||'').trim();const payor=String(req.body?.payor||'').trim(),agreement=String(req.body?.agreement||'').trim(),payorOffice=String(req.body?.payorOffice||'').trim(),locationCode=String(req.body?.locationCode||'').trim();
@@ -1813,13 +1870,17 @@ app.post('/api/his/open-visit',localOnly,async(req,res)=>{
         SELECT DISTINCT cc.company_year_id,cy.company_id,cy.screening_year
         FROM customers c JOIN company_customers cc ON cc.customer_id=c.id JOIN company_years cy ON cy.id=cc.company_year_id
         WHERE cc.legacy_record_key=$1
-           OR (COALESCE($2,'')<>'' AND regexp_replace(COALESCE(c.hn,''),'[^A-Za-z0-9]','','g')=regexp_replace($2,'[^A-Za-z0-9]','','g'))
-           OR (COALESCE($3,'')<>'' AND (LOWER(BTRIM(COALESCE(c.identification_number,'')))=LOWER(BTRIM($3)) OR LOWER(BTRIM(COALESCE(c.passport_number,'')))=LOWER(BTRIM($3))))
-      ) SELECT p.* FROM checkup_projects p JOIN identity i ON (p.company_id=i.company_id OR p.company_id=i.company_year_id OR p.company_id=$4)
-        WHERE p.id=$5 AND p.status<>'CANCELLED' AND p.project_code<>'HIS-OPEN-VISIT'
+      ) SELECT p.* FROM checkup_projects p JOIN identity i ON (p.company_id=i.company_id OR p.company_id=i.company_year_id)
+        WHERE p.id=$2 AND p.status<>'CANCELLED' AND p.project_code<>'HIS-OPEN-VISIT'
           AND (COALESCE(p.screening_year,'')='' OR COALESCE(i.screening_year,'')='' OR p.screening_year=i.screening_year)
-        LIMIT 1`,[recordKey,String(record.hn||''),String(record.id||''),String(record.companyId||''),projectId])).rows[0];
+        LIMIT 1`,[recordKey,projectId])).rows[0];
       if(!eligibleProject)return res.status(409).json({error:'Booking ที่เลือกไม่ตรงกับบริษัท/ปีของผู้รับบริการ'});
+      // Confirm the selected project's required fields before creating membership.
+      const projectPayors=Array.isArray(eligibleProject.payor_options)?eligibleProject.payor_options:[];
+      if(!projectPayors.length)return res.status(409).json({error:'Booking นี้ยังไม่ได้กำหนด Payor ในโครงการ'});
+      if(!projectPayors.some(item=>String(item.payor||'')===payor&&(!item.agreement||String(item.agreement)===agreement)&&(!item.office||String(item.office)===payorOffice)))return res.status(409).json({error:'Payor / Agreement / Office ไม่ตรงกับที่กำหนดใน Booking ที่เลือก'});
+      if(!String(record.hn||'').trim())return res.status(400).json({error:'รายการนี้ยังไม่มี HN จึงเปิดวิสิตไม่ได้'});
+
       const generatedId=crypto.randomUUID(),actor=workflowActor(req),patientName=[record.title,record.first,record.last].filter(Boolean).join(' ').trim();
       const created=(await pool.query(`INSERT INTO checkup_bookings(id,project_id,record_key,hn,employee_code,patient_name,id_passport,birth_date,sex,company_id,company_name,department_name,position_name,package_code,package_name,scheduled_date,booking_status,created_by,updated_by)
         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
@@ -1830,11 +1891,18 @@ app.post('/api/his/open-visit',localOnly,async(req,res)=>{
       bookingId=String(created?.id||'');
     }
     const projectRules=await pool.query(`SELECT b.id AS booking_id,b.scheduled_date,p.id AS project_id,p.payor_options FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.record_key=$1 AND b.booking_status<>'CANCELLED' AND p.status<>'CANCELLED' AND p.project_code<>'HIS-OPEN-VISIT' ORDER BY CASE WHEN b.scheduled_date=CURRENT_DATE THEN 0 ELSE 1 END,b.scheduled_date DESC NULLS LAST,b.updated_at DESC`,[recordKey]);
+    // Discovery also matches bookings by HN/ID across legacy rows. Resolve the
+    // selected row using authoritative identity and company/year, without relinking it.
+    if(bookingId&&!projectRules.rows.some(row=>String(row.booking_id)===bookingId)){
+      const matched=await require('./open-visit-booking-scope').selectedBookingForRecord(pool,recordKey,bookingId);
+      if(!matched)return res.status(409).json({error:'Booking ที่เลือกไม่ตรงกับบุคคล บริษัท/ปี หรือถูกยกเลิกแล้ว กรุณารีเฟรช Booking'});
+      projectRules.rows.push(matched);
+    }
     if(!projectRules.rows.length)return res.status(409).json({error:'ไม่พบ Booking ของโครงการ กรุณาเพิ่มบุคคลเข้า Booking ก่อน OpenVisit'});
     const eligibleBookings=bookingId?projectRules.rows.filter(row=>String(row.booking_id)===bookingId):projectRules.rows;
     if(bookingId&&!eligibleBookings.length)return res.status(409).json({error:'Booking ที่เลือกไม่ตรงกับผู้รับบริการหรือถูกยกเลิกแล้ว'});
     const allowed=eligibleBookings.flatMap(row=>(Array.isArray(row.payor_options)?row.payor_options:[]).map(item=>({row,item}))),selectedRule=allowed.find(({item})=>String(item.payor||'')===payor&&(!item.agreement||String(item.agreement)===agreement)&&(!item.office||String(item.office)===payorOffice));
-    if(!allowed.length)return res.status(409).json({error:'Booking นี้ยังไม่ได้กำหนด Payor ในโครงการ'});if(!selectedRule)return res.status(409).json({error:'Payor / Agreement / Office ไม่ตรงกับที่กำหนดในโครงการ'});const selectedBooking=selectedRule.row;
+    if(!allowed.length)return res.status(409).json({error:'Booking นี้ยังไม่ได้กำหนด Payor ในโครงการ'});if(!selectedRule)return res.status(409).json({error:'Payor / Agreement / Office ไม่ตรงกับที่กำหนดในโครงการ'});const selectedBooking=selectedRule.row;await clinicalLifecycle.setOpenVisitBooking(selectedBooking.booking_id);
     if(String(record.hisLastVisitUID||'').trim())return res.status(409).json({error:'เปิดวิสิตสำเร็จแล้ว ต้อง CancelVisit ก่อนจึงจะเปิดซ้ำได้'});
     if(!String(record.hn||'').trim())return res.status(400).json({error:'รายการนี้ยังไม่มี HN จึงเปิดวิสิตไม่ได้'});
     const clean=(value,max=300)=>String(value??'').trim().slice(0,max),gender=value=>{const text=String(value||'').toUpperCase();return text==='M'||text==='MALE'?'Male':text==='F'||text==='FEMALE'?'Female':clean(value,20)};
@@ -1846,22 +1914,34 @@ app.post('/api/his/open-visit',localOnly,async(req,res)=>{
     const payload={IdentificationNumber:clean(record.id,80),IdentificationType:clean(record.identificationType||'idnumber',30),HN:clean(record.hn,80),Title:clean(record.title,40),FirstName:clean(record.first,120),LastName:clean(record.last,120),Gender:gender(record.sex),Birthdate:normalizeHisBirthdate(record.birth),EmployeeCode:clean(record.employeeCode,80),LocationCode:locationCode,DoctorNumber:clean(record.doctorNumber,80),UserCode:clean(req.body?.userCode||req.body?.changedBy||'system',120),ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),VisitUID:'',VisitCategory:clean(req.body?.visitCategory,80),ExternalVisitID:clean(record.externalVisitId||record.appointmentSlotId||record.appointmentId||'',120),CheckupRequestNo:clean(record.checkupRequestNo,120),VisitDate:clean(req.body?.visitDate||'',30),Package:packageRows,Payor:{Payor:payor,Agreement:agreement,PayorOffice:payorOffice}};
     const call=await callConfiguredHisJson('OPEN_VISIT',payload),responseData=call.data||{},responseRow=Array.isArray(responseData)?(responseData[0]||{}):(responseData?.Result||responseData?.result||responseData?.Patient||responseData?.patient||responseData);
     const apiMessage=clean(responseRow.StatusDetail||responseRow.statusDetail||responseRow.Message||responseRow.message||responseRow.ErrorMessage||responseRow.errorMessage||responseRow.ErrorDetail||responseRow.errorDetail||responseRow.errordetail||responseRow.Error||responseRow.error||'',1000),apiStatus=String(responseRow.localerror||responseRow.LocalError||responseRow.Status||responseRow.status||'').trim().toLowerCase(),apiFailed=responseRow.IsResult===false||responseRow.isResult===false||responseRow.Success===false||responseRow.success===false||responseRow.Status===false||responseRow.status===false||['error','unsuccess','failed','fail'].includes(apiStatus)||/\b(required|error|invalid|failed|missing)\b/i.test(apiMessage);
-    const visitUID=clean(responseRow.VisitUID||responseRow.visitUID||responseRow.VN||responseRow.vn||'',120);
-    if(apiFailed||!visitUID)throw new Error(apiMessage||'HIS ไม่ได้ส่ง VisitUID / VN กลับมา จึงถือว่าเปิดวิสิตไม่สำเร็จ');
-    record.openVisitRequest=payload;record.openVisitResponse=responseData;record.openVisitAt=new Date().toISOString();record.openVisitBookingId=selectedBooking.booking_id;record.openVisitLocationCode=locationCode;record.payor=payor;record.payorAgreement=agreement;record.payorOffice=payorOffice;
-    if(visitUID)record.hisLastVisitUID=visitUID;
-    state.at=new Date().toISOString();const revision=await writeState(state);
+    let visitUID=clean(responseRow.VisitUID||responseRow.visitUID||responseRow.VN||responseRow.vn||'',120),recoveredExisting=false,verifiedVisit=null;
+    if(apiFailed||!visitUID){
+      const hint=existingVisitHint(apiMessage);
+      if(hint&&hint.location.toLowerCase()===locationCode.toLowerCase()){
+        const lookup=await callConfiguredHisJson('GET_VISIT',{HN:payload.HN,Location:locationCode,ContextKey:payload.ContextKey});
+        verifiedVisit=verifyExistingVisit(lookup.data,{hn:payload.HN,vn:hint.vn,location:locationCode});
+        if(verifiedVisit){visitUID=hint.vn;recoveredExisting=true}
+      }
+      if(!recoveredExisting)throw new Error(apiMessage||'HIS ไม่ได้ส่ง VisitUID / VN กลับมา จึงถือว่าเปิดวิสิตไม่สำเร็จ');
+    }
+    record.openVisitRequest=payload;record.openVisitResponse=responseData;record.openVisitAt=new Date().toISOString();record.openVisitBookingId=selectedBooking.booking_id;record.openVisitLocationCode=locationCode;record.locationCode=locationCode;record.payor=payor;record.payorAgreement=agreement;record.payorOffice=payorOffice;
+    record.hisLastVisitUID=visitUID;record.vn=visitUID;
+    record.hisLastVisitAt=record.openVisitAt;
+    if(recoveredExisting)record.hisVisitRecovery={verifiedAt:record.openVisitAt,visit:verifiedVisit};
+    const fields=Object.fromEntries(['openVisitRequest','openVisitResponse','openVisitAt','openVisitBookingId','openVisitLocationCode','locationCode','payor','payorAgreement','payorOffice','hisLastVisitUID','vn','hisLastVisitAt','hisVisitRecovery'].filter(k=>record[k]!==undefined).map(k=>[k,record[k]]));
+    const revision=await patchRecordHisFields(recordKey,fields);
+    if(revision==null)throw new Error('HIS มี VN แล้ว แต่ไม่พบข้อมูลผู้ป่วยสำหรับบันทึก กรุณาตรวจสอบก่อนลองใหม่');
     const visitDate=new Date(Date.now()+7*60*60*1000).toISOString().slice(0,10),visitId=crypto.randomUUID(),actor=workflowActor(req);
     await pool.query(`INSERT INTO checkup_visits(id,booking_id,visit_date,checkin_at,vn,location,visit_status,updated_by) VALUES($1,$2,$3::date,$4,$5,$6,'CHECKED_IN',$7) ON CONFLICT(booking_id) DO UPDATE SET visit_date=EXCLUDED.visit_date,checkin_at=EXCLUDED.checkin_at,vn=EXCLUDED.vn,location=EXCLUDED.location,visit_status='CHECKED_IN',updated_at=NOW(),updated_by=EXCLUDED.updated_by`,[visitId,selectedBooking.booking_id,visitDate,record.openVisitAt,visitUID,locationCode,actor]);
     await pool.query("UPDATE checkup_bookings SET booking_status='ARRIVED',updated_at=NOW(),updated_by=$2 WHERE id=$1",[selectedBooking.booking_id,actor]);
-    await hisActionAudit(req,state,record,'OPEN_VISIT',{hn:record.hn||'',visitUID,locationCode,bookingId:selectedBooking.booking_id,projectId:selectedBooking.project_id,performedAt:record.openVisitAt});
-    res.set('Cache-Control','no-store');res.json({ok:true,revision,visitUID,bookingId:selectedBooking.booking_id,dataSource:'latest-saved-patient',request:payload,response:responseData});
+    await hisActionAudit(req,state,record,'OPEN_VISIT',{hn:record.hn||'',visitUID,locationCode,bookingId:selectedBooking.booking_id,projectId:selectedBooking.project_id,recoveredExisting,performedAt:record.openVisitAt});
+    res.set('Cache-Control','no-store');res.json({ok:true,revision,visitUID,bookingId:selectedBooking.booking_id,dataSource:'latest-saved-patient',recoveredExisting,request:payload,response:responseData});
   }catch(error){res.status(502).json({error:`เปิดวิสิตกับ HIS ไม่สำเร็จ: ${error.message||error}`});}
 });
-app.post('/api/his/order',localOnly,async(req,res)=>{
+app.post('/api/his/order',localOnly,staffPermissionRequired('receiveFinalize'),async(req,res)=>{
   try{
     const recordKey=String(req.body?.recordKey||'').trim();if(!recordKey)return res.status(400).json({error:'ไม่พบรายการลูกค้าที่จะส่ง OrderHIS'});
-    const state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});if(!record.visitedAt)return res.status(409).json({error:'กรุณายืนยันและบันทึกการตรวจก่อนส่ง OrderHIS'});
+    const state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});if(!record.visitedAt)return res.status(409).json({error:'กรุณายืนยันการตรวจและบันทึกรายการตรวจ ก่อนส่ง OrderHIS'});
     if(record.orderHisAt&&(!record.cancelOrderAt||Date.parse(record.orderHisAt)>Date.parse(record.cancelOrderAt)))return res.status(409).json({error:'ส่ง OrderHIS สำเร็จแล้ว ต้อง Cancel Order ก่อนจึงจะส่งซ้ำได้'});
     const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||'').trim();if(!hn)return res.status(400).json({error:'รายการนี้ยังไม่มี HN'});if(!visitUID)return res.status(400).json({error:'รายการนี้ยังไม่มี VisitUID/VN กรุณากด OpenViSit ก่อน'});
     const clean=(value,max=500)=>String(value??'').trim().slice(0,max),gender=value=>{const text=String(value||'').toUpperCase();return text==='M'||text==='MALE'?'Male':text==='F'||text==='FEMALE'?'Female':clean(value,20)},packages=[];
@@ -1869,15 +1949,15 @@ app.post('/api/his/order',localOnly,async(req,res)=>{
     for(const item of [...(record.acceptedBillingItems||[]),...(record.acceptedCashItems||[]),...(record.selectedPackages||[])]){const value=typeof item==='string'?{name:item}:item||{};if(!value.code&&!value.name)continue;packages.push({PrescriptionNo:clean(value.prescriptionNo,80),Payor:clean(value.payor,80),PackageCode:clean(value.code,100),PackageName:clean(value.name,500),Type:'Add-on',Cost:Number(value.price||value.cost||0),RightCode:clean(value.rightCode,100),ReferenceId:value.referenceId??null,PaymentStatus:value.paymentStatus??null,PaymentType:value.paymentType??null,TransactionState:value.transactionState??null,Paymentdate:value.paymentdate??null})}
     if(!packages.length)return res.status(400).json({error:'ไม่พบแพ็กเกจหลักหรือรายการตรวจเพิ่มสำหรับส่ง OrderHIS'});
     const payload={VisitID:null,IdentificationNumber:clean(record.id,80),IdentificationType:clean(record.identificationType||'idnumber',30),Title:clean(record.title,40),FirstName:clean(record.first,120),LastName:clean(record.last,120),Gender:gender(record.sex),Birthdate:normalizeHisBirthdate(record.birth),HN:hn,VisitUID:visitUID,EmployeeCode:clean(record.employeeCode,80),LocationCode:clean(req.body?.locationCode||record.openVisitLocationCode||record.locationCode,80),DoctorNumber:clean(req.body?.doctorNumber||record.doctorNumber,120),UserCode:req.body?.userCode==null?null:clean(req.body.userCode,120),ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),VisitCategory:req.body?.visitCategory??null,ExternalVisitID:record.externalVisitId??null,CheckupRequestNo:clean(record.checkupRequestNo,120),VisitDate:clean(req.body?.visitDate,30),Package:packages};
-    const call=await callConfiguredHisJson('ORDER_HIS',payload),responseData=call.data||{},apiMessage=clean(hisResponseMessages(responseData).join(' · '),1000),apiFailed=hisResponseFailed(responseData);if(apiFailed)throw new Error(apiMessage||'HIS ปฏิเสธ Order');record.orderHisRequest=payload;record.orderHisResponse=responseData;record.orderHisAt=new Date().toISOString();state.at=new Date().toISOString();const revision=await writeState(state);await hisActionAudit(req,state,record,'ORDER_HIS',{hn,visitUID,packageCount:packages.length,message:apiMessage,performedAt:record.orderHisAt});res.set('Cache-Control','no-store');res.json({ok:true,revision,message:apiMessage,request:payload,response:responseData});
+    const call=await callConfiguredHisJson('ORDER_HIS',payload),responseData=call.data||{},apiMessage=clean(hisResponseMessages(responseData).join(' · '),1000),apiFailed=hisResponseFailed(responseData);if(apiFailed)throw new Error(apiMessage||'HIS ปฏิเสธ Order');record.orderHisRequest=payload;record.orderHisResponse=responseData;record.orderHisAt=new Date().toISOString();state.at=new Date().toISOString();let experience;const revision=await writeState(state,{beforeCommit:async db=>{const event=await awardActivity(db,{user:req.staffUser,role:req.staffRole,activity:'HIS_ORDER',entityKey:recordKey,workKey:recordKey});experience=await activityResult(db,req.staffUser,req.staffRole,[event])}});await hisActionAudit(req,state,record,'ORDER_HIS',{hn,visitUID,packageCount:packages.length,message:apiMessage,performedAt:record.orderHisAt});res.set('Cache-Control','no-store');res.json({ok:true,revision,experience,message:apiMessage,request:payload,response:responseData});
   }catch(error){res.status(502).json({error:`ส่ง OrderHIS ไม่สำเร็จ: ${error.message||error}`});}
 });
-app.post('/api/his/cancel-visit',localOnly,async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim(),state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อนยกเลิก Visit'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),payload={HN:hn,VisitUID:visitUID,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),Remark:clean(req.body?.remark||'rollback',500),CheckupRequestNo:clean(record.checkupRequestNo,120),UserCode:clean(req.body?.userCode,120),VisitDate:clean(req.body?.visitDate,30)},call=await callConfiguredHisJson('CANCEL_VISIT',payload),responseData=call.data||{},message=String(responseData.Message||responseData.message||responseData.Error||responseData.error||'').trim();if(responseData.Success===false||responseData.success===false||responseData.Status===false||String(responseData.Status||'').toLowerCase()==='error')throw new Error(message||'HIS ปฏิเสธการยกเลิก Visit');record.cancelVisitRequest=payload;record.cancelVisitResponse=responseData;record.cancelVisitAt=new Date().toISOString();record.cancelledVisitUID=visitUID;record.hisLastVisitUID='';state.at=new Date().toISOString();const revision=await writeState(state);await hisActionAudit(req,state,record,'CANCEL_VISIT',{hn,visitUID,message,performedAt:record.cancelVisitAt});res.json({ok:true,revision,message,request:payload,response:responseData})}catch(error){res.status(502).json({error:`CancelVisit ไม่สำเร็จ: ${error.message||error}`})}});
-app.post('/api/his/cancel-order',localOnly,async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim(),state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||record.cancelledVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อนยกเลิก Order'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),source=Array.isArray(record.orderHisRequest?.Package)&&record.orderHisRequest.Package.length?record.orderHisRequest.Package:[...(record.acceptedBillingItems||[]),...(record.acceptedCashItems||[]),...(record.selectedPackages||[])],packages=source.map(raw=>{const item=typeof raw==='string'?{name:raw}:raw||{};return {PrescriptionNo:Number(item.PrescriptionNo||item.prescriptionNo||0),Payor:item.Payor??item.payor??null,PackageCode:clean(item.PackageCode||item.code,100),PackageName:clean(item.PackageName||item.name,500),Type:clean(item.Type||item.type||'main',40),Cost:Number(item.Cost||item.price||item.cost||0),RightCode:item.RightCode??item.rightCode??null,ReferenceId:item.ReferenceId??item.referenceId??'',PaymentStatus:item.PaymentStatus??item.paymentStatus??null,PaymentType:item.PaymentType??item.paymentType??null,TransactionState:item.TransactionState??item.transactionState??null,Paymentdate:item.Paymentdate??item.paymentdate??null}}).filter(item=>item.PackageCode||item.PackageName);if(!packages.length)return res.status(400).json({error:'ไม่พบรายการ Package ที่จะยกเลิก'});const payload={IdentificationNumber:clean(record.id,80),IdentificationType:clean(record.identificationType||'idnumber',30),Title:clean(record.title,40),FirstName:clean(record.first,120),LastName:clean(record.last,120),VisitUID:visitUID,HN:hn,Payor:null,Package:packages,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),CheckupRequestNo:record.checkupRequestNo||null,UserCode:clean(req.body?.userCode,120),VisitDate:clean(req.body?.visitDate,30)},call=await callConfiguredHisJson('CANCEL_ORDER',payload),responseData=call.data||{},message=String(responseData.Message||responseData.message||responseData.Error||responseData.error||'').trim();if(responseData.Success===false||responseData.success===false||responseData.Status===false||String(responseData.Status||'').toLowerCase()==='error')throw new Error(message||'HIS ปฏิเสธการยกเลิก Order');record.cancelOrderRequest=payload;record.cancelOrderResponse=responseData;record.cancelOrderAt=new Date().toISOString();state.at=new Date().toISOString();const revision=await writeState(state);await hisActionAudit(req,state,record,'CANCEL_ORDER',{hn,visitUID,packageCount:packages.length,message,performedAt:record.cancelOrderAt});res.json({ok:true,revision,message,request:payload,response:responseData})}catch(error){res.status(502).json({error:`Cancel Order ไม่สำเร็จ: ${error.message||error}`})}});
-app.post('/api/his/charge-close',localOnly,async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim();if(!recordKey)return res.status(400).json({error:'recordKey is required'});const row=(await pool.query(`SELECT c.hn,c.vn,cc.source_data FROM company_customers cc JOIN customers c ON c.id=cc.customer_id WHERE cc.legacy_record_key=$1 LIMIT 1`,[recordKey])).rows[0];if(!row)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const record={...(row.source_data||{}),key:recordKey,hn:String(row.hn||row.source_data?.hn||''),hisLastVisitUID:String(row.vn||row.source_data?.hisLastVisitUID||'')},hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อน ChargeClose'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),payload={HN:hn,VisitUID:visitUID,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80)},call=await callConfiguredHisJson('CHARGE_CLOSE',payload),responseData=call.data||{},message=clean(responseData.Message||responseData.message||responseData.ErrorMessage||responseData.errorMessage||responseData.ErrorDetail||responseData.errorDetail||responseData.Error||responseData.error||'',1000),failed=responseData.Success===false||responseData.success===false||responseData.Status===false||responseData.status===false||['error','unsuccess','failed','fail'].includes(String(responseData.localerror||responseData.LocalError||responseData.Status||responseData.status||'').toLowerCase());if(failed)throw new Error(message||'HIS ปฏิเสธ ChargeClose');const chargeCloseAt=new Date().toISOString(),revision=await patchRecordHisFields(recordKey,{chargeCloseRequest:payload,chargeCloseResponse:responseData,chargeCloseAt});await hisActionAudit(req,{companies:[]},record,'CHARGE_CLOSE',{hn,visitUID,message,performedAt:chargeCloseAt});res.json({ok:true,revision,message,request:payload,response:responseData,fastPath:true})}catch(error){res.status(502).json({error:`ChargeClose ไม่สำเร็จ: ${error.message||error}`})}});
-app.post('/api/his/visit-status',localOnly,async(req,res)=>{let client;try{const recordKey=String(req.body?.recordKey||'').trim(),state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||record.vn||'').trim();if(!hn&&!visitUID)return res.status(400).json({error:'ต้องมี VN หรือ HN ก่อนตรวจสอบสถานะ'});let row=null,statusSource='opdvisit',matchedBy=visitUID?'VN':'HN_FALLBACK';if(visitUID){const item=(await queryHisOpdVisitBatch([visitUID]))[0];if(item){row={visit_uid:item.vn,status:item.status};statusSource=item.source||statusSource}}else{const config=await readHisAppointmentConfig(),table=process.env.HIS_VISIT_STATUS_TABLE||'opdvisit';if(!safeIdentifier(table))throw new Error('ชื่อตาราง Visit Status ไม่ถูกต้อง');client=appointmentPool(config);const result=await client.query(`SELECT "vn" AS visit_uid,"lovvisithstscode" AS status,"lastvisitsts" AS last_status,"cancelleddate" AS cancelled_date FROM "${config.schema}"."${table}" WHERE "hn"=$1 ORDER BY "id" DESC LIMIT 1`,[hn]);row=result.rows[0]}const lastStatus=String(row?.last_status??'').trim(),cancelled=Boolean(row?.cancelled_date)||lastStatus.toLowerCase()==='cancelled',resolvedStatus=!row?'NOT_FOUND':cancelled?'Cancelled':String(row.status||lastStatus||'Unknown').trim();record.hisVisitStatus=resolvedStatus;record.hisVisitStatusAt=new Date().toISOString();record.hisVisitStatusSource=row?statusSource:'';state.at=new Date().toISOString();const revision=await writeState(state);res.json({ok:true,status:record.hisVisitStatus,visitUID:String(row?.visit_uid||visitUID),matchedBy,statusSource:row?statusSource:null,revision})}catch(error){res.status(502).json({error:`ตรวจสอบ Visit Status ไม่สำเร็จ: ${error.message||error}`})}finally{if(client)await client.end().catch(()=>{})}});
+app.post('/api/his/cancel-visit',localOnly,staffPermissionRequired('receiveFinalize'),async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim(),state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อนยกเลิก Visit'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),payload={HN:hn,VisitUID:visitUID,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),Remark:clean(req.body?.remark||'rollback',500),CheckupRequestNo:clean(record.checkupRequestNo,120),UserCode:clean(req.body?.userCode,120),VisitDate:clean(req.body?.visitDate,30)},call=await callConfiguredHisJson('CANCEL_VISIT',payload),responseData=call.data||{},message=String(responseData.Message||responseData.message||responseData.Error||responseData.error||'').trim();if(hisResponseFailed(responseData))throw new Error(message||'HIS ปฏิเสธการยกเลิก Visit');record.cancelVisitRequest=payload;record.cancelVisitResponse=responseData;record.cancelVisitAt=new Date().toISOString();record.cancelledVisitUID=visitUID;record.hisLastVisitUID='';record.vn='';state.at=new Date().toISOString();let experience;const revision=await writeState(state,{beforeCommit:async db=>{const events=await revokeActivities(db,{workKey:recordKey,activities:['WORKLIST_CHECKIN', 'HIS_ORDER', 'DOCTOR_HANDOFF'],userId:req.staffUser.id,reason:'HIS cancel-visit สำเร็จ'});experience=await activityResult(db,req.staffUser,req.staffRole,events)}});await hisActionAudit(req,state,record,'CANCEL_VISIT',{hn,visitUID,message,performedAt:record.cancelVisitAt});res.json({ok:true,revision,experience,message,request:payload,response:responseData})}catch(error){res.status(502).json({error:`CancelVisit ไม่สำเร็จ: ${error.message||error}`})}});
+app.post('/api/his/cancel-order',localOnly,staffPermissionRequired('receiveFinalize'),async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim(),state=await readState(),record=(state.records||[]).find(item=>String(item.key||item.id)===recordKey);if(!record)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||record.cancelledVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อนยกเลิก Order'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),source=Array.isArray(record.orderHisRequest?.Package)&&record.orderHisRequest.Package.length?record.orderHisRequest.Package:[...(record.acceptedBillingItems||[]),...(record.acceptedCashItems||[]),...(record.selectedPackages||[])],packages=source.map(raw=>{const item=typeof raw==='string'?{name:raw}:raw||{};return {PrescriptionNo:Number(item.PrescriptionNo||item.prescriptionNo||0),Payor:item.Payor??item.payor??null,PackageCode:clean(item.PackageCode||item.code,100),PackageName:clean(item.PackageName||item.name,500),Type:clean(item.Type||item.type||'main',40),Cost:Number(item.Cost||item.price||item.cost||0),RightCode:item.RightCode??item.rightCode??null,ReferenceId:item.ReferenceId??item.referenceId??'',PaymentStatus:item.PaymentStatus??item.paymentStatus??null,PaymentType:item.PaymentType??item.paymentType??null,TransactionState:item.TransactionState??item.transactionState??null,Paymentdate:item.Paymentdate??item.paymentdate??null}}).filter(item=>item.PackageCode||item.PackageName);if(!packages.length)return res.status(400).json({error:'ไม่พบรายการ Package ที่จะยกเลิก'});const payload={IdentificationNumber:clean(record.id,80),IdentificationType:clean(record.identificationType||'idnumber',30),Title:clean(record.title,40),FirstName:clean(record.first,120),LastName:clean(record.last,120),VisitUID:visitUID,HN:hn,Payor:null,Package:packages,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80),CheckupRequestNo:record.checkupRequestNo||null,UserCode:clean(req.body?.userCode,120),VisitDate:clean(req.body?.visitDate,30)},call=await callConfiguredHisJson('CANCEL_ORDER',payload),responseData=call.data||{},message=String(responseData.Message||responseData.message||responseData.Error||responseData.error||'').trim();if(hisResponseFailed(responseData))throw new Error(message||'HIS ปฏิเสธการยกเลิก Order');record.cancelOrderRequest=payload;record.cancelOrderResponse=responseData;record.cancelOrderAt=new Date().toISOString();state.at=new Date().toISOString();let experience;const revision=await writeState(state,{beforeCommit:async db=>{const events=await revokeActivities(db,{workKey:recordKey,activities:['HIS_ORDER'],userId:req.staffUser.id,reason:'HIS cancel-order สำเร็จ'});experience=await activityResult(db,req.staffUser,req.staffRole,events)}});await hisActionAudit(req,state,record,'CANCEL_ORDER',{hn,visitUID,packageCount:packages.length,message,performedAt:record.cancelOrderAt});res.json({ok:true,revision,experience,message,request:payload,response:responseData})}catch(error){res.status(502).json({error:`Cancel Order ไม่สำเร็จ: ${error.message||error}`})}});
+app.post('/api/his/charge-close',localOnly,staffPermissionRequired('receiveFinalize'),async(req,res)=>{try{const recordKey=String(req.body?.recordKey||'').trim();if(!recordKey)return res.status(400).json({error:'recordKey is required'});const row=(await pool.query(`SELECT c.hn,c.vn,cc.source_data FROM company_customers cc JOIN customers c ON c.id=cc.customer_id WHERE cc.legacy_record_key=$1 LIMIT 1`,[recordKey])).rows[0];if(!row)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const record={...(row.source_data||{}),key:recordKey,hn:String(row.hn||row.source_data?.hn||''),hisLastVisitUID:String(row.vn||row.source_data?.hisLastVisitUID||'')},hn=String(record.hn||'').trim(),visitUID=String(record.hisLastVisitUID||'').trim();if(!hn||!visitUID)return res.status(400).json({error:'ต้องมี HN และ VisitUID/VN ก่อน ChargeClose'});const clean=(value,max=500)=>String(value??'').trim().slice(0,max),payload={HN:hn,VisitUID:visitUID,ContextKey:clean(req.body?.contextKey||process.env.HIS_CONTEXT_KEY||'Vimut2022',80)},call=await callConfiguredHisJson('CHARGE_CLOSE',payload),responseData=call.data||{},message=clean(responseData.Message||responseData.message||responseData.ErrorMessage||responseData.errorMessage||responseData.ErrorDetail||responseData.errorDetail||responseData.Error||responseData.error||'',1000),failed=responseData.Success===false||responseData.success===false||responseData.Status===false||responseData.status===false||['error','unsuccess','failed','fail'].includes(String(responseData.localerror||responseData.LocalError||responseData.Status||responseData.status||'').toLowerCase());if(failed)throw new Error(message||'HIS ปฏิเสธ ChargeClose');const chargeCloseAt=new Date().toISOString(),revision=await patchRecordHisFields(recordKey,{chargeCloseRequest:payload,chargeCloseResponse:responseData,chargeCloseAt});await hisActionAudit(req,{companies:[]},record,'CHARGE_CLOSE',{hn,visitUID,message,performedAt:chargeCloseAt});res.json({ok:true,revision,message,request:payload,response:responseData,fastPath:true})}catch(error){res.status(502).json({error:`ChargeClose ไม่สำเร็จ: ${error.message||error}`})}});
+app.post('/api/his/visit-status',localOnly,async(req,res)=>{try{const key=String(req.body?.recordKey||'').trim(),state=await readState(),r=(state.records||[]).find(x=>String(x.key||x.id)===key);if(!r)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้า'});const item=(await queryHisVisitStatusBatch([{key,hn:r.hn,vn:r.hisLastVisitUID||r.vn}]))[0];const at=new Date().toISOString(),revision=await patchRecordHisFields(key,{hisVisitStatus:item.status||'NOT_FOUND',hisVisitStatusAt:at,hisVisitStatusSource:item.source,hisVisitStatusWarning:item.message});res.json({ok:true,status:item.status||'NOT_FOUND',visitUID:item.vn,matchedBy:item.source==='patientlog'?'HN_VN':'VN',statusSource:item.source,warning:item.message,identityMatched:item.identityMatched,revision})}catch(e){console.error('[VISIT STATUS]',e);res.status(502).json({error:'ตรวจสอบ VisitStatusHIS ไม่สำเร็จ กรุณาติดต่อผู้ดูแลระบบ'})}});
 
-async function reportFont(pdf){pdf.registerFontkit(fontkit);const fontPath=path.join(process.env.WINDIR||'C:\\Windows','Fonts','tahoma.ttf');return fs.existsSync(fontPath)?pdf.embedFont(fs.readFileSync(fontPath),{subset:true}):pdf.embedFont(StandardFonts.Helvetica)}
+async function reportFont(pdf){pdf.registerFontkit(fontkit);const fontPath=[path.join(process.env.WINDIR||'C:\\Windows','Fonts','tahoma.ttf'),path.join(__dirname,'assets','fonts','Sarabun-Regular.ttf')].find(file=>fs.existsSync(file));if(!fontPath)throw Error('ไม่พบฟอนต์ภาษาไทยสำหรับรายงาน');return pdf.embedFont(fs.readFileSync(fontPath),{subset:true})}
 function reportLines(value,{interpretTemplates=[],interpretCategoryTemplates={}}={}){
   interpretTemplates=interpretTemplates.length?interpretTemplates:(Array.isArray(value?._reportInterpretTemplates)?value._reportInterpretTemplates:[]);interpretCategoryTemplates=Object.keys(interpretCategoryTemplates||{}).length?interpretCategoryTemplates:(value?._reportInterpretCategoryTemplates||{});
   const lines=[],approved=new Set((value?.healthBookApprovedVisitUIDs||[]).map(String)),selectedGroups=new Set((value?._reportGroupKeys||[]).map(x=>String(x).trim().toLowerCase()).filter(Boolean)),editVisits=value?.healthBookLabEditsByVisit&&typeof value.healthBookLabEditsByVisit==='object'?value.healthBookLabEditsByVisit:{},clinicalVisits=value?.healthBookClinicalEditsByVisit&&typeof value.healthBookClinicalEditsByVisit==='object'?value.healthBookClinicalEditsByVisit:{};
@@ -1893,7 +1973,7 @@ function reportLines(value,{interpretTemplates=[],interpretCategoryTemplates={}}
   }
   return lines
 }
-async function buildRecordsPdf(records,{healthBook=false,companies=[]}={}){const pdf=await PDFDocument.create(),font=await reportFont(pdf),ink=rgb(.03,.18,.34),muted=rgb(.32,.42,.5),wrap=(text,max=88)=>{const words=String(text??'').replace(/\s+/g,' ').trim().split(' '),out=[];let line='';for(const word of words){const next=line?`${line} ${word}`:word;if(next.length>max){if(line)out.push(line);line=word}else line=next}if(line)out.push(line);return out.length?out:['-']};for(const record of records){let page=pdf.addPage([595.28,841.89]),y=800;const draw=(text,size=10,color=ink,indent=0)=>{for(const line of wrap(text,Math.max(25,88-Math.round(indent/6)))){if(y<48){page=pdf.addPage([595.28,841.89]);y=800}page.drawText(line,{x:42+indent,y,size,font,color,maxWidth:510-indent});y-=size+6}};const co=companies.find(item=>String(item.id)===String(record.companyId)),name=[record.title,record.first,record.last].filter(Boolean).join(' ')||'-';draw(healthBook?'เล่มตรวจสุขภาพ / Health Checkup Report':'ข้อมูลส่วนตัวผู้รับบริการ',18);draw(`${name}   HN ${record.hn||'-'}   VN ${record.hisLastVisitUID||'-'}`,12);draw(`${co?.name||'-'} / ${co?.year||'-'}`,10,muted);y-=8;draw(`ID / Passport: ${record.id||'-'}   วันเกิด: ${record.birth||'-'}   เพศ: ${record.sex||'-'}`);draw(`โทรศัพท์: ${record.phone||'-'}   อีเมล: ${record.email||'-'}`);draw(`รหัสพนักงาน: ${record.employeeCode||'-'}   แผนก: ${record.departmentName||'-'}   ตำแหน่ง: ${record.positionName||'-'}`);draw(`Package: ${record.code||'-'} · ${record.packageName||'-'}`);if(healthBook){draw(`VN ที่อนุมัติรวมเล่ม: ${(record.healthBookApprovedVisitUIDs||record.hisPrimaryVisitUIDs||[record.hisLastVisitUID]).filter(Boolean).join(', ')||'-'}`,11);draw('ผลตรวจจาก HIS / EMR',14);const lines=reportLines(record);if(lines.length)lines.forEach(line=>draw(line,9,line.startsWith('VN ')?ink:muted,line.startsWith('•')?12:0));else draw('ยังไม่มีข้อมูล EMR',10,muted)}}return pdf.save()}
+async function buildRecordsPdf(records,{healthBook=false,companies=[]}={}){if(healthBook)return require('./personal-book-pdf').buildPersonalBooksPdf(records,companies);const pdf=await PDFDocument.create(),font=await reportFont(pdf),ink=rgb(.03,.18,.34),muted=rgb(.32,.42,.5),wrap=(text,max=88)=>{const words=String(text??'').replace(/\s+/g,' ').trim().split(' '),out=[];let line='';for(const word of words){const next=line?`${line} ${word}`:word;if(next.length>max){if(line)out.push(line);line=word}else line=next}if(line)out.push(line);return out.length?out:['-']};for(const record of records){let page=pdf.addPage([595.28,841.89]),y=800;const draw=(text,size=10,color=ink,indent=0)=>{for(const line of wrap(text,Math.max(25,88-Math.round(indent/6)))){if(y<48){page=pdf.addPage([595.28,841.89]);y=800}page.drawText(line,{x:42+indent,y,size,font,color,maxWidth:510-indent});y-=size+6}};const co=companies.find(item=>String(item.id)===String(record.companyId)),name=[record.title,record.first,record.last].filter(Boolean).join(' ')||'-';draw(healthBook?'เล่มตรวจสุขภาพ / Health Checkup Report':'ข้อมูลส่วนตัวผู้รับบริการ',18);draw(`${name}   HN ${record.hn||'-'}   VN ${record.hisLastVisitUID||'-'}`,12);draw(`${co?.name||'-'} / ${co?.year||'-'}`,10,muted);y-=8;draw(`ID / Passport: ${record.id||'-'}   วันเกิด: ${record.birth||'-'}   เพศ: ${record.sex||'-'}`);draw(`โทรศัพท์: ${record.phone||'-'}   อีเมล: ${record.email||'-'}`);draw(`รหัสพนักงาน: ${record.employeeCode||'-'}   แผนก: ${record.departmentName||'-'}   ตำแหน่ง: ${record.positionName||'-'}`);draw(`Package: ${record.code||'-'} · ${record.packageName||'-'}`);if(healthBook){draw(`VN ที่อนุมัติรวมเล่ม: ${(record.healthBookApprovedVisitUIDs||record.hisPrimaryVisitUIDs||[record.hisLastVisitUID]).filter(Boolean).join(', ')||'-'}`,11);draw('ผลตรวจจาก HIS / EMR',14);const lines=reportLines(record);if(lines.length)lines.forEach(line=>draw(line,9,line.startsWith('VN ')?ink:muted,line.startsWith('•')?12:0));else draw('ยังไม่มีข้อมูล EMR',10,muted)}}return pdf.save()}
 app.post('/api/customer-data-pdf',localOnly,async(req,res)=>{try{const keys=new Set((req.body?.recordKeys||[]).map(String)),state=await readState(),records=(state.records||[]).filter(record=>keys.has(String(record.key||record.id)));if(!records.length)return res.status(400).json({error:'กรุณาเลือกรายชื่ออย่างน้อย 1 คน'});const bytes=await buildRecordsPdf(records,{companies:state.companies||[]});res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(`customer-data_${records.length}.pdf`)}`,'Cache-Control':'no-store'});res.send(Buffer.from(bytes))}catch(error){res.status(500).json({error:`สร้าง PDF ข้อมูลผู้รับบริการไม่สำเร็จ: ${error.message||error}`})}});
 app.post('/api/his/health-book-pdf',localOnly,async(req,res)=>{try{const keys=new Set((req.body?.recordKeys||[]).map(String)),state=await readState(),records=(state.records||[]).filter(record=>keys.has(String(record.key||record.id))).map(record=>({...record,_reportInterpretTemplates:state.interpretTemplates||[],_reportInterpretCategoryTemplates:state.interpretCategoryTemplates||{}}));if(!records.length)return res.status(400).json({error:'กรุณาเลือกรายชื่ออย่างน้อย 1 คน'});const missing=records.filter(record=>!record.hisEmrResult&&!Object.keys(record.hisEmrResultsByVisit||{}).length);if(missing.length)return res.status(400).json({error:`ยังไม่มี EMR ${missing.length} คน`});const bytes=await buildRecordsPdf(records,{healthBook:true,companies:state.companies||[]});res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(`health-books_${records.length}.pdf`)}`,'Cache-Control':'no-store'});res.send(Buffer.from(bytes))}catch(error){res.status(500).json({error:`สร้างเล่มตรวจสุขภาพไม่สำเร็จ: ${error.message||error}`})}});
 function organizationBookText(value,max=300){return String(value??'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,max)}
@@ -1973,8 +2053,11 @@ async function createPatientDocumentPage(form,record,state){
 }
 
 const healthBookPdfCacheDir=path.join(__dirname,'data','health-book-pdf-cache');
-function safeHealthBookCacheName(record){return `${String(record.key||record.id||'record').replace(/[^a-zA-Z0-9_.-]+/g,'_')}.pdf`}
+function safeHealthBookCacheName(record){return `book-v86-${String(record.key||record.id||'record').replace(/[^a-zA-Z0-9_.-]+/g,'_')}.pdf`}
 async function healthBookPdfBytesForRecord(record,state){const prepared={...record,_reportInterpretTemplates:state.interpretTemplates||[],_reportInterpretCategoryTemplates:state.interpretCategoryTemplates||{}};return buildRecordsPdf([prepared],{healthBook:true,companies:state.companies||[]})}
+require('./gemini-lab').registerGeminiLab({app,pool,localOnly,staffPermissionRequired,readState});
+require('./emr-book-actions').registerEmrBooks({app,pool,localOnly,staffPermissionRequired,readState,renderPdf:healthBookPdfBytesForRecord});
+
 async function ensureHealthBookPdfCache(record,state,force=false){fs.mkdirSync(healthBookPdfCacheDir,{recursive:true});const fileName=safeHealthBookCacheName(record),filePath=path.join(healthBookPdfCacheDir,fileName);if(force||!fs.existsSync(filePath)){const bytes=await healthBookPdfBytesForRecord(record,state);fs.writeFileSync(filePath,Buffer.from(bytes))}return {fileName,filePath,stat:fs.statSync(filePath)}}
 app.post('/api/his/health-book-pdf-cache/:recordKey',localOnly,async(req,res)=>{try{const state=await readState(),record=(state.records||[]).find(r=>String(r.key||r.id)===String(req.params.recordKey||''));if(!record)return res.status(404).json({error:'ไม่พบผู้รับบริการ'});if(!record.healthBookApprovedAt)return res.status(400).json({error:'กรุณาอนุมัติผลก่อนสร้าง PDF'});const cached=await ensureHealthBookPdfCache(record,state,true),cachedAt=new Date(cached.stat.mtimeMs).toISOString();res.json({ok:true,cachedAt,url:`/api/his/health-book-pdf-cache/${encodeURIComponent(record.key||record.id)}`,size:cached.stat.size})}catch(error){res.status(500).json({error:`สร้าง PDF เก็บในระบบไม่สำเร็จ: ${error.message||error}`})}});
 app.get('/api/his/health-book-pdf-cache/:recordKey',localOnly,async(req,res)=>{try{const state=await readState(),record=(state.records||[]).find(r=>String(r.key||r.id)===String(req.params.recordKey||''));if(!record)return res.status(404).send('ไม่พบผู้รับบริการ');const cached=await ensureHealthBookPdfCache(record,state,false);res.set({'Content-Type':'application/pdf','Content-Disposition':`inline; filename*=UTF-8''${encodeURIComponent(`health-book_${record.hn||record.key||'patient'}.pdf`)}`,'Cache-Control':'private, max-age=60'});res.sendFile(cached.filePath)}catch(error){res.status(500).send('เปิด PDF ที่อนุมัติไม่สำเร็จ')}});
@@ -2111,6 +2194,7 @@ app.post('/api/his-locations/sync',localOnly,async(req,res)=>{
   finally{if(hisPool)await hisPool.end().catch(()=>{});}
 });
 app.post('/api/his-locations/import',localOnly,async(req,res)=>{const items=Array.isArray(req.body?.items)?req.body.items:[];if(!items.length)return res.status(400).json({error:'ไม่พบข้อมูล Location สำหรับนำเข้า'});let saved=0;try{for(const item of items.slice(0,10000)){const id=String(item.id||item.code||'').trim();if(!id)continue;await pool.query(`INSERT INTO his_location_settings(location_id,location_name,location_code,description,is_active,updated_at,updated_by) VALUES($1,$2,$3,$4,$5,NOW(),$6) ON CONFLICT(location_id) DO UPDATE SET location_name=EXCLUDED.location_name,location_code=EXCLUDED.location_code,description=EXCLUDED.description,is_active=EXCLUDED.is_active,updated_at=NOW(),updated_by=EXCLUDED.updated_by`,[id,String(item.name||''),String(item.code||''),String(item.description||''),item.isActive!==false,String(req.body?.updatedBy||'system').slice(0,120)]);saved++}res.json({ok:true,saved})}catch(error){res.status(500).json({error:error.message||String(error)})}});
+app.post('/api/his/visit-status/read',localOnly,async(req,res)=>{try{const items=await queryHisVisitStatusBatch(req.body?.items||[]);res.set('Cache-Control','no-store').json({ok:true,items})}catch(e){console.error('[VISIT STATUS READ]',e);res.status(502).json({error:'อ่าน VisitStatusHIS ไม่สำเร็จ กรุณาติดต่อผู้ดูแลระบบ'})}});
 app.post('/api/his/patientlog-status',localOnly,async(req,res)=>{try{const result=await fetchLatestPatientLogStatuses(req.body?.items||[]);res.set('Cache-Control','no-store');res.json(result)}catch(error){res.status(502).json({error:'อ่าน Status ล่าสุดจาก patientlog ไม่สำเร็จ',detail:error.message})}});
 app.get('/api/his-users',localOnly,staffPermissionRequired('userView'),async(req,res)=>{try{const result=await fetchHisDirectoryUsers();res.set('Cache-Control','no-store');res.json(result)}catch(error){console.error('HIS user directory read failed',error);res.status(502).json({error:'อ่านรายชื่อ User จาก HIS ไม่สำเร็จ',detail:error.message||String(error)})}});
 app.get('/api/his-users/query',localOnly,staffPermissionRequired('userView'),async(req,res)=>{try{const source=await inspectHisDirectoryUserQuery();res.set('Cache-Control','no-store');res.json({ok:true,source})}catch(error){res.status(502).json({error:'อ่าน Query User จาก HIS ไม่สำเร็จ',detail:error.message})}});
@@ -2319,7 +2403,7 @@ app.post('/api/auth/reset-password', localOnly, async (req, res) => {
     const displayName = normalizedPersonName(req.body?.displayName);
     const password = String(req.body?.password || '');
     if (!username || !displayName) return res.status(400).json({ error:'กรุณากรอกชื่อผู้ใช้และชื่อที่ลงทะเบียนไว้' });
-    if (password.length < 8 || !/[A-Za-zก-๙]/.test(password) || !/\d/.test(password)) return res.status(400).json({ error:'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร และมีทั้งตัวอักษรกับตัวเลข' });
+    if (password.length < 10 || !/[A-Za-zก-๙]/.test(password) || !/\d/.test(password)) return res.status(400).json({ error:'รหัสผ่านใหม่ต้องมีอย่างน้อย 10 ตัวอักษร และมีทั้งตัวอักษรกับตัวเลข' });
     const state = await readState();
     state.users = Array.isArray(state.users) ? state.users : [];
     let user = state.users.find(item => normalizedPersonName(item.username) === username && item.active !== false);
@@ -2328,12 +2412,12 @@ app.post('/api/auth/reset-password', localOnly, async (req, res) => {
       state.users.push(user);
     }
     if (!user || normalizedPersonName(user.displayName) !== displayName) return res.status(404).json({ error:'ไม่พบบัญชี หรือชื่อที่ลงทะเบียนไม่ตรงกับข้อมูลผู้ใช้' });
-    user.passwordHash = legacyPasswordHash(password);
+    user.passwordHash = legacyPasswordHash(password);user.passwordChangedAt=new Date().toISOString();user.mustChangePassword=false;
     state.permissionAudit = Array.isArray(state.permissionAudit) ? state.permissionAudit : [];
     state.permissionAudit.unshift({ id:crypto.randomUUID(), action:'ผู้ใช้ตั้งรหัสผ่านใหม่', target:String(user.username||''), details:{selfService:true,verification:'username+displayName'}, by:String(user.displayName||user.username||''), userId:String(user.id||''), at:new Date().toISOString() });
     state.permissionAudit = state.permissionAudit.slice(0,1000);state.at=new Date().toISOString();
     const revision=await writeState(state);
-    res.set('Cache-Control','no-store');return res.json({ok:true,username:user.username,revision});
+    invalidateUserCredentials(user.id);res.set('Cache-Control','no-store');return res.json({ok:true,username:user.username,revision});
   } catch (error) { console.error('[AUTH RESET]',error);return res.status(500).json({error:'ตั้งรหัสผ่านใหม่ไม่สำเร็จ',detail:String(error?.message||error)}); }
 });
 
@@ -2349,8 +2433,106 @@ function staffSessionToken(req){const cookies=String(req.headers.cookie||'').spl
 function staffSessionCookie(token,maxAge=0){return `${STAFF_SESSION_COOKIE}=${encodeURIComponent(token||'')}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.max(0,Math.floor(maxAge/1000))}`}
 function cleanupStaffSessions(){const now=Date.now();for(const [token,session] of staffSessions)if(session.expiresAt<=now)staffSessions.delete(token)}
 function cleanupFirstLoginTokens(){const now=Date.now();for(const [token,item] of firstLoginTokens)if(item.expiresAt<=now)firstLoginTokens.delete(token)}
-app.get('/api/auth/session',localOnly,async(req,res)=>{try{cleanupStaffSessions();const token=staffSessionToken(req),session=staffSessions.get(token);if(!session)return res.status(401).json({authenticated:false});const state=await readState(),user=(state.users||[]).find(item=>String(item.id)===String(session.userId)&&item.active!==false);if(!user){staffSessions.delete(token);res.set('Set-Cookie',staffSessionCookie('',0));return res.status(401).json({authenticated:false})}session.expiresAt=Date.now()+session.ttl;res.set({'Cache-Control':'no-store','Set-Cookie':staffSessionCookie(token,session.ttl)});res.json({authenticated:true,user:{id:String(user.id||''),username:String(user.username||''),displayName:String(user.displayName||user.username||''),roleId:String(user.roleId||''),active:true}})}catch(error){res.status(500).json({error:'ตรวจสอบ Session ไม่สำเร็จ'})}});
+app.get('/api/auth/session',localOnly,async(req,res)=>{try{
+  const access=await staffPermissionContext(req,null);
+  if(!access.ok)return res.status(access.status).json({authenticated:false,code:access.code,error:access.error});
+  const {user,role,session}=access;res.set('Cache-Control','no-store');
+  res.json({authenticated:true,user:{id:String(user.id),username:user.username,displayName:user.displayName,roleId:user.roleId,active:true},...sessionMetadata(session,user,role)});
+}catch(error){res.status(500).json({error:'ตรวจสอบ Session ไม่สำเร็จ'})}});
+app.post('/api/auth/activity',localOnly,async(req,res)=>{try{
+  const access=await staffPermissionContext(req,null);
+  if(!access.ok)return res.status(access.status).json({authenticated:false,code:access.code,error:access.error});
+  const idleForMs=Number(req.body?.idleForMs||0);
+  if(!Number.isFinite(idleForMs)||idleForMs<0||idleForMs>60000)return res.status(400).json({error:'เวลา activity ไม่ถูกต้อง'});
+  access.session.lastActivityAt=Math.max(access.session.lastActivityAt,Date.now()-idleForMs);
+  res.set('Cache-Control','no-store');res.json({ok:true,...sessionMetadata(access.session,access.user,access.role)});
+}catch(error){res.status(500).json({error:'บันทึก activity ไม่สำเร็จ'})}});
 app.post('/api/auth/logout',localOnly,(req,res)=>{const token=staffSessionToken(req);if(token)staffSessions.delete(token);res.set({'Cache-Control':'no-store','Set-Cookie':staffSessionCookie('',0)});res.json({ok:true})});
+
+// v7.64.67: local accounts use the configured first-login credential.
+function invalidateUserCredentials(userId){
+  for(const [token,session] of staffSessions)if(String(session.userId)===String(userId))staffSessions.delete(token);
+  for(const [token,entry] of firstLoginTokens)if(String(entry.userId)===String(userId))firstLoginTokens.delete(token);
+}
+async function writeUserAccessState(data){
+  const client=await pool.connect();try{
+    await client.query('BEGIN');const locked=await client.query('SELECT revision FROM app_state WHERE id=1 FOR UPDATE');
+    if(Number(locked.rows[0]?.revision)!==Number(data._revision))throw Object.assign(new Error('ข้อมูลผู้ใช้มีการเปลี่ยนแปลง กรุณาโหลดหน้าใหม่แล้วลองอีกครั้ง'),{status:409});
+    const patch={users:data.users,permissionAudit:data.permissionAudit||[],at:data.at};
+    for(const key of ['firstLoginPasswordHash','firstLoginPasswordUpdatedAt'])if(Object.prototype.hasOwnProperty.call(data,key))patch[key]=data[key];
+    const revision=Number(data._revision)+1;
+    await client.query('UPDATE app_state SET data=data || $1::jsonb,revision=$2,updated_at=NOW() WHERE id=1',[JSON.stringify(patch),revision]);
+    await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
+    await client.query('COMMIT');compressedStateCache={revision:null,body:null};return revision;
+  }catch(error){await client.query('ROLLBACK').catch(()=>{});throw error}finally{client.release()}
+}
+app.put('/api/roles/:roleId/security-policy',localOnly,staffPermissionRequired('permissionManage'),async(req,res)=>{
+  let policy;try{policy=validatePolicy(req.body?.policy)}catch(error){return res.status(400).json({error:error.message})}
+  const client=await pool.connect();try{
+    await client.query('BEGIN');const row=(await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE')).rows[0];
+    const data=row?.data||{},roles=data.roles||[],role=roles.find(item=>String(item.id)===String(req.params.roleId));
+    if(!role){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบ Role'})}
+    const before=policyForRole(role);role.securityPolicy=policy;
+    const audit=[{id:crypto.randomUUID(),action:'เปลี่ยนนโยบายความปลอดภัย Role',target:role.name,details:{roleId:role.id,before,after:policy},by:req.staffUser.displayName||req.staffUser.username,userId:req.staffUser.id,at:new Date().toISOString()},...(data.permissionAudit||[])].slice(0,1000);
+    const revision=Number(row.revision)+1;
+    await client.query('UPDATE app_state SET data=data || $1::jsonb,revision=$2,updated_at=NOW() WHERE id=1',[JSON.stringify({roles,permissionAudit:audit}),revision]);
+    await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
+    await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.json({ok:true,roleId:role.id,policy,revision,auditEntry:audit[0]});
+  }catch(error){await client.query('ROLLBACK').catch(()=>{});res.status(500).json({error:'บันทึกนโยบายไม่สำเร็จ'})}finally{client.release()}
+});
+registerCheckupFormats(app,{pool,localOnly,staffPermissionRequired});
+registerSummaryPdf(app,{localOnly,staffPermissionRequired,customerQr:(req,key)=>customerAccess.issue(req,key)});
+registerOrderVisibility(app,{pool,localOnly,staffPermissionRequired,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
+app.get('/api/users/me/experience',localOnly,staffPermissionRequired(null),async(req,res)=>{try{res.set('Cache-Control','no-store');res.json(await readExperience(pool,req.staffUser.id,req.staffRole))}catch(error){res.status(500).json({error:'โหลด EXP ไม่สำเร็จ'})}});
+app.post('/api/users/save',localOnly,(req,res,next)=>staffPermissionRequired(req.body?.id?'userEdit':'userCreate')(req,res,next),async(req,res)=>{try{
+  const state=await readState();state.users=Array.isArray(state.users)?state.users:[];
+  const id=String(req.body?.id||''),displayName=String(req.body?.displayName||'').trim(),username=String(req.body?.username||'').trim(),roleId=String(req.body?.roleId||''),active=req.body?.active!==false;
+  if(!displayName||displayName.length>100||!username||username.length>50)return res.status(400).json({error:'กรุณากรอกชื่อที่แสดงและชื่อผู้ใช้ให้ครบถ้วน'});
+  const existing=id?state.users.find(user=>String(user.id)===id):null;
+  if(id&&!existing)return res.status(404).json({error:'ไม่พบผู้ใช้'});
+  if(state.users.some(user=>String(user.id)!==id&&normalizedPersonName(user.username)===normalizedPersonName(username)))return res.status(409).json({error:'ชื่อผู้ใช้นี้มีอยู่แล้ว'});
+  if(!(state.roles||[]).some(role=>String(role.id)===roleId))return res.status(400).json({error:'กรุณาเลือก Role ที่มีอยู่ในระบบ'});
+  if(existing&&normalizedPersonName(existing.username)==='admin'&&(username!==existing.username||roleId!==existing.roleId||active!==existing.active))return res.status(403).json({error:'ไม่สามารถเปลี่ยนชื่อ Role หรือสถานะบัญชี admin ได้'});
+  if(existing&&String(existing.id)===String(req.staffUser.id)&&!active)return res.status(403).json({error:'ไม่สามารถปิดบัญชีที่กำลังใช้งานได้'});
+  const initialHash=String(state.firstLoginPasswordHash||'');
+  if((!existing||active&&!existing.passwordHash)&&!initialHash)return res.status(409).json({error:'กรุณากำหนดรหัสตั้งต้นที่เมนู “รหัสเข้าใช้ครั้งแรก” ก่อนสร้างหรือเปิดใช้งานบัญชี'});
+  const now=new Date().toISOString();let user=existing;
+  if(!user){user={id:crypto.randomUUID(),source:'LOCAL',createdAt:now,passwordHash:initialHash,mustChangePassword:true,firstLoginAt:null,passwordChangedAt:null};state.users.push(user)}
+  else if(active&&!user.passwordHash){user.passwordHash=initialHash;user.mustChangePassword=true;user.firstLoginAt=null;user.passwordChangedAt=null}
+  Object.assign(user,{displayName,username,roleId,active});
+  state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];state.permissionAudit.unshift({id:crypto.randomUUID(),action:existing?'แก้ไขบัญชีผู้ใช้':'เพิ่มบัญชีผู้ใช้',target:username,details:{roleId,active,firstLogin:user.mustChangePassword===true},by:req.staffUser.displayName||req.staffUser.username,userId:req.staffUser.id,at:now});state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=now;
+  const revision=await writeUserAccessState(state);if(!active)invalidateUserCredentials(user.id);res.set('Cache-Control','no-store');res.json({ok:true,userId:user.id,revision});
+}catch(error){res.status(error.status||500).json({error:error.status?error.message:'บันทึกผู้ใช้ไม่สำเร็จ'})}});
+app.post('/api/users/bulk-action',localOnly,staffPermissionRequired('userEdit'),async(req,res)=>{try{
+  const action=String(req.body?.action||''),raw=req.body?.userIds;
+  if(!['enable','disable','reset'].includes(action)||!Array.isArray(raw)||!raw.length||raw.length>1000)return res.status(400).json({error:'กรุณาเลือกการทำงานและผู้ใช้ 1–1,000 บัญชี'});
+  const ids=[...new Set(raw.map(String))],state=await readState(),byId=new Map((state.users||[]).map(u=>[String(u.id),u])),users=ids.map(id=>byId.get(id));
+  if(users.some(u=>!u))return res.status(404).json({error:'มีผู้ใช้ที่ไม่พบในระบบ กรุณาโหลดข้อมูลใหม่'});
+  if(users.some(u=>normalizedPersonName(u.username)==='admin'||String(u.id)===String(req.staffUser.id)))return res.status(403).json({error:'ไม่สามารถเปลี่ยนบัญชี admin หรือบัญชีที่กำลังใช้งานด้วยคำสั่งกลุ่มได้'});
+  const hash=String(state.firstLoginPasswordHash||'');
+  if((action==='reset'||action==='enable'&&users.some(u=>!u.passwordHash))&&!hash)return res.status(409).json({error:'กรุณากำหนดรหัสตั้งต้นที่เมนู “รหัสเข้าใช้ครั้งแรก” ก่อน'});
+  const at=new Date().toISOString(),labels={enable:'เปิดใช้งานผู้ใช้',disable:'ปิดใช้งานผู้ใช้',reset:'รีเซ็ตรหัสผ่านผู้ใช้'};
+  state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];
+  for(const user of users){
+    const beforeActive=user.active!==false;
+    if(action==='reset'||action==='enable'&&!user.passwordHash)Object.assign(user,{passwordHash:hash,mustChangePassword:true,firstLoginAt:null,passwordChangedAt:null,passwordResetAt:at,passwordResetBy:req.staffUser.username});
+    if(action!=='reset')user.active=action==='enable';
+    state.permissionAudit.unshift({id:crypto.randomUUID(),action:labels[action],target:user.username,details:{bulk:true,beforeActive,active:user.active!==false,forceChange:user.mustChangePassword===true},by:req.staffUser.displayName||req.staffUser.username,userId:req.staffUser.id,at});
+  }
+  state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=at;
+  const revision=await writeUserAccessState(state);
+  if(action!=='enable')for(const user of users)invalidateUserCredentials(user.id);
+  res.set('Cache-Control','no-store');res.json({ok:true,count:users.length,revision});
+}catch(error){res.status(error.status||500).json({error:error.status?error.message:'ดำเนินการกับผู้ใช้ไม่สำเร็จ'})}});
+app.post('/api/users/:id/reset-password',localOnly,staffPermissionRequired('userEdit'),async(req,res)=>{try{
+  const state=await readState(),user=(state.users||[]).find(item=>String(item.id)===String(req.params.id));
+  if(!user)return res.status(404).json({error:'ไม่พบผู้ใช้'});
+  if(normalizedPersonName(user.username)==='admin'||String(user.id)===String(req.staffUser.id))return res.status(403).json({error:'ไม่สามารถรีเซตบัญชี admin หรือบัญชีที่กำลังใช้งานได้'});
+  const hash=String(state.firstLoginPasswordHash||'');if(!hash)return res.status(409).json({error:'กรุณากำหนดรหัสตั้งต้นที่เมนู “รหัสเข้าใช้ครั้งแรก” ก่อนรีเซต'});
+  const now=new Date().toISOString();Object.assign(user,{passwordHash:hash,mustChangePassword:true,firstLoginAt:null,passwordChangedAt:null,passwordResetAt:now,passwordResetBy:req.staffUser.username});
+  state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];state.permissionAudit.unshift({id:crypto.randomUUID(),action:'รีเซตรหัสผ่านผู้ใช้',target:user.username,details:{forceChange:true},by:req.staffUser.displayName||req.staffUser.username,userId:req.staffUser.id,at:now});state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=now;
+  const revision=await writeUserAccessState(state);invalidateUserCredentials(user.id);res.set('Cache-Control','no-store');res.json({ok:true,revision});
+}catch(error){res.status(error.status||500).json({error:error.status?error.message:'รีเซตรหัสผ่านไม่สำเร็จ'})}});
 
 app.post('/api/users/first-login-password',localOnly,staffPermissionRequired('userEdit'),async(req,res)=>{try{
   const password=String(req.body?.password||''),userIds=[...new Set((Array.isArray(req.body?.userIds)?req.body.userIds:[]).map(String).filter(Boolean))];
@@ -2359,7 +2541,7 @@ app.post('/api/users/first-login-password',localOnly,staffPermissionRequired('us
   const targets=state.users.filter(user=>userIds.includes(String(user.id))&&normalizedPersonName(user.username)!=='admin'&&String(user.id)!==String(req.staffUser?.id));
   for(const user of targets){user.passwordHash=hash;user.active=true;user.mustChangePassword=true;user.firstLoginAt=null;user.passwordChangedAt=null;user.passwordResetAt=now;user.passwordResetBy=String(req.staffUser?.username||'admin')}
   state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];state.permissionAudit.unshift({id:crypto.randomUUID(),action:targets.length?'รีเซ็ตรหัสเข้าใช้ครั้งแรก':'ตั้งรหัสเข้าใช้ครั้งแรก',target:targets.length?`${targets.length} บัญชี`:'User จาก HIS ใหม่',details:{count:targets.length,usernames:targets.slice(0,100).map(user=>user.username)},by:String(req.staffUser?.displayName||req.staffUser?.username||'admin'),userId:String(req.staffUser?.id||''),at:now});state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=now;
-  const revision=await writeState(state);res.set('Cache-Control','no-store');res.json({ok:true,resetCount:targets.length,revision});
+  const revision=await writeUserAccessState(state);for(const user of targets)invalidateUserCredentials(user.id);res.set('Cache-Control','no-store');res.json({ok:true,resetCount:targets.length,revision});
 }catch(error){console.error('[FIRST LOGIN PASSWORD]',error);res.status(500).json({error:'ตั้งรหัสเข้าใช้ครั้งแรกไม่สำเร็จ',detail:String(error?.message||error)})}});
 
 app.post('/api/auth/change-first-password',localOnly,async(req,res)=>{try{
@@ -2367,9 +2549,9 @@ app.post('/api/auth/change-first-password',localOnly,async(req,res)=>{try{
   if(!entry)return res.status(401).json({error:'คำขอเปลี่ยนรหัสหมดอายุ กรุณาเข้าสู่ระบบใหม่'});
   if(password.length<10||!/[A-Za-zก-๙]/.test(password)||!/[0-9]/.test(password))return res.status(400).json({error:'รหัสผ่านใหม่ต้องมีอย่างน้อย 10 ตัวอักษร และมีทั้งตัวอักษรกับตัวเลข'});
   const state=await readState(),user=(state.users||[]).find(item=>String(item.id)===String(entry.userId)&&item.active!==false);
-  if(!user||user.mustChangePassword!==true){firstLoginTokens.delete(token);return res.status(409).json({error:'บัญชีนี้ไม่อยู่ในสถานะเปลี่ยนรหัสครั้งแรก'});}
-  if(safeEqual(legacyPasswordHash(password),String(user.passwordHash||'')))return res.status(400).json({error:'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเข้าใช้ครั้งแรก'});
-  const now=new Date().toISOString();user.passwordHash=legacyPasswordHash(password);user.mustChangePassword=false;user.firstLoginAt=user.firstLoginAt||now;user.passwordChangedAt=now;state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];state.permissionAudit.unshift({id:crypto.randomUUID(),action:'เปลี่ยนรหัสผ่านเมื่อเข้าใช้ครั้งแรก',target:String(user.username||''),details:{firstLogin:true},by:String(user.displayName||user.username||''),userId:String(user.id||''),at:now});state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=now;const revision=await writeState(state);firstLoginTokens.delete(token);res.set('Cache-Control','no-store');res.json({ok:true,username:user.username,revision});
+  if(!user||(entry.reason!=='expired'&&user.mustChangePassword!==true)||entry.passwordHash!==String(user.passwordHash)){firstLoginTokens.delete(token);return res.status(409).json({error:'บัญชีนี้ไม่อยู่ในสถานะเปลี่ยนรหัสครั้งแรก'});}
+  if(safeEqual(legacyPasswordHash(password),String(user.passwordHash||'')))return res.status(400).json({error:'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสผ่านเดิม'});
+  const now=new Date().toISOString();user.passwordHash=legacyPasswordHash(password);user.mustChangePassword=false;user.firstLoginAt=user.firstLoginAt||now;user.passwordChangedAt=now;state.permissionAudit=Array.isArray(state.permissionAudit)?state.permissionAudit:[];state.permissionAudit.unshift({id:crypto.randomUUID(),action:entry.reason==='expired'?'เปลี่ยนรหัสผ่านที่หมดอายุ':'เปลี่ยนรหัสผ่านเมื่อเข้าใช้ครั้งแรก',target:String(user.username||''),details:{firstLogin:entry.reason!=='expired',passwordExpired:entry.reason==='expired'},by:String(user.displayName||user.username||''),userId:String(user.id||''),at:now});state.permissionAudit=state.permissionAudit.slice(0,1000);state.at=now;const revision=await writeUserAccessState(state);invalidateUserCredentials(user.id);res.set('Cache-Control','no-store');res.json({ok:true,username:user.username,revision});
 }catch(error){console.error('[CHANGE FIRST PASSWORD]',error);res.status(500).json({error:'เปลี่ยนรหัสผ่านไม่สำเร็จ',detail:String(error?.message||error)})}});
 
 // v7.59.40 - canonical login verification. Keep authentication separate from UI helpers.
@@ -2377,6 +2559,7 @@ app.post('/api/auth/login', localOnly, async (req, res) => {
   try {
     const username = normalizedPersonName(req.body?.username);
     const password = String(req.body?.password || '');
+    req.loginAudit={username:String(req.body?.username||'').trim(),reason:!username||!password?'MISSING_CREDENTIALS':'INVALID_CREDENTIALS'};
     if (!username || !password) return res.status(400).json({ error:'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
     const loginAttemptKey=staffLoginAttemptKey(req,username),loginAttempt=staffLoginAttemptState(loginAttemptKey);
     if(loginAttempt.lockedUntil>Date.now())return res.status(429).json({error:'เข้าสู่ระบบผิดหลายครั้ง กรุณารอประมาณ 5 นาทีแล้วลองใหม่',retryAfterSec:Math.ceil((loginAttempt.lockedUntil-Date.now())/1000)});
@@ -2396,8 +2579,11 @@ app.post('/api/auth/login', localOnly, async (req, res) => {
       return res.status(401).json({ error:'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกปิดใช้งาน' });
     }
     staffLoginRegisterSuccess(loginAttemptKey);
-    if(user.mustChangePassword===true){cleanupFirstLoginTokens();const changeToken=crypto.randomBytes(32).toString('base64url');firstLoginTokens.set(changeToken,{userId:String(user.id||''),expiresAt:Date.now()+10*60*1000});return res.json({ok:true,mustChangePassword:true,changeToken,user:{id:String(user.id||''),username:String(user.username||''),displayName:String(user.displayName||user.username||'')}})}
-    cleanupStaffSessions();const remember=req.body?.remember===true,ttl=remember?30*24*60*60*1000:12*60*60*1000,token=crypto.randomBytes(32).toString('base64url');staffSessions.set(token,{userId:String(user.id||''),username:String(user.username||''),displayName:String(user.displayName||user.username||''),ttl,expiresAt:Date.now()+ttl});
+    const passwordRole=(state.roles||[]).find(role=>String(role.id)===String(user.roleId));
+    const expired=passwordExpired(user,passwordRole);
+    Object.assign(req.loginAudit,{username:user.username,displayName:user.displayName||user.username,roleId:user.roleId,roleName:passwordRole?.name||user.roleId,outcome:user.mustChangePassword===true||expired?'PASSWORD_CHANGE_REQUIRED':'SUCCESS',reason:user.mustChangePassword===true?'FIRST_LOGIN':expired?'PASSWORD_EXPIRED':''});
+    if(user.mustChangePassword===true||expired){const previousSession=staffSessionToken(req);if(previousSession)staffSessions.delete(previousSession);res.set({'Cache-Control':'no-store','Set-Cookie':staffSessionCookie('',0)});cleanupFirstLoginTokens();const changeToken=crypto.randomBytes(32).toString('base64url');firstLoginTokens.set(changeToken,{userId:String(user.id||''),expiresAt:Date.now()+10*60*1000,passwordHash:String(user.passwordHash),reason:user.mustChangePassword===true?'first-login':'expired'});return res.json({ok:true,mustChangePassword:true,passwordExpired:expired,changeToken,user:{id:String(user.id||''),username:String(user.username||''),displayName:String(user.displayName||user.username||'')}})}
+    cleanupStaffSessions();const remember=req.body?.remember===true,ttl=remember?30*24*60*60*1000:12*60*60*1000,token=crypto.randomBytes(32).toString('base64url');staffSessions.set(token,{userId:String(user.id||''),username:String(user.username||''),displayName:String(user.displayName||user.username||''),ttl,createdAt:Date.now(),lastActivityAt:Date.now(),passwordHash:String(user.passwordHash),expiresAt:Date.now()+ttl});
     res.set({'Cache-Control':'no-store','Set-Cookie':staffSessionCookie(token,ttl)});
     return res.json({ ok:true, user:{ id:String(user.id||''), username:String(user.username||''), displayName:String(user.displayName||user.username||''), roleId:String(user.roleId||''), active:user.active!==false } });
   } catch (error) {
@@ -2406,7 +2592,22 @@ app.post('/api/auth/login', localOnly, async (req, res) => {
   }
 });
 
-let compressedStateCache={revision:null,body:null};
+let compressedStateCache={revision:null,body:null,jsonBody:null};
+let stateResponseBuild=null;
+async function buildStateResponse(revision){
+  if(compressedStateCache.revision===revision&&compressedStateCache.body&&compressedStateCache.jsonBody)return compressedStateCache;
+  if(stateResponseBuild?.revision===revision)return stateResponseBuild.promise;
+  const promise=(async()=>{
+    const state=await readState(),wireState={...state,records:(state.records||[]).map(compactRecordForWire)};
+    const jsonBody=Buffer.from(JSON.stringify(wireState));
+    const body=await new Promise((resolve,reject)=>zlib.gzip(jsonBody,{level:zlib.constants.Z_BEST_SPEED},(error,result)=>error?reject(error):resolve(result)));
+    const built={revision,body,jsonBody};
+    compressedStateCache=built;
+    return built;
+  })();
+  stateResponseBuild={revision,promise};
+  try{return await promise}finally{if(stateResponseBuild?.promise===promise)stateResponseBuild=null}
+}
 app.get('/api/state/revision',localOnly,async(_req,res)=>{
   try{const result=await pool.query('SELECT revision,updated_at FROM app_state WHERE id=1');const row=result.rows[0]||{};res.set('Cache-Control','no-store');res.json({revision:Number(row.revision||0),updatedAt:row.updated_at||null})}
   catch(error){res.status(500).json({error:'ตรวจสอบ Revision ไม่สำเร็จ'})}
@@ -2419,11 +2620,10 @@ app.get('/api/state', localOnly, async (req, res) => {
     const current=await pool.query('SELECT revision FROM app_state WHERE id=1'),revision=Number(current.rows[0]?.revision||0),etag=`"state-${revision}"`;
     res.set({'Cache-Control':'private, no-cache','ETag':etag,'Vary':'Accept-Encoding'});
     if(String(req.headers['if-none-match']||'').split(',').map(value=>value.trim()).includes(etag))return res.status(304).end();
-    if(acceptsGzip&&compressedStateCache.body&&compressedStateCache.revision===revision){res.set('Content-Type','application/json; charset=utf-8');res.set('Content-Encoding','gzip');return res.send(compressedStateCache.body)}
-    const state=await readState(),wireState={...state,records:(state.records||[]).map(compactRecordForWire)};
-    if(!acceptsGzip)return res.json(wireState);
-    if(compressedStateCache.revision!==revision||!compressedStateCache.body){compressedStateCache={revision,body:await new Promise((resolve,reject)=>zlib.gzip(Buffer.from(JSON.stringify(wireState)),{level:zlib.constants.Z_BEST_SPEED},(error,body)=>error?reject(error):resolve(body)))}}
-    res.set('Content-Type','application/json; charset=utf-8');res.set('Content-Encoding','gzip');res.set('Vary','Accept-Encoding');res.send(compressedStateCache.body);
+    const cached=await buildStateResponse(revision);
+    res.set('Content-Type','application/json; charset=utf-8');
+    if(!acceptsGzip)return res.send(cached.jsonBody);
+    res.set('Content-Encoding','gzip');res.set('Vary','Accept-Encoding');res.send(cached.body);
   } catch (error) { res.status(500).json({ error: 'อ่านข้อมูล PostgreSQL ไม่สำเร็จ' }); }
 });
 
@@ -2644,6 +2844,8 @@ app.get('/api/his-packages', localOnly, async (req, res) => {
       FROM his_packages WHERE $1='' OR package_code ILIKE '%'||$1||'%' OR package_name ILIKE '%'||$1||'%' OR source_data::text ILIKE '%'||$1||'%'
       ORDER BY updated_at DESC, id DESC`, [q]);
     result.rows.forEach(row => { if (!Array.isArray(row.detail_items) || !row.detail_items.length) row.detail_items = packageDetailItems(row.source_data); });
+    // The SPA needs normalized details, not a second copy of the original HIS payload.
+    if(String(req.query.compact||'')==='1')for(const row of result.rows)delete row.source_data;
     res.set('Cache-Control','no-store'); res.json({ total:result.rows.length, items:result.rows });
   } catch (error) { res.status(500).json({ error:'อ่านฐานข้อมูลแพ็กเกจไม่สำเร็จ' }); }
 });
@@ -2696,6 +2898,24 @@ async function packageItemSettingsActor(req){
   const isAdmin=String(user.roleId)==='admin';
   return {username:String(user.username||''),displayName:String(user.displayName||user.username||''),permissions,isAdmin};
 }
+// Excel round trip only patches Order setup; revision and audit are committed atomically.
+app.post('/api/order-setup/import',localOnly,staffPermissionRequired('orderItemManage'),async(req,res)=>{
+ const client=await pool.connect();try{
+  await client.query('BEGIN');
+  const locked=(await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE')).rows[0];
+  if(!locked||Number(req.body?._revision)!==Number(locked.revision))throw Object.assign(Error('ข้อมูลเปลี่ยนแปลง กรุณาโหลดหน้าใหม่แล้วนำเข้าอีกครั้ง'),{status:409});
+  const data=locked.data||{},packages=(await client.query('SELECT detail_items FROM his_packages')).rows,items=[];
+  for(const pkg of packages)for(const raw of Array.isArray(pkg.detail_items)?pkg.detail_items:[]){const n=normalizePackageStationItem(raw);items.push({code:n.code,name:n.name})}
+  const {prepareOrderImport}=require('./order-excel');
+  const result=prepareOrderImport(req.body?.rows,{items,settings:data.orderItemSettings||{},types:data.orderTypes||[],stations:data.orderStations||[]});
+  if(result.errors.length)throw Object.assign(Error(result.errors.slice(0,20).join('\n')),{status:400});
+  const settings={...(data.orderItemSettings||{})},actor=String(req.staffUser?.displayName||req.staffUser?.username||'');
+  for(const change of result.changes){settings[change.key]=change.after;await client.query(`INSERT INTO audit_logs(entity_type,entity_id,action,before_data,after_data,changed_fields,performed_by,client_address) VALUES('ORDER_SETUP',$1,'EXCEL_IMPORT',$2::jsonb,$3::jsonb,$4::jsonb,$5,$6)`,[change.key,JSON.stringify(change.before),JSON.stringify(change.after),JSON.stringify(change.fields),actor,clientAddress(req)])}
+  let revision=Number(locked.revision);
+  if(result.changes.length){revision++;await client.query(`UPDATE app_state SET data=jsonb_set(data,'{orderItemSettings}',$1::jsonb,true),revision=$2,updated_at=NOW() WHERE id=1`,[JSON.stringify(settings),revision]);await client.query('UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW() WHERE id=1',[revision])}
+  await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.json({ok:true,revision,updated:result.changes.length,settings});
+ }catch(error){await client.query('ROLLBACK').catch(()=>{});res.status(error.status||400).json({error:error.message||'นำเข้าไม่สำเร็จ'})}finally{client.release()}
+});
 app.patch('/api/package-item-settings/batch',localOnly,async(req,res)=>{
   const client=await pool.connect();
   try{
@@ -2745,6 +2965,7 @@ async function circularCompany(companyId){
   const state=await readState();
   return (state.companies||[]).find(item=>String(item.id)===id)||null;
 }
+app.get('/api/booking-company-defaults/:companyId',localOnly,staffPermissionRequired(null),async(req,res)=>{try{const permissions=req.staffRole?.permissions||[];if(req.staffRole?.id!=='admin'&&!permissions.includes('projectManage')&&!permissions.includes('projectCreate')&&!permissions.includes('projectEdit'))return res.status(403).json({error:'ไม่มีสิทธิ์ตั้งค่า Booking'});const co=await circularCompany(req.params.companyId);if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});const row=(await pool.query('SELECT memo_data,updated_at FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];const data=await require('./booking-defaults').companyDefaults(pool,co,defaultCircular(co,row?.memo_data||{}),row?.updated_at||null);res.set('Cache-Control','no-store').json(data)}catch(e){res.status(e.status||500).json({error:e.message})}});
 app.get('/api/company-circulars/:companyId',localOnly,staffPermissionRequired('companyView'),async(req,res)=>{
   try{
     const co=await circularCompany(req.params.companyId);
@@ -2765,51 +2986,117 @@ app.put('/api/company-circulars/:companyId',localOnly,staffPermissionRequired('c
     res.set('Cache-Control','no-store').json({ok:true,companyId:co.id,updatedAt:result.rows[0].updated_at});
   }catch(error){res.status(400).json({error:'บันทึกหนังสือเวียนไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}
 });
-// The same PDF composition is used by live preview, on-demand download and the
-// versioned primary PDF. Legacy uploads are read-only and never overwritten.
-async function buildCircularWithCompanyAttachments(co,memo){
-  const main = await buildCorporateCircularPdf(co,defaultCircular(co,memo||{}));
-  const [legacy,added] = await Promise.all([
-    pool.query('SELECT file_name,file_data FROM company_year_documents WHERE company_id=$1',[co.id]),
-    pool.query('SELECT file_name,file_data FROM company_year_attachments WHERE company_year_id=$1 ORDER BY id ASC',[co.id])
-  ]);
-  return mergeCircularAndAttachments(main,[...legacy.rows,...added.rows]);
-}
+// Fast path for an EXISTING company/year: save its annual fields and circular
+// together. Do not re-serialize all patients (which can number in the tens of
+// thousands) every time staff generate a circular PDF.
+app.post('/api/company-years/:companyId/save-and-generate-pdf',localOnly,staffPermissionRequired('companyEdit'),async(req,res)=>{
+  const id=String(req.params.companyId||'').trim(),incoming=req.body?.company,rawMemo=req.body?.circular;
+  if(!id||!incoming||typeof incoming!=='object'||Array.isArray(incoming)||!rawMemo||typeof rawMemo!=='object')return res.status(400).json({error:'ข้อมูลบริษัทหรือหนังสือเวียนไม่ครบ'});
+  const allowed=['name','year','code','checkupStartDate','checkupEndDate','note','reportConditions','salesName','salesPhone','billingPackages','cashPackages'];
+  let co=null,client;
+  try {
+    const memo=normalizeCircular(rawMemo),actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
+    client=await pool.connect();await client.query('BEGIN');
+    // Match full-state writer lock order (app_state before normalized rows).
+    const locked=await client.query('SELECT data FROM app_state WHERE id=1 FOR UPDATE');
+    const found=await client.query(`SELECT cy.id,cy.company_id,cy.source_data,c.company_name,c.company_code FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 FOR UPDATE OF cy`,[id]);
+    if(!found.rows.length){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปี กรุณาบันทึกบริษัทใหม่ก่อนสร้าง PDF'});}
+    const row=found.rows[0],current=row.source_data||{};
+    co={...current,id};for(const field of allowed)if(Object.prototype.hasOwnProperty.call(incoming,field))co[field]=incoming[field];
+    if(!String(co.name||'').trim()||!String(co.year||'').trim())throw new Error('ต้องระบุชื่อบริษัทและปี');
+    co.updatedAt=new Date().toISOString();
+    await client.query(`UPDATE company_years SET screening_year=$2,note=$3,source_data=$4::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[id,String(co.year),String(co.note||''),JSON.stringify(co)]);
+    await client.query('UPDATE companies SET company_name=$2,company_code=$3,updated_at=NOW() WHERE id=$1',[row.company_id,String(co.name),String(co.code||'')]);
+    await client.query(`INSERT INTO company_year_circulars(company_year_id,memo_data,updated_by,updated_at) VALUES($1,$2::jsonb,$3,NOW()) ON CONFLICT(company_year_id) DO UPDATE SET memo_data=EXCLUDED.memo_data,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,[id,JSON.stringify(memo),actor]);
+    // Keep legacy app_state company metadata in sync without rewriting patients.
+    const companies=Array.isArray(locked.rows[0]?.data?.companies)?[...locked.rows[0].data.companies]:[];
+    const idx=companies.findIndex(c=>String(c?.id||'')===id);if(idx<0)companies.push(co);else companies[idx]={...companies[idx],...co};
+    const stateRow=await client.query(`UPDATE app_state SET data=jsonb_set(data,'{companies}',$1::jsonb,true),revision=revision+1,updated_at=NOW() WHERE id=1 RETURNING revision`,[JSON.stringify(companies)]);
+    const revision=Number(stateRow.rows[0]?.revision||0);
+    await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
+    await client.query('COMMIT');compressedStateCache={revision:null,body:null};
+    // The company and circular are already saved. A failed PDF must not roll
+    // back the validated company data or overwrite previously generated PDFs.
+    try{
+      const circularBytes=Buffer.from(await buildCorporateCircularPdf(co,defaultCircular(co,memo)));
+      const merged=await mergeCompanyAttachmentPdfsV76401(circularBytes,id),bytes=merged.bytes;
+      if(bytes.subarray(0,5).toString()!=='%PDF-')throw new Error('รูปแบบ PDF ไม่ถูกต้อง');
+      const fileName=`Corporate_Circular_${String(co.code||'Company').replace(/[^A-Za-z0-9_-]/g,'_')}_${String(co.year||'Year').replace(/[^0-9]/g,'')}_${Date.now()}.pdf`;
+      const saved=(await pool.query('INSERT INTO company_year_primary_pdfs(company_year_id,file_name,file_data,file_size,created_by) VALUES($1,$2,$3,$4,$5) RETURNING id,file_name,file_size,created_at,created_by',[id,fileName,bytes,bytes.length,actor])).rows[0];
+      return res.status(201).json({ok:true,saved:true,revision,item:saved,attachmentCount:merged.attachmentCount,attachmentPages:merged.attachmentPages});
+    }catch(pdfError){console.error('[FAST PRIMARY PDF]',pdfError);return res.status(500).json({saved:true,revision,error:'บันทึกข้อมูลสำเร็จ แต่สร้าง PDF ไม่สำเร็จ',detail:String(pdfError.message||pdfError).slice(0,300)});}
+  }catch(error){if(client)await client.query('ROLLBACK').catch(()=>{});res.status(500).json({saved:false,error:'บันทึกข้อมูลบริษัท/ปีไม่สำเร็จ',detail:String(error.message||error).slice(0,300)});
+  }finally{client?.release()}
+});
+// Save one editor section without serialising the application state or replacing
+// unrelated annual fields.  This is the fast path used by section buttons 00-10.
+app.patch('/api/company-circulars/:companyId/sections/:section',localOnly,staffPermissionRequired('companyEdit'),async(req,res)=>{
+  try{
+    const co=await circularCompany(req.params.companyId),section=String(req.params.section||'');
+    if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});
+    const allowed={
+      '00':['issueDate','documentNo','subject','recipient','walkIn','serviceFormat'],
+      '01':['companyNameEn','taxId','address','coordinator','coordinators','employeeCount','payorCode','payorPlan','additionalCompanies'],
+      'subsidiaries':['additionalCompanies'],'coordinators':['coordinator','coordinators'],'employees':['employeeCount'],
+      '02':['screeningPeriod'],'03':['listenResults','noListenResults','mealCoupon','noMealCoupon','medicalStaff'],
+      '04':['programConditions'],'05':['eligibility'],'06':['reporting'],
+      '07':['receivables'],'08':['salesContact','signatory'],'09':['programMatrix'],
+      '10':['appendixDetails']
+    }[section];
+    if(!allowed)return res.status(400).json({error:'หัวข้อเอกสารเวียนไม่ถูกต้อง'});
+    const current=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0]?.memo_data||{};
+    const incoming=req.body?.item||{},merged={...current};for(const key of allowed)if(Object.prototype.hasOwnProperty.call(incoming,key))merged[key]=incoming[key];
+    const memo=normalizeCircular(merged),actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
+    const result=await pool.query(`INSERT INTO company_year_circulars(company_year_id,memo_data,updated_by,updated_at) VALUES($1,$2::jsonb,$3,NOW()) ON CONFLICT(company_year_id) DO UPDATE SET memo_data=EXCLUDED.memo_data,updated_by=EXCLUDED.updated_by,updated_at=NOW() RETURNING updated_at`,[co.id,JSON.stringify(memo),actor]);
+    res.set('Cache-Control','no-store').json({ok:true,section,updatedAt:result.rows[0].updated_at});
+  }catch(error){res.status(400).json({error:'บันทึกหัวข้อไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}
+});
+app.patch('/api/company-years/:companyId/sections/:section',localOnly,staffPermissionRequired('companyEdit'),async(req,res)=>{
+  const client=await pool.connect();try{
+    const id=String(req.params.companyId||''),section=String(req.params.section||''),patch=req.body?.patch||{};
+    const fields={
+      '00':[],'01':['name','year','code'],'02':['checkupStartDate','checkupEndDate'],'03':[],
+      '04':[],'05':[],'06':['reportConditions'],'07':[],'08':['salesName','salesPhone'],
+      '09':[],'10':['billingPackages','cashPackages','note']
+    }[section];if(!fields)return res.status(400).json({error:'หัวข้อต้องเป็น 00-10'});
+    await client.query('BEGIN');const locked=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE'),data=locked.rows[0]?.data||{},companies=Array.isArray(data.companies)?[...data.companies]:[];let index=companies.findIndex(x=>String(x?.id||'')===id);
+    // A normalized company/year can exist before an older app_state snapshot has
+    // been refreshed. Rehydrate that valid row instead of rejecting the save.
+    if(index<0){const relational=(await client.query(`SELECT cy.id,cy.screening_year,cy.note,cy.source_data,c.company_code,c.company_name FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 LIMIT 1`,[id])).rows[0];if(!relational){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปี'});}companies.push({...relational.source_data,id:String(relational.id),name:String(relational.company_name||relational.source_data?.name||''),year:String(relational.screening_year||relational.source_data?.year||''),code:String(relational.company_code||relational.source_data?.code||''),note:String(relational.note||relational.source_data?.note||'')});index=companies.length-1;}
+    const next={...companies[index]};for(const key of fields)if(Object.prototype.hasOwnProperty.call(patch,key))next[key]=patch[key];next.updatedAt=new Date().toISOString();companies[index]=next;
+    const updated=await client.query(`UPDATE app_state SET data=jsonb_set(data,'{companies}',$1::jsonb,true),revision=revision+1,updated_at=NOW() WHERE id=1 RETURNING revision`,[JSON.stringify(companies)]);
+    await client.query(`UPDATE company_years SET screening_year=$2,note=$3,source_data=$4::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[id,String(next.year||''),String(next.note||''),JSON.stringify(next)]).catch(()=>{});
+    await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.json({ok:true,section,revision:Number(updated.rows[0].revision),updatedAt:next.updatedAt});
+  }catch(error){await client.query('ROLLBACK').catch(()=>{});res.status(400).json({error:'บันทึกข้อมูลรายปีเฉพาะหัวข้อไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}finally{client.release()}
+});
+const companyAttachmentBytesCacheV76401=new Map();
+async function companyAttachmentPdfRowsV76401(companyId,force=false){const key=String(companyId),cached=companyAttachmentBytesCacheV76401.get(key);if(!force&&cached&&Date.now()-cached.at<60000)return cached.rows;const rows=(await pool.query(`SELECT source_order,file_data FROM (SELECT 0::bigint AS source_order,file_data FROM company_year_documents WHERE company_id=$1 UNION ALL SELECT id::bigint AS source_order,file_data FROM company_year_attachments WHERE company_year_id=$1) files ORDER BY source_order`,[key])).rows;companyAttachmentBytesCacheV76401.set(key,{rows,at:Date.now()});return rows;}
+function pdfPageFingerprintV76401(document,page,fallback){try{const hash=crypto.createHash('sha256'),size=page.getSize();hash.update(`${size.width}x${size.height}|`);const value=page.node.Contents(),items=value?.asArray?value.asArray():[value];let bytes=0;for(const ref of items.filter(Boolean)){const object=document.context.lookup(ref),content=object?.contents||object?.getContents?.();if(content){const data=Buffer.from(content);hash.update(data);bytes+=data.length}}if(bytes)return hash.digest('hex')}catch(_){}return fallback;}
+async function mergeCompanyAttachmentPdfsV76401(baseBytes,companyId){const attachmentRows=await companyAttachmentPdfRowsV76401(companyId);if(!attachmentRows.some(row=>row.file_data?.length))return {bytes:Buffer.from(baseBytes),attachmentCount:0,attachmentPages:0,duplicatePages:0};const combined=await PDFDocument.load(baseBytes),seen=new Set(),basePages=combined.getPages();basePages.forEach((page,index)=>seen.add(pdfPageFingerprintV76401(combined,page,`base:${index}`)));let attachmentCount=0,attachmentPages=0,duplicatePages=0;for(const row of attachmentRows){const data=Buffer.from(row.file_data||[]);if(!data.length)continue;const source=await PDFDocument.load(data,{ignoreEncryption:true}),indexes=[];source.getPages().forEach((page,index)=>{const fingerprint=pdfPageFingerprintV76401(source,page,crypto.createHash('sha256').update(data).update(String(index)).digest('hex'));if(seen.has(fingerprint)){duplicatePages++;return}seen.add(fingerprint);indexes.push(index)});if(!indexes.length)continue;const pages=await combined.copyPages(source,indexes);pages.forEach(page=>combined.addPage(page));require('./pdf-outline').appendOutline(combined,[{title:'เอกสารแนบ '+(attachmentCount+1),page:pages[0]}]);attachmentCount++;attachmentPages+=pages.length;}return {bytes:Buffer.from(await combined.save()),attachmentCount,attachmentPages,duplicatePages};}
 app.post('/api/company-circulars/:companyId/preview',localOnly,staffPermissionRequired('companyView'),async(req,res)=>{
   try{
     const co=await circularCompany(req.params.companyId);
     if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});
-    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,req.body?.item||{});
-    res.set('X-Merged-Attachments',String(attachmentCount));
-    res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-preview.pdf"','Cache-Control':'private, no-store'});
+    const circular=await buildCorporateCircularPdf(co,defaultCircular(co,req.body?.item||{})),merged=await mergeCompanyAttachmentPdfsV76401(circular,co.id),bytes=merged.bytes;
+    res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-preview.pdf"','Cache-Control':'private, no-store','X-HealthCheck-Circular-Layout':'word-table-v1'});
     res.send(bytes);
   }catch(error){res.status(400).json({error:'ดูตัวอย่างเอกสารเวียนไม่ได้',detail:String(error.message||error).slice(0,350)})}
 });
+// Read-only current circular with topic destinations, without rewriting saved history.
+app.get('/api/company-circulars/:companyId/navigation-preview',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{try{const co=await circularCompany(req.params.companyId);if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปี'});const row=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];const main=await buildCorporateCircularPdf(co,defaultCircular(co,row?.memo_data||{})),merged=await mergeCompanyAttachmentPdfsV76401(main,co.id);res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-navigation.pdf"','Cache-Control':'private, no-store'});res.send(merged.bytes)}catch(e){res.status(500).json({error:'เปิดเอกสารเวียนพร้อมสารบัญไม่สำเร็จ'})}});
 app.get('/api/company-circulars/:companyId/pdf',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{
   try{
     const co=await circularCompany(req.params.companyId);
     if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'});
     const row=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];
-    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,row?.memo_data||{});
-    res.set('X-Merged-Attachments',String(attachmentCount));
+    const circular=await buildCorporateCircularPdf(co,defaultCircular(co,row?.memo_data||{}));
+    const {bytes}=await mergeCompanyAttachmentPdfsV76401(circular,co.id);
     const fileName=`Corporate-Circular_${String(co.code||'company').replace(/[^A-Za-z0-9_-]/g,'_')}_${String(co.year||'year').replace(/[^0-9]/g,'')}.pdf`;
     res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,'Cache-Control':'private, no-store'});
     res.send(bytes);
   }catch(error){console.error('[COMPANY CIRCULAR PDF]',error);res.status(500).json({error:'สร้างหนังสือเวียน PDF ไม่สำเร็จ',detail:String(error.message||error).slice(0,350)})}
 });
 // v7.63.95: primary circular documents are separate from all user-uploaded attachments.
-// Live preview includes attachments currently stored, even if the last saved
-// primary PDF was generated before the latest attachment upload.
-app.get('/api/company-primary-pdfs/:companyId/preview',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{
-  try{
-    const co=await circularCompany(req.params.companyId);
-    if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปี'});
-    const row=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0];
-    const {bytes,attachmentCount}=await buildCircularWithCompanyAttachments(co,row?.memo_data||{});
-    res.set({'Content-Type':'application/pdf','Content-Disposition':'inline; filename="corporate-with-attachments-preview.pdf"','Cache-Control':'private, no-store','X-Merged-Attachments':String(attachmentCount)});
-    res.send(bytes);
-  }catch(error){console.error('[COMPANY COMBINED PDF PREVIEW]',error);res.status(422).json({error:'ไม่สามารถสร้างตัวอย่าง PDF ที่รวมเอกสารแนบ',detail:String(error.message||error).slice(0,350)})}
-});
 // Batch main-document metadata for company search and customer views; never return PDF bytes here.
 app.get('/api/company-primary-pdfs',localOnly,staffPermissionRequired('companyPdfView'),async(_req,res)=>{
   try{const result=await pool.query('SELECT DISTINCT ON (company_year_id) company_year_id,id,file_name,file_size,created_at FROM company_year_primary_pdfs ORDER BY company_year_id,id DESC');res.set('Cache-Control','no-store').json({ok:true,items:result.rows});}
@@ -2830,14 +3117,13 @@ app.post('/api/company-primary-pdfs/:companyId',localOnly,staffPermissionRequire
     // Regenerate ONLY from previously saved annual data and corporate circular memo.
     const memoResult=await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id]);
     if(!memoResult.rows.length)return res.status(409).json({error:'กรุณาบันทึกข้อมูลเอกสารเวียนก่อนสร้าง PDF หลัก'});
-    const merged=await buildCircularWithCompanyAttachments(co,memoResult.rows[0].memo_data||{});
-    const bytes=Buffer.from(merged.bytes);
+    const circularBytes=Buffer.from(await buildCorporateCircularPdf(co,defaultCircular(co,memoResult.rows[0].memo_data||{}))),merged=await mergeCompanyAttachmentPdfsV76401(circularBytes,co.id),{bytes,attachmentCount,attachmentPages,duplicatePages}=merged;
     if(bytes.length<5||bytes.subarray(0,5).toString()!=='%PDF-')throw new Error('รูปแบบ PDF ไม่ถูกต้อง');
     const fileName=`Corporate_Circular_${String(co.code||'Company').replace(/[^A-Za-z0-9_-]/g,'_')}_${String(co.year||'Year').replace(/[^0-9]/g,'')}_${Date.now()}.pdf`;
     const actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
     const saved=(await pool.query('INSERT INTO company_year_primary_pdfs(company_year_id,file_name,file_data,file_size,created_by) VALUES($1,$2,$3,$4,$5) RETURNING id,file_name,file_size,created_at,created_by',[co.id,fileName,bytes,bytes.length,actor])).rows[0];
-    res.set('Cache-Control','no-store').status(201).json({ok:true,item:saved,mergedAttachments:merged.attachmentCount,pageCount:merged.pageCount||null});
-  }catch(error){console.error('[PRIMARY CIRCULAR PDF]',error);res.status(422).json({error:'สร้าง PDF หลักไม่สำเร็จ กรุณาตรวจสอบเอกสารแนบ',detail:String(error.message||error).slice(0,350)});}
+    res.set('Cache-Control','no-store').status(201).json({ok:true,item:saved,attachmentCount,attachmentPages,duplicatePages});
+  }catch(error){console.error('[PRIMARY CIRCULAR PDF]',error);res.status(500).json({error:'สร้าง PDF หลักไม่สำเร็จ',detail:String(error.message||error).slice(0,300)});}
 });
 app.get('/api/company-primary-pdfs/:companyId/file/:versionId',localOnly,staffPermissionRequired('companyPdfView'),async(req,res)=>{
   try {
@@ -2857,7 +3143,7 @@ app.get('/api/company-attachments/:companyId',localOnly,staffPermissionRequired(
     if(!await circularCompany(companyId))return res.status(404).json({error:'ไม่พบบริษัท/ปี'});
     const [legacy,added]=await Promise.all([
       pool.query('SELECT file_name,file_size,uploaded_at,uploaded_by FROM company_year_documents WHERE company_id=$1',[companyId]),
-      pool.query('SELECT id,file_name,file_size,uploaded_at,uploaded_by FROM company_year_attachments WHERE company_year_id=$1 ORDER BY id DESC',[companyId])
+      pool.query('SELECT id,file_name,file_size,uploaded_at,uploaded_by,attachment_kind FROM company_year_attachments WHERE company_year_id=$1 ORDER BY id DESC',[companyId])
     ]);
     const items=[...legacy.rows.map(f=>({...f,id:'legacy',legacy:true})),...added.rows.map(f=>({...f,id:String(f.id),legacy:false}))];
     res.set('Cache-Control','no-store').json({ok:true,items});
@@ -2869,10 +3155,15 @@ app.post('/api/company-attachments/:companyId',localOnly,staffPermissionRequired
     if(!co)return res.status(404).json({error:'ไม่พบบริษัท/ปี'});
     const body=req.body;
     if(!Buffer.isBuffer(body)||body.length<5||body.subarray(0,5).toString()!=='%PDF-')return res.status(400).json({error:'รองรับเฉพาะไฟล์ PDF'});
+    const kind=String(req.headers['x-attachment-kind']||'general');
+    if(!['general','program-table'].includes(kind))return res.status(400).json({error:'ประเภทเอกสารแนบไม่ถูกต้อง'});
+    try{const pdf=await PDFDocument.load(body);if(!pdf.getPageCount())throw new Error('empty PDF')}
+    catch(_){return res.status(400).json({error:'ไฟล์ PDF เปิดอ่านไม่ได้ หรือมีการเข้ารหัส กรุณาเลือก PDF ที่เปิดอ่านได้โดยไม่ใช้รหัสผ่าน'});}
     const rawName=decodeURIComponent(String(req.headers['x-file-name']||'เอกสารแนบ.pdf')).slice(0,240);
     const safeName=rawName.replace(/[\\/\u0000-\u001f]/g,'_');
     const actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
-    const r=await pool.query('INSERT INTO company_year_attachments(company_year_id,file_name,file_data,file_size,uploaded_by) VALUES($1,$2,$3,$4,$5) RETURNING id,file_name,file_size,uploaded_at,uploaded_by',[co.id,safeName,body,body.length,actor]);
+    const r=await pool.query('INSERT INTO company_year_attachments(company_year_id,file_name,file_data,file_size,uploaded_by,attachment_kind) VALUES($1,$2,$3,$4,$5,$6) RETURNING id,file_name,file_size,uploaded_at,uploaded_by,attachment_kind',[co.id,safeName,body,body.length,actor,kind]);
+    companyAttachmentBytesCacheV76401.delete(String(co.id));
     res.set('Cache-Control','no-store').status(201).json({ok:true,item:r.rows[0]});
   }catch(error){res.status(error.type==='entity.too.large'?413:500).json({error:error.type==='entity.too.large'?'ไฟล์ PDF เกิน 20 MB':'อัปโหลดเอกสารแนบไม่สำเร็จ'});}
 });
@@ -2892,6 +3183,7 @@ app.delete('/api/company-attachments/:companyId/:attachmentId',localOnly,staffPe
     // Never delete original legacy PDFs from the new attachment-management workflow.
     if(!/^[1-9][0-9]*$/.test(attachmentId))return res.status(400).json({error:'ไฟล์เดิมถูกเก็บรักษาไว้ ไม่อนุญาตให้ลบจากหน้านี้'});
     const r=await pool.query('DELETE FROM company_year_attachments WHERE company_year_id=$1 AND id=$2',[coid,attachmentId]);
+    companyAttachmentBytesCacheV76401.delete(String(coid));
     res.json({ok:true,deleted:r.rowCount});
   }catch(error){res.status(500).json({error:'ลบเอกสารแนบไม่สำเร็จ'});}
 });
@@ -2900,7 +3192,7 @@ app.get('/api/company-documents', localOnly, async (_req, res) => {
   catch(error){res.status(500).json({error:'อ่านรายการ PDF ไม่สำเร็จ'});}
 });
 app.put('/api/company-documents/:companyId', localOnly, express.raw({type:'application/pdf',limit:'20mb'}), async (req,res)=>{
-  try{const companyId=String(req.params.companyId||'').trim(),fileName=decodeURIComponent(String(req.headers['x-file-name']||'เอกสาร.pdf')).slice(0,240),uploadedBy=decodeURIComponent(String(req.headers['x-uploaded-by']||'ผู้ดูแลระบบ')).slice(0,120);if(!companyId)return res.status(400).json({error:'ไม่พบข้อมูลบริษัทและปี'});if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({error:'กรุณาเลือกไฟล์ PDF'});if(req.body.subarray(0,5).toString()!=='%PDF-')return res.status(400).json({error:'รองรับเฉพาะไฟล์ PDF เท่านั้น'});const state=await readState();if(!(state.companies||[]).some(item=>String(item.id)===companyId))return res.status(404).json({error:'ไม่พบบริษัทและปีนี้'});const result=await pool.query(`INSERT INTO company_year_documents(company_id,file_name,mime_type,file_data,file_size,uploaded_at,uploaded_by) VALUES($1,$2,'application/pdf',$3,$4,NOW(),$5) ON CONFLICT(company_id) DO UPDATE SET file_name=EXCLUDED.file_name,mime_type=EXCLUDED.mime_type,file_data=EXCLUDED.file_data,file_size=EXCLUDED.file_size,uploaded_at=NOW(),uploaded_by=EXCLUDED.uploaded_by RETURNING company_id,file_name,mime_type,file_size,uploaded_at,uploaded_by`,[companyId,fileName,req.body,req.body.length,uploadedBy]);res.json({ok:true,item:result.rows[0]});}catch(error){res.status(error.type==='entity.too.large'?413:500).json({error:error.type==='entity.too.large'?'ไฟล์ PDF ต้องมีขนาดไม่เกิน 20 MB':'บันทึก PDF ไม่สำเร็จ'});}
+  try{const companyId=String(req.params.companyId||'').trim(),fileName=decodeURIComponent(String(req.headers['x-file-name']||'เอกสาร.pdf')).slice(0,240),uploadedBy=decodeURIComponent(String(req.headers['x-uploaded-by']||'ผู้ดูแลระบบ')).slice(0,120);if(!companyId)return res.status(400).json({error:'ไม่พบข้อมูลบริษัทและปี'});if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({error:'กรุณาเลือกไฟล์ PDF'});if(req.body.subarray(0,5).toString()!=='%PDF-')return res.status(400).json({error:'รองรับเฉพาะไฟล์ PDF เท่านั้น'});const state=await readState();if(!(state.companies||[]).some(item=>String(item.id)===companyId))return res.status(404).json({error:'ไม่พบบริษัทและปีนี้'});const result=await pool.query(`INSERT INTO company_year_documents(company_id,file_name,mime_type,file_data,file_size,uploaded_at,uploaded_by) VALUES($1,$2,'application/pdf',$3,$4,NOW(),$5) ON CONFLICT(company_id) DO UPDATE SET file_name=EXCLUDED.file_name,mime_type=EXCLUDED.mime_type,file_data=EXCLUDED.file_data,file_size=EXCLUDED.file_size,uploaded_at=NOW(),uploaded_by=EXCLUDED.uploaded_by RETURNING company_id,file_name,mime_type,file_size,uploaded_at,uploaded_by`,[companyId,fileName,req.body,req.body.length,uploadedBy]);companyAttachmentBytesCacheV76401.delete(String(companyId));res.json({ok:true,item:result.rows[0]});}catch(error){res.status(error.type==='entity.too.large'?413:500).json({error:error.type==='entity.too.large'?'ไฟล์ PDF ต้องมีขนาดไม่เกิน 20 MB':'บันทึก PDF ไม่สำเร็จ'});}
 });
 app.get('/api/company-documents/:companyId/file',localOnly,async(req,res)=>{try{const result=await pool.query('SELECT file_name,mime_type,file_data FROM company_year_documents WHERE company_id=$1',[String(req.params.companyId||'')]);if(!result.rows.length)return res.status(404).send('ไม่พบไฟล์ PDF');const item=result.rows[0];res.set({'Content-Type':item.mime_type||'application/pdf','Content-Disposition':`inline; filename*=UTF-8''${encodeURIComponent(item.file_name)}`,'Cache-Control':'private, no-store'});res.send(item.file_data);}catch(error){res.status(500).send('เปิดไฟล์ PDF ไม่สำเร็จ');}});
 app.post('/api/company-documents/import-paths',localOnly,async(req,res)=>{
@@ -2929,8 +3221,9 @@ app.post('/api/company-documents/import-paths',localOnly,async(req,res)=>{
 });
 app.delete('/api/company-documents/:companyId',localOnly,async(req,res)=>{try{const result=await pool.query('DELETE FROM company_year_documents WHERE company_id=$1',[String(req.params.companyId||'')]);res.json({ok:true,deleted:result.rowCount});}catch(error){res.status(500).json({error:'ลบ PDF ไม่สำเร็จ'});}});
 
+require('./company-management').registerCompanyManagement({app,pool,localOnly,staffPermissionRequired,readState,syncStateToRelational,compactAppState,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
 app.get('/api/company-import-files',localOnly,async(_req,res)=>{try{const result=await pool.query(`SELECT f.company_id,f.file_name,f.mime_type,f.file_size,f.row_count,f.uploaded_at,f.uploaded_by FROM company_year_import_files f JOIN company_years cy ON cy.id=f.company_id ORDER BY f.uploaded_at DESC`);res.set('Cache-Control','no-store');res.json({items:result.rows})}catch(error){res.status(500).json({error:'อ่านรายการไฟล์นำเข้าไม่สำเร็จ'})}});
-app.put('/api/company-import-files/:companyId',localOnly,express.raw({type:'application/octet-stream',limit:'25mb'}),async(req,res)=>{try{const companyId=String(req.params.companyId||'').trim(),fileName=decodeURIComponent(String(req.headers['x-file-name']||'company-import.xlsx')).slice(0,240),mimeType=decodeURIComponent(String(req.headers['x-file-type']||'application/octet-stream')).slice(0,180),uploadedBy=decodeURIComponent(String(req.headers['x-uploaded-by']||'ผู้ดูแลระบบ')).slice(0,120),rowCount=Math.max(0,Math.min(5000,Number(req.headers['x-row-count']||0)||0));if(!companyId)return res.status(400).json({error:'ไม่พบข้อมูลบริษัทและปี'});if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({error:'ไม่พบไฟล์ Excel ต้นฉบับ'});if(!/\.(xlsx|xls)$/i.test(fileName))return res.status(400).json({error:'รองรับเฉพาะไฟล์ .xlsx หรือ .xls'});const exists=await pool.query('SELECT 1 FROM company_years WHERE id=$1',[companyId]);if(!exists.rowCount)return res.status(404).json({error:'ไม่พบบริษัทและปีนี้'});const result=await pool.query(`INSERT INTO company_year_import_files(company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by) VALUES($1,$2,$3,$4,$5,$6,NOW(),$7) ON CONFLICT(company_id) DO UPDATE SET file_name=EXCLUDED.file_name,mime_type=EXCLUDED.mime_type,file_data=EXCLUDED.file_data,file_size=EXCLUDED.file_size,row_count=EXCLUDED.row_count,uploaded_at=NOW(),uploaded_by=EXCLUDED.uploaded_by RETURNING company_id,file_name,mime_type,file_size,row_count,uploaded_at,uploaded_by`,[companyId,fileName,mimeType||'application/octet-stream',req.body,req.body.length,rowCount,uploadedBy]);res.json({ok:true,item:result.rows[0]})}catch(error){res.status(error.type==='entity.too.large'?413:500).json({error:error.type==='entity.too.large'?'ไฟล์ Excel ต้องมีขนาดไม่เกิน 25 MB':'บันทึกไฟล์ Excel ต้นฉบับไม่สำเร็จ'})}});
+app.put('/api/company-import-files/:companyId',localOnly,staffPermissionRequired('customerImport'),express.raw({type:'application/octet-stream',limit:'25mb'}),async(req,res)=>{try{const companyId=String(req.params.companyId||'').trim(),fileName=decodeURIComponent(String(req.headers['x-file-name']||'company-import.xlsx')).slice(0,240),mimeType=decodeURIComponent(String(req.headers['x-file-type']||'application/octet-stream')).slice(0,180),uploadedBy=decodeURIComponent(String(req.headers['x-uploaded-by']||'ผู้ดูแลระบบ')).slice(0,120),rowCount=Math.max(0,Math.min(5000,Number(req.headers['x-row-count']||0)||0));if(!companyId)return res.status(400).json({error:'ไม่พบข้อมูลบริษัทและปี'});if(!Buffer.isBuffer(req.body)||!req.body.length)return res.status(400).json({error:'ไม่พบไฟล์ Excel ต้นฉบับ'});if(!/\.(xlsx|xls)$/i.test(fileName))return res.status(400).json({error:'รองรับเฉพาะไฟล์ .xlsx หรือ .xls'});const exists=await pool.query('SELECT 1 FROM company_years WHERE id=$1',[companyId]);if(!exists.rowCount)return res.status(404).json({error:'ไม่พบบริษัทและปีนี้'});const result=await pool.query(`WITH saved AS (INSERT INTO company_year_import_files(company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by) VALUES($1,$2,$3,$4,$5,$6,NOW(),$7) ON CONFLICT(company_id) DO UPDATE SET file_name=EXCLUDED.file_name,mime_type=EXCLUDED.mime_type,file_data=EXCLUDED.file_data,file_size=EXCLUDED.file_size,row_count=EXCLUDED.row_count,uploaded_at=NOW(),uploaded_by=EXCLUDED.uploaded_by RETURNING *) INSERT INTO company_import_history(company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by) SELECT company_id,file_name,mime_type,file_data,file_size,row_count,uploaded_at,uploaded_by FROM saved RETURNING id,company_id,file_name,mime_type,file_size,row_count,uploaded_at,uploaded_by`,[companyId,fileName,mimeType||'application/octet-stream',req.body,req.body.length,rowCount,uploadedBy]);res.json({ok:true,item:result.rows[0]})}catch(error){res.status(error.type==='entity.too.large'?413:500).json({error:error.type==='entity.too.large'?'ไฟล์ Excel ต้องมีขนาดไม่เกิน 25 MB':'บันทึกไฟล์ Excel ต้นฉบับไม่สำเร็จ'})}});
 app.get('/api/company-import-files/:companyId/file',localOnly,async(req,res)=>{try{const result=await pool.query('SELECT file_name,mime_type,file_data FROM company_year_import_files WHERE company_id=$1',[String(req.params.companyId||'')]);if(!result.rows.length)return res.status(404).send('ไม่พบไฟล์นำเข้า');const item=result.rows[0];res.set({'Content-Type':item.mime_type||'application/octet-stream','Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(item.file_name||'company-import.xlsx')}`,'Cache-Control':'private, no-store'});res.send(item.file_data)}catch(error){res.status(500).send('ดาวน์โหลดไฟล์นำเข้าไม่สำเร็จ')}});
 
 app.post('/api/company-code-change',localOnly,async(req,res)=>{const client=await pool.connect();try{const companyYearId=String(req.body?.companyYearId||'').trim(),currentCode=String(req.body?.currentCode||'').trim(),newCode=String(req.body?.newCode||'').trim(),expected=Number(req.body?._revision),updatedBy=String(req.body?.updatedBy||'system').slice(0,120);if(!companyYearId||!currentCode||!newCode)return res.status(400).json({error:'กรุณาระบุบริษัท Code ปัจจุบัน และ Code ใหม่ให้ครบ'});if(newCode.length>80)return res.status(400).json({error:'Code Company ใหม่ยาวเกินกำหนด'});const normValue=value=>String(value||'').trim().toLocaleLowerCase('th-TH').replace(/\s+/g,' ');if(normValue(currentCode)===normValue(newCode))return res.status(400).json({error:'Code ใหม่ต้องต่างจาก Code ปัจจุบัน'});if(!Number.isInteger(expected)||expected<0)return res.status(428).json({error:'ไม่พบ Revision กรุณาโหลดข้อมูลใหม่ก่อนเปลี่ยน Code'});await client.query('BEGIN');const locked=(await client.query('SELECT revision FROM app_state WHERE id=1 FOR UPDATE')).rows[0];if(!locked||Number(locked.revision)!==expected){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลง กรุณาโหลดหน้าใหม่ก่อนเปลี่ยน Code',conflict:true})}const base=(await client.query(`SELECT cy.id,cy.company_id,c.company_code,c.company_name,c.source_data AS company_source FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 LIMIT 1`,[companyYearId])).rows[0];if(!base){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปีที่เลือก'})}if(normValue(base.company_code)!==normValue(currentCode)){await client.query('ROLLBACK');return res.status(409).json({error:`Code ปัจจุบันของบริษัทนี้เปลี่ยนเป็น “${base.company_code||'-'}” แล้ว กรุณาโหลดข้อมูลใหม่`})}const owner=(await client.query(`SELECT company_name FROM companies WHERE id<>$1 AND LOWER(BTRIM(company_code))=LOWER(BTRIM($2)) LIMIT 1`,[base.company_id,newCode])).rows[0];if(owner){await client.query('ROLLBACK');return res.status(409).json({error:`Code “${newCode}” ถูกใช้โดย “${owner.company_name}” อยู่แล้ว`})}const years=(await client.query('SELECT id,source_data FROM company_years WHERE company_id=$1 ORDER BY screening_year',[base.company_id])).rows,targetIdList=years.map(row=>String(row.id)),revision=expected+1,newParentId=customerImportStableId('company',newCode||base.company_name||companyYearId),changedAt=new Date().toISOString(),companySource={...(base.company_source||{}),code:newCode,name:String(base.company_name||''),updatedAt:changedAt};await client.query(`INSERT INTO companies(id,company_code,company_name,source_data) VALUES($1,$2,$3,$4::jsonb) ON CONFLICT(id) DO UPDATE SET company_code=EXCLUDED.company_code,company_name=EXCLUDED.company_name,source_data=EXCLUDED.source_data,revision=companies.revision+1,updated_at=NOW()`,[newParentId,newCode,String(base.company_name||'ไม่ระบุชื่อบริษัท'),JSON.stringify(companySource)]);for(const row of years){const source={...(row.source_data||{}),code:newCode,updatedAt:changedAt};await client.query(`UPDATE company_years SET company_id=$2,source_data=$3::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[String(row.id),newParentId,JSON.stringify(source)])}if(String(base.company_id)!==newParentId)await client.query('DELETE FROM companies WHERE id=$1 AND NOT EXISTS (SELECT 1 FROM company_years cy WHERE cy.company_id=companies.id)',[base.company_id]);await client.query('UPDATE app_state SET revision=$1,updated_at=NOW() WHERE id=1',[revision]);await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);await client.query(`INSERT INTO audit_logs(entity_type,entity_id,action,before_data,after_data,changed_fields,performed_by,client_address) VALUES('COMPANY',$1,'CODE_CHANGE',$2::jsonb,$3::jsonb,$4::jsonb,$5,$6)`,[companyYearId,JSON.stringify({companyName:base.company_name,code:currentCode,companyYearIds:targetIdList}),JSON.stringify({companyName:base.company_name,code:newCode,companyYearIds:targetIdList}),JSON.stringify(['companyCode']),updatedBy,String(req.ip||req.socket?.remoteAddress||'').slice(0,120)]).catch(()=>{});await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.json({ok:true,revision,companyName:base.company_name,oldCode:currentCode,newCode,changedYears:targetIdList.length,companyYearIds:targetIdList})}catch(error){await client.query('ROLLBACK').catch(()=>{});console.error('เปลี่ยน Code Company ไม่สำเร็จ',error);res.status(500).json({error:'เปลี่ยน Code Company ไม่สำเร็จ',detail:String(error.message||error).slice(0,500)})}finally{client.release()}});
@@ -2982,18 +3275,29 @@ app.put('/api/state', localOnly, async (req, res) => {
     if (!req.body || !Array.isArray(req.body.companies) || !Array.isArray(req.body.records)) return res.status(400).json({ error: 'รูปแบบข้อมูลไม่ถูกต้อง' });
     const expected=Number(req.body._revision);if(!Number.isInteger(expected)||expected<0)return res.status(428).json({error:'ไม่พบ Revision กรุณาโหลดข้อมูลใหม่ก่อนบันทึก'});
     const clean={...req.body};delete clean._revision;
+    const expAccess=await staffPermissionContext(req,null);
     await client.query('BEGIN');
-    const current=await client.query('SELECT revision FROM app_state WHERE id=1 FOR UPDATE');
+    const current=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE');
     if(!current.rowCount||Number(current.rows[0].revision)!==expected){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลงแล้ว กรุณาโหลดหน้าใหม่ก่อนบันทึกเพื่อป้องกันข้อมูลทับกัน',conflict:true});}
+    const stored=current.rows[0].data||{};
+    const permissions=new Set(expAccess.role?.permissions||[]),isAdmin=expAccess.user?.roleId==='admin';
+    // Older browsers expand legacy role definitions locally. Keep their business
+    // saves working, but ignore users/roles that this actor cannot administer.
+    if(!isAdmin&&!permissions.has('userEdit'))clean.users=stored.users||[];
+    if(!isAdmin&&!['permissionManage','roleCreate','roleEdit','roleDelete'].some(key=>permissions.has(key)))clean.roles=stored.roles||[];
+    preserveSecurityFields(clean,stored);
     const revision=expected+1;
+    const oldRecords=clean.records.length?(await client.query('SELECT legacy_record_key,source_data FROM company_customers WHERE legacy_record_key=ANY($1::text[])',[clean.records.map(r=>String(r.key||r.id||''))])).rows:[];
     await syncStateToRelational(client,clean,revision);
+    const oldMap=new Map(oldRecords.map(r=>[String(r.legacy_record_key),r.source_data||{}])),expEvents=[];if(expAccess.ok)for(const record of clean.records){const key=String(record.key||record.id||'');if(oldMap.has(key))expEvents.push(...await recordExperienceTransitions(client,{recordKey:key,before:oldMap.get(key),after:record,user:expAccess.user,role:expAccess.role}))}
+    const experience=expAccess.ok?await activityResult(client,expAccess.user,expAccess.role,expEvents):null;
     const compact=compactAppState(clean);
     await client.query('UPDATE app_state SET data=$1::jsonb,revision=$2,updated_at=NOW() WHERE id=1',[JSON.stringify(compact),revision]);
     await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
     await client.query('COMMIT');compressedStateCache={revision:null,body:null};
     const fullRows=Array.isArray(req.body.records)?req.body.records.length:0;
     await recordSystemHealthEvent({eventType:'FULL_STATE_SAVE',status:fullRows>1?'CRITICAL':'WARN',endpoint:'/api/state',durationMs:Date.now()-_healthStarted,expectedRows:0,actualRows:fullRows,detail:{revision,reason:'Legacy full-state write'}});
-    res.json({ok:true,revision,relationalSync:true,compactState:true,health:{fullState:true,recordsReceived:fullRows,durationMs:Date.now()-_healthStarted}});
+    res.json({ok:true,revision,experience,relationalSync:true,compactState:true,health:{fullState:true,recordsReceived:fullRows,durationMs:Date.now()-_healthStarted}});
   }catch(error){await client.query('ROLLBACK').catch(()=>{});console.error('บันทึกข้อมูล PostgreSQL ไม่สำเร็จ',error);res.status(500).json({error:'บันทึกข้อมูล PostgreSQL ไม่สำเร็จ',detail:String(error.message||error).slice(0,500)})}
   finally{client.release()}
 });
@@ -3007,7 +3311,9 @@ app.patch('/api/state/records/:recordKey', localOnly, async (req,res)=>{
     const recordKey=String(req.params.recordKey||'').trim(),record=req.body?.record,emrCase=req.body?.emrCase,expected=Number(req.body?._revision);
     if(!recordKey||!record||typeof record!=='object'||Array.isArray(record))return res.status(400).json({error:'รูปแบบข้อมูลผู้รับบริการไม่ถูกต้อง'});
     if(!Number.isInteger(expected)||expected<0)return res.status(428).json({error:'ไม่พบ Revision กรุณาโหลดข้อมูลใหม่ก่อนบันทึก'});
-    const cleanRecord={...record,key:String(record.key||record.id||recordKey)},source=JSON.stringify(cleanRecord);
+    const actingAccess=await staffPermissionContext(req,null);
+    const confirmationAccess=(record.checkupConfirmedAt||record.visitedAt)?await staffPermissionContext(req,'receiveCreate'):null;
+    const cleanRecord={...record,key:String(record.key||record.id||recordKey)};let source=JSON.stringify(cleanRecord);
     await client.query('BEGIN');
     await client.query("SET LOCAL lock_timeout='5000ms'");
     await client.query("SET LOCAL statement_timeout='15000ms'");
@@ -3015,28 +3321,48 @@ app.patch('/api/state/records/:recordKey', localOnly, async (req,res)=>{
     if(!locked.rowCount||Number(locked.rows[0].revision)!==expected){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลงแล้ว กรุณาโหลดหน้าใหม่ก่อนบันทึก',conflict:true})}
     const membership=await client.query('SELECT customer_id FROM company_customers WHERE legacy_record_key=$1 LIMIT 1',[recordKey]);
     if(!membership.rowCount){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบข้อมูลผู้รับบริการ'})}
-    const existingSource=await client.query('SELECT source_data FROM customers WHERE id=$1 LIMIT 1',[membership.rows[0].customer_id]);
-    const existingRecord=existingSource.rows[0]?.source_data||{},approvedBy=String(existingRecord.healthBookApprovedBy||'').trim(),actor=workflowActor(req);
+    const existingSource=await client.query('SELECT source_data,identification_number,passport_number FROM customers WHERE id=$1 LIMIT 1',[membership.rows[0].customer_id]);
+    const membershipSource=await client.query('SELECT source_data,visited_at FROM company_customers WHERE legacy_record_key=$1 LIMIT 1',[recordKey]);
+    const existingRecord={...(existingSource.rows[0]?.source_data||{}),...(membershipSource.rows[0]?.source_data||{})};existingRecord.visitedAt=membershipSource.rows[0]?.visited_at||existingRecord.visitedAt;
+    cleanRecord.customerPendingSelection=existingRecord.customerPendingSelection||null;if(existingRecord.customerSelectionReview)cleanRecord.customerSelectionReview=existingRecord.customerSelectionReview;else delete cleanRecord.customerSelectionReview;
+    const newConfirmation=!existingRecord.checkupConfirmedAt&&!existingRecord.visitedAt&&Boolean(cleanRecord.checkupConfirmedAt||cleanRecord.visitedAt);
+    if(newConfirmation&&!confirmationAccess?.ok){await client.query('ROLLBACK');return res.status(confirmationAccess?.status||401).json({error:confirmationAccess?.error||'กรุณาเข้าสู่ระบบก่อนยืนยันเคส'})}
+    if(!newConfirmation&&String(existingRecord.healthCheckFormat?.code||'')!==String(cleanRecord.healthCheckFormat?.code||'')){const formatAccess=await staffPermissionContext(req,'receiveEdit');if(!formatAccess.ok){await client.query('ROLLBACK');return res.status(formatAccess.status).json({error:formatAccess.error})}}
+    cleanRecord.selectedPackages=(cleanRecord.selectedPackages||[]).map(p=>({...p,costResponsibility:'cash'}));
+    const contractPayers=record=>(record.selectedPackages||[]).map(p=>[String(p.code||p.name||''),'cash']);
+    const contractPayerChanged=JSON.stringify(contractPayers(existingRecord))!==JSON.stringify(contractPayers(cleanRecord));
+
+    if(contractPayerChanged){let payerAccess=await staffPermissionContext(req,'receiveEdit');if(!existingRecord.visitedAt&&!payerAccess.ok)payerAccess=await staffPermissionContext(req,'customerEdit');if(!payerAccess.ok){await client.query('ROLLBACK');return res.status(payerAccess.status).json({error:payerAccess.error})}if(existingRecord.orderHisAt&&(!existingRecord.cancelOrderAt||Date.parse(existingRecord.orderHisAt)>Date.parse(existingRecord.cancelOrderAt))){await client.query('ROLLBACK');return res.status(409).json({error:'กรุณา Cancel Order ก่อนแก้ไขแพ็กเกจคู่สัญญาหรือผู้รับผิดชอบค่าใช้จ่าย'})}}
+    await validateFormatChange(client,existingRecord,cleanRecord);source=JSON.stringify(cleanRecord);
+    const approvalChanged=Boolean(existingRecord.healthBookApprovedAt)!==Boolean(cleanRecord.healthBookApprovedAt);if(approvalChanged){const approvalAccess=await staffPermissionContext(req,'emrEdit');if(!approvalAccess.ok){await client.query('ROLLBACK');return res.status(approvalAccess.status).json({error:approvalAccess.error})}}
+    if((existingRecord.checkupConfirmedAt||existingRecord.visitedAt)&&!cleanRecord.checkupConfirmedAt&&!cleanRecord.visitedAt){const editAccess=await staffPermissionContext(req,'receiveEdit');if(!editAccess.ok){await client.query('ROLLBACK');return res.status(editAccess.status).json({error:editAccess.error})}}
+    const approvedBy=String(existingRecord.healthBookApprovedBy||'').trim(),actor=actingAccess.ok?(actingAccess.user.displayName||actingAccess.user.username):workflowActor(req);
     if(existingRecord.healthBookApprovedAt&&approvedBy&&approvedBy!==actor){await client.query('ROLLBACK');return res.status(423).json({error:`เล่มนี้อนุมัติโดย ${approvedBy} ผู้ใช้อื่นไม่สามารถแก้ไขได้`,locked:true,approvedBy})}
-    const customerUpdate=await client.query(`UPDATE customers SET identification_number=$2,hn=$3,vn=$4,title=$5,first_name=$6,last_name=$7,birth_date=$8,sex=$9,phone=$10,email=$11,source_data=$12::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[membership.rows[0].customer_id,String(cleanRecord.id||''),String(cleanRecord.hn||''),String(cleanRecord.vn||cleanRecord.hisLastVisitUID||''),String(cleanRecord.title||''),String(cleanRecord.first||cleanRecord.firstName||''),String(cleanRecord.last||cleanRecord.lastName||''),String(cleanRecord.birth||cleanRecord.birthDate||''),String(cleanRecord.sex||''),String(cleanRecord.phone||''),String(cleanRecord.email||''),source]);
+    const identity=await require('./customer-identity-update').planIdentityUpdate(client,membership.rows[0].customer_id,existingSource.rows[0]||{},cleanRecord);
+    const customerUpdate=await client.query(`UPDATE customers SET identification_number=$2,hn=$3,vn=$4,title=$5,first_name=$6,last_name=$7,birth_date=$8,sex=$9,phone=$10,email=$11,source_data=$12::jsonb,passport_number=$13,revision=revision+1,updated_at=NOW() WHERE id=$1`,[membership.rows[0].customer_id,identity.identification,String(cleanRecord.hn||''),String(cleanRecord.vn||cleanRecord.hisLastVisitUID||''),String(cleanRecord.title||''),String(cleanRecord.first||cleanRecord.firstName||''),String(cleanRecord.last||cleanRecord.lastName||''),String(cleanRecord.birth||cleanRecord.birthDate||''),String(cleanRecord.sex||''),String(cleanRecord.phone||''),String(cleanRecord.email||''),source,identity.passport]);
     const membershipUpdate=await client.query(`UPDATE company_customers SET employee_code=$2,package_code=$3,package_name=$4,visited_at=$5,source_data=$6::jsonb,revision=revision+1,updated_at=NOW() WHERE legacy_record_key=$1`,[recordKey,String(cleanRecord.employeeCode||''),String(cleanRecord.code||cleanRecord.packageCode||''),String(cleanRecord.packageName||''),cleanRecord.visitedAt||null,source]);
     if(emrCase&&typeof emrCase==='object'&&!Array.isArray(emrCase)){
       const caseId=String(emrCase.id||'').trim();
       if(caseId){await client.query(`UPDATE app_state SET data=CASE WHEN jsonb_typeof(data->'emrQueue')='array' THEN jsonb_set(data,'{emrQueue}',COALESCE((SELECT jsonb_agg(CASE WHEN value->>'id'=$1 THEN $2::jsonb ELSE value END) FROM jsonb_array_elements(data->'emrQueue')),'[]'::jsonb),true) ELSE data END WHERE id=1`,[caseId,JSON.stringify(emrCase)]).catch(()=>{})}
     }
+    const experienceEvents=actingAccess.ok?await recordExperienceTransitions(client,{recordKey,before:existingRecord,after:cleanRecord,user:actingAccess.user,role:actingAccess.role}):[];
+    const experience=actingAccess.ok?await activityResult(client,actingAccess.user,actingAccess.role,experienceEvents):null;
     const revision=expected+1;
     await client.query('UPDATE app_state SET revision=$1,updated_at=NOW() WHERE id=1',[revision]);
     await client.query("UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error='' WHERE id=1",[revision]);
+    await clinicalLifecycle.validateProfileToken(client,recordKey,req.clinicalProfileOperation);
+    await clinicalLifecycle.auditIdentityChange(client,req);
     await client.query('COMMIT');compressedStateCache={revision:null,body:null};
     const logicalRows=Math.max(Number(customerUpdate.rowCount||0),Number(membershipUpdate.rowCount||0));
     await recordSystemHealthEvent({eventType:'PATIENT_SAVE',status:logicalRows===1?'OK':'CRITICAL',endpoint:'/api/state/records/:recordKey',entityKey:recordKey,durationMs:Date.now()-_healthStarted,expectedRows:1,actualRows:logicalRows,detail:{customerRows:customerUpdate.rowCount,membershipRows:membershipUpdate.rowCount,revision}});
-    res.set('Cache-Control','no-store');res.json({ok:true,revision,fastPath:true,relationalOnly:true,health:{expectedRows:1,actualRows:logicalRows,durationMs:Date.now()-_healthStarted}});
+    res.set('Cache-Control','no-store');res.json({ok:true,revision,experience,healthCheckFormat:cleanRecord.healthCheckFormat||null,fastPath:true,relationalOnly:true,health:{expectedRows:1,actualRows:logicalRows,durationMs:Date.now()-_healthStarted}});
   }catch(error){
     await client.query('ROLLBACK').catch(()=>{});
     console.error('บันทึกข้อมูลรายคนไม่สำเร็จ',error);
     recordSystemHealthEvent({eventType:'PATIENT_SAVE',status:error?.code==='55P03'||error?.code==='57014'?'TIMEOUT':'ERROR',endpoint:'/api/state/records/:recordKey',entityKey:String(req.params.recordKey||''),durationMs:Date.now()-_healthStarted,expectedRows:1,actualRows:0,detail:{code:error?.code||'',message:String(error.message||error).slice(0,300)}}).catch(()=>{});
+    if(error?.code==='CUSTOMER_IDENTITY_CONFLICT'||error?.code==='23505'&&error?.constraint==='customers_identity_unique_idx')return res.status(409).json({error:error.code==='CUSTOMER_IDENTITY_CONFLICT'?error.message:'เลขบัตรประชาชนหรือ Passport ซ้ำกับผู้รับบริการอีกระเบียน กรุณาตรวจสอบข้อมูลก่อนบันทึก',code:'CUSTOMER_IDENTITY_CONFLICT'});
     if(error?.code==='55P03'||error?.code==='57014')return res.status(503).json({error:'ฐานข้อมูลกำลังประมวลผลงานอื่น ระบบยกเลิกการรอเพื่อไม่ให้หน้าจอค้าง กรุณาลองบันทึกอีกครั้ง',retryable:true,code:error.code});
-    res.status(500).json({error:'บันทึกข้อมูลรายคนไม่สำเร็จ',detail:String(error.message||error).slice(0,500)})
+    res.status(error.status||500).json({error:'บันทึกข้อมูลรายคนไม่สำเร็จ',detail:String(error.message||error).slice(0,500)})
   }
   finally{client.release()}
 });
@@ -3096,8 +3422,8 @@ ensureLegacyStationVisits=async function(date){
 const workflowHasPayload=value=>Boolean(value&&(Array.isArray(value)?value.length:typeof value==='object'?Object.keys(value).length:String(value).trim()));
 function workflowRecordProjectHisStatus(record={}){const visitSource=record.hisVisitResult||{},visits=Array.isArray(visitSource?.visits)?visitSource.visits:Array.isArray(visitSource?.Visit)?visitSource.Visit:[],primary=Array.isArray(record.hisPrimaryVisitUIDs)?[...new Set(record.hisPrimaryVisitUIDs.map(String).filter(Boolean))]:record.hisLastVisitUID?[String(record.hisLastVisitUID)]:[],map=record.hisEmrResultsByVisit&&typeof record.hisEmrResultsByVisit==='object'?record.hisEmrResultsByVisit:{},hasVn=Boolean(primary.length||record.hisLastVisitUID||visits.some(v=>v&&v.VisitUID));let hasEmr=false;if(primary.length){hasEmr=primary.every(uid=>workflowHasPayload(map[uid])||(String(record.hisLastVisitUID||'')===uid&&workflowHasPayload(record.hisEmrResult)))}else{hasEmr=Boolean(Object.values(map).some(workflowHasPayload)||workflowHasPayload(record.hisEmrResult)||record.hisLastResultAt)}return {hasVn,hasEmr}}
 app.get('/api/checkup-projects',localOnly,async(req,res)=>{try{const q=String(req.query.q||'').trim(),companyId=String(req.query.companyId||'').trim(),status=String(req.query.status||'').trim(),params=[],where=[];if(companyId){params.push(companyId);where.push(`p.company_id=$${params.length}`)}if(status){params.push(status);where.push(`p.status=$${params.length}`)}if(q){params.push(`%${q}%`);where.push(`(p.project_code ILIKE $${params.length} OR p.project_name ILIKE $${params.length} OR p.company_name ILIKE $${params.length})`)}const hasVn=`(NULLIF(BTRIM(COALESCE(cc.source_data->>'hisLastVisitUID','')),'') IS NOT NULL OR CASE WHEN jsonb_typeof(cc.source_data->'hisPrimaryVisitUIDs')='array' THEN jsonb_array_length(cc.source_data->'hisPrimaryVisitUIDs')>0 ELSE FALSE END)`;const hasEmr=`(NULLIF(BTRIM(COALESCE(cc.source_data->>'hisLastResultAt','')),'') IS NOT NULL OR CASE WHEN jsonb_typeof(cc.source_data->'hisEmrResult')='object' THEN cc.source_data->'hisEmrResult'<>'{}'::jsonb ELSE FALSE END OR CASE WHEN jsonb_typeof(cc.source_data->'hisEmrResultsByVisit')='object' THEN cc.source_data->'hisEmrResultsByVisit'<>'{}'::jsonb ELSE FALSE END)`;const result=await pool.query(`SELECT p.*,COUNT(DISTINCT b.id)::int AS booking_count,COUNT(DISTINCT v.id) FILTER(WHERE v.visit_status IN ('CHECKED_IN','IN_SERVICE','COMPLETE'))::int AS arrived_count,COUNT(DISTINCT b.id) FILTER(WHERE ${hasVn})::int AS vn_found_count,COUNT(DISTINCT b.id) FILTER(WHERE ${hasEmr})::int AS emr_received_count FROM checkup_projects p LEFT JOIN checkup_bookings b ON b.project_id=p.id LEFT JOIN checkup_visits v ON v.booking_id=b.id LEFT JOIN company_customers cc ON cc.legacy_record_key=b.record_key ${where.length?'WHERE '+where.join(' AND '):''} GROUP BY p.id ORDER BY COALESCE(p.start_date,CURRENT_DATE) DESC,p.created_at DESC`,params);const items=result.rows.map(row=>{const total=Number(row.booking_count||0),received=Number(row.emr_received_count||0);return {...row,emr_pending_count:Math.max(0,total-received),emr_percent:total?Math.min(100,Math.round(received*100/total)):0}});res.set('Cache-Control','no-store');res.json({items})}catch(error){res.status(500).json({error:'อ่านโครงการตรวจสุขภาพไม่สำเร็จ',detail:error.message})}});
-app.post('/api/checkup-projects',localOnly,async(req,res)=>{try{const b=req.body||{};if(!String(b.projectName||'').trim())return res.status(400).json({error:'กรุณาระบุชื่อโครงการ'});const id=crypto.randomUUID(),actor=workflowActor(req),payors=Array.isArray(b.payorOptions)?b.payorOptions:[];const result=await pool.query(`INSERT INTO checkup_projects(id,project_code,project_name,company_id,company_name,screening_year,start_date,end_date,location,default_package_code,default_package_name,payor_options,default_location_code,billing_type,contact_person,remark,status,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15,$16,$17,$18,$18) RETURNING *`,[id,String(b.projectCode||'').trim(),String(b.projectName).trim(),String(b.companyId||''),String(b.companyName||''),String(b.screeningYear||''),b.startDate||null,b.endDate||null,String(b.location||''),String(b.defaultPackageCode||''),String(b.defaultPackageName||''),JSON.stringify(payors),String(b.defaultLocationCode||''),String(b.billingType||''),String(b.contactPerson||''),String(b.remark||''),workflowStatus(b.status||'DRAFT'),actor]);await workflowAudit(req,'PROJECT',id,'CREATE',{projectName:b.projectName});res.status(201).json(result.rows[0])}catch(error){res.status(500).json({error:'สร้างโครงการไม่สำเร็จ',detail:error.message})}});
-app.put('/api/checkup-projects/:id',localOnly,async(req,res)=>{try{const b=req.body||{},actor=workflowActor(req),payors=Array.isArray(b.payorOptions)?b.payorOptions:[];const result=await pool.query(`UPDATE checkup_projects SET project_code=$2,project_name=$3,company_id=$4,company_name=$5,screening_year=$6,start_date=$7,end_date=$8,location=$9,default_package_code=$10,default_package_name=$11,payor_options=$12::jsonb,default_location_code=$13,billing_type=$14,contact_person=$15,remark=$16,status=$17,updated_at=NOW(),updated_by=$18 WHERE id=$1 RETURNING *`,[req.params.id,String(b.projectCode||''),String(b.projectName||'').trim(),String(b.companyId||''),String(b.companyName||''),String(b.screeningYear||''),b.startDate||null,b.endDate||null,String(b.location||''),String(b.defaultPackageCode||''),String(b.defaultPackageName||''),JSON.stringify(payors),String(b.defaultLocationCode||''),String(b.billingType||''),String(b.contactPerson||''),String(b.remark||''),workflowStatus(b.status),actor]);if(!result.rows.length)return res.status(404).json({error:'ไม่พบโครงการ'});await workflowAudit(req,'PROJECT',req.params.id,'UPDATE',{status:b.status});res.json(result.rows[0])}catch(error){res.status(500).json({error:'แก้ไขโครงการไม่สำเร็จ',detail:error.message})}});
+registerExperienceApis({app,pool,localOnly,staffPermissionRequired,readState:async()=>((await pool.query('SELECT data FROM app_state WHERE id=1')).rows[0]?.data||{}),clearStateCache:()=>{compressedStateCache={revision:null,body:null}}});
+
 app.get('/api/checkup-records/:key/project-payors',localOnly,async(req,res)=>{try{
   const recordKey=String(req.params.key||'').trim(),hn=String(req.query.hn||'').trim(),idPassport=String(req.query.idPassport||'').trim(),companyId=String(req.query.companyId||'').trim();
   const identitySql=`WITH identities AS (
@@ -3137,7 +3463,6 @@ app.get('/api/checkup-records/:key/project-payors',localOnly,async(req,res)=>{tr
   const map=new Map();for(const booking of bookings)for(const value of booking.payorOptions)map.set(`${value.payor}|${value.agreement}|${value.office}`,value);
   const first=bookings[0]||{};res.set('Cache-Control','no-store');res.json({hasBooking:bookings.length>0,bookings,items:[...map.values()],defaultLocationCode:first.defaultLocationCode||'',bookingType:first.bookingType||'',matchedBy:{recordKey:Boolean(recordKey),hn:Boolean(hn),idPassport:Boolean(idPassport)},companyFallback:bookings.some(x=>x.companyFallback)});
 }catch(error){res.status(500).json({error:'อ่าน Booking/Payor ของโครงการไม่สำเร็จ',detail:error.message})}});
-app.delete('/api/checkup-projects/:id',localOnly,async(req,res)=>{try{const count=await pool.query('SELECT COUNT(*)::int AS n FROM checkup_bookings WHERE project_id=$1',[req.params.id]);if(Number(count.rows[0]?.n||0)>0)return res.status(409).json({error:'โครงการมี Booking แล้ว กรุณาปิด/ยกเลิกโครงการแทนการลบ'});const result=await pool.query('DELETE FROM checkup_projects WHERE id=$1',[req.params.id]);if(!result.rowCount)return res.status(404).json({error:'ไม่พบโครงการ'});await workflowAudit(req,'PROJECT',req.params.id,'DELETE');res.json({ok:true})}catch(error){res.status(500).json({error:'ลบโครงการไม่สำเร็จ',detail:error.message})}});
 
 
 app.get('/api/package-category-master', localOnly, async(req,res)=>{try{
@@ -3172,15 +3497,17 @@ app.post('/api/checkup-bookings/bulk-move',localOnly,async(req,res)=>{
 
 const customerImportStableId=(prefix,value)=>`${prefix}_${crypto.createHash('sha256').update(String(value||crypto.randomUUID())).digest('hex').slice(0,24)}`;
 const mergeCustomerImportServer=(existing=[],incoming=[],companyId='')=>mergeCustomerImport(existing,incoming,companyId);
-app.post('/api/customer-import',localOnly,async(req,res)=>{
+app.post('/api/customer-import',localOnly,staffPermissionRequired('customerImport'),async(req,res)=>{
   const client=await pool.connect();
   try{
     const companyId=String(req.body?.companyId||'').trim(),incoming=Array.isArray(req.body?.records)?req.body.records:[],expected=Number(req.body?._revision),updatedBy=String(req.body?.updatedBy||'system').slice(0,120);
     if(!companyId)return res.status(400).json({error:'ไม่พบบริษัท/ปีสำหรับนำเข้า'});if(!incoming.length)return res.status(400).json({error:'ไม่พบข้อมูลลูกค้าสำหรับนำเข้า'});if(incoming.length>5000)return res.status(400).json({error:'นำเข้าได้สูงสุด 5,000 รายชื่อต่อครั้ง'});if(!Number.isInteger(expected)||expected<0)return res.status(428).json({error:'ไม่พบ Revision กรุณาโหลดข้อมูลใหม่ก่อนนำเข้า'});
+    try{for(let i=0;i<incoming.length;i++)incoming[i]=require('./assets/personal-note-model').importRecord(incoming[i])}catch(error){return res.status(400).json({error:error.message})}
     await client.query('BEGIN');
     const stateRow=(await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE')).rows[0];if(!stateRow){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบข้อมูลระบบ PRODUCTION'});}if(Number(stateRow.revision)!==expected){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลง กรุณาโหลดหน้าใหม่ก่อนนำเข้า',conflict:true});}
     const stateData=stateRow.data&&typeof stateRow.data==='object'?stateRow.data:{},allRecords=Array.isArray(stateData.records)?stateData.records:[],companies=Array.isArray(stateData.companies)?stateData.companies:[];const yearInfo=(await client.query(`SELECT cy.id,cy.screening_year AS year,c.company_code,cy.note,c.company_name FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 LIMIT 1`,[companyId])).rows[0];if(!yearInfo){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปีตามรหัสที่เลือก กรุณากลับไปเลือกบริษัท/ปีใหม่'});}let companyIndex=companies.findIndex(item=>String(item?.id||'')===companyId);if(companyIndex<0){companies.push({id:companyId,name:String(yearInfo.company_name||''),year:String(yearInfo.year||''),code:String(yearInfo.company_code||''),note:String(yearInfo.note||''),updatedAt:new Date().toISOString()});companyIndex=companies.length-1;}
-    const existing=allRecords.filter(record=>String(record?.companyId||'')===companyId),outside=allRecords.filter(record=>String(record?.companyId||'')!==companyId),merge=mergeCustomerImportServer(existing,incoming,companyId),updatedAt=new Date().toISOString();companies[companyIndex]={...companies[companyIndex],updatedAt};const nextRecords=outside.concat(merge.companyRecords);
+    const existing=(await client.query('SELECT source_data FROM company_customers WHERE company_year_id=$1',[companyId])).rows.map(row=>row.source_data||{}),outside=allRecords.filter(record=>String(record?.companyId||'')!==companyId),merge=mergeCustomerImportServer(existing,incoming,companyId),updatedAt=new Date().toISOString();companies[companyIndex]={...companies[companyIndex],updatedAt};const nextRecords=outside.concat(merge.companyRecords);
+    for(const record of merge.changedRecords){const previous=existing.find(item=>String(item.key||item.id)===String(record.key||record.id));if(typeof record.personalNote==='string'&&record.personalNote!==require('./assets/personal-note-model').value(previous)){record.personalNoteUpdatedAt=updatedAt;record.personalNoteUpdatedBy=req.staffUser.username;}}
     const stateUpdate=await client.query(`UPDATE app_state SET data=jsonb_set(jsonb_set(data,'{records}',$1::jsonb,true),'{companies}',$2::jsonb,true),revision=revision+1,updated_at=NOW() WHERE id=1 AND revision=$3 RETURNING revision`,[JSON.stringify(nextRecords),JSON.stringify(companies),expected]);if(!stateUpdate.rowCount){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลง กรุณาโหลดหน้าใหม่ก่อนนำเข้า',conflict:true});}const revision=Number(stateUpdate.rows[0].revision);
     for(const record of merge.changedRecords){
       const legacyKey=String(record.key||record.id||customerImportStableId('person',JSON.stringify(record))).trim(),rawIdentity=String(record.id||record.idPassport||'').trim(),identity=normalizeCustomerIdentity(rawIdentity),identificationType=String(record.identificationType||'').trim().toLowerCase(),source=JSON.stringify({...record,id:identity||rawIdentity,key:legacyKey,companyId});let customerId='';const byKey=await client.query('SELECT customer_id FROM company_customers WHERE legacy_record_key=$1 LIMIT 1',[legacyKey]);if(byKey.rowCount)customerId=String(byKey.rows[0].customer_id||'');if(!customerId&&identity){const byIdentity=await client.query(`SELECT id FROM customers WHERE regexp_replace(LOWER(BTRIM(COALESCE(identification_number,''))),'[^a-z0-9]','','g')=$1 OR regexp_replace(LOWER(BTRIM(COALESCE(passport_number,''))),'[^a-z0-9]','','g')=$1 LIMIT 1`,[identity]);if(byIdentity.rowCount)customerId=String(byIdentity.rows[0].id||'');}if(!customerId)customerId=customerImportStableId('customer',(identity||legacyKey).toLowerCase());const membershipId=customerImportStableId('membership',`${companyId}|${customerId}`),passport=identificationType==='passport'?identity:'',idNumber=identificationType==='passport'?'':identity;
@@ -3188,7 +3515,10 @@ app.post('/api/customer-import',localOnly,async(req,res)=>{
       await client.query(`INSERT INTO company_customers(id,company_year_id,customer_id,legacy_record_key,employee_code,package_code,package_name,visited_at,source_data) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb) ON CONFLICT(company_year_id,customer_id) DO UPDATE SET legacy_record_key=EXCLUDED.legacy_record_key,employee_code=EXCLUDED.employee_code,package_code=EXCLUDED.package_code,package_name=EXCLUDED.package_name,visited_at=EXCLUDED.visited_at,source_data=EXCLUDED.source_data,revision=company_customers.revision+1,updated_at=NOW()`,[membershipId,companyId,customerId,legacyKey,String(record.employeeCode||''),String(record.code||record.packageCode||''),String(record.packageName||''),record.visitedAt||null,source]);
     }
     await client.query('UPDATE relational_sync_status SET app_state_revision=$1,synced_at=NOW(),last_error=\'\' WHERE id=1',[revision]);await client.query(`INSERT INTO audit_logs(entity_type,entity_id,action,before_data,after_data,changed_fields,performed_by,client_address) VALUES('CUSTOMER_IMPORT',$1,'IMPORT',$2::jsonb,$3::jsonb,$4::jsonb,$5,$6)`,[companyId,JSON.stringify({existing:existing.length}),JSON.stringify({imported:incoming.length,companyRecords:merge.companyRecords.length,added:merge.added,updated:merge.updated,kept:merge.kept,duplicateIncoming:merge.duplicateIncoming||0,conflicts:(merge.conflicts||[]).length}),JSON.stringify(['records']),updatedBy,String(req.ip||req.socket?.remoteAddress||'').slice(0,120)]).catch(()=>{});
-    await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.set('Cache-Control','no-store');res.json({ok:true,revision,updatedAt,added:merge.added,updated:merge.updated,kept:merge.kept,duplicateIncoming:merge.duplicateIncoming||0,conflictCount:(merge.conflicts||[]).length,conflicts:merge.conflicts||[],companyRecordCount:merge.companyRecords.length});
+    const oldSignatures=new Set(existing.map(importSignature));const hasMeaningfulChange=merge.changedRecords.some(r=>!oldSignatures.has(importSignature(r)));
+    const event=await awardActivity(client,{user:req.staffUser,role:req.staffRole,activity:'IMPORT_BATCH',entityKey:importBatchKey(companyId,merge.changedRecords),workKey:'import:'+importBatchKey(companyId,merge.changedRecords),eligible:hasMeaningfulChange&&!(merge.conflicts||[]).length});
+    const experience=await activityResult(client,req.staffUser,req.staffRole,[event]);
+    await client.query('COMMIT');compressedStateCache={revision:null,body:null};res.set('Cache-Control','no-store');res.json({ok:true,revision,experience,updatedAt,added:merge.added,updated:merge.updated,kept:merge.kept,duplicateIncoming:merge.duplicateIncoming||0,conflictCount:(merge.conflicts||[]).length,conflicts:merge.conflicts||[],companyRecordCount:merge.companyRecords.length});
   }catch(error){await client.query('ROLLBACK').catch(()=>{});console.error('นำเข้าข้อมูลลูกค้าไม่สำเร็จ',error);res.status(500).json({error:'นำเข้าข้อมูลลูกค้าไม่สำเร็จ',detail:String(error.message||error).slice(0,500)});}finally{client.release();}
 });
 
@@ -3241,13 +3571,10 @@ app.delete('/api/checkup-bookings/:id',localOnly,async(req,res)=>{try{
 
 app.get('/api/checkup-precheck',localOnly,async(req,res)=>{try{const date=String(req.query.date||new Date().toISOString().slice(0,10)),q=String(req.query.q||'').trim(),params=[date],where=['b.scheduled_date=$1::date'];if(q){params.push(`%${q}%`);where.push(`(b.patient_name ILIKE $${params.length} OR b.hn ILIKE $${params.length} OR b.employee_code ILIKE $${params.length} OR b.id_passport ILIKE $${params.length})`)}const result=await pool.query(`SELECT b.*,p.project_code,p.project_name,v.id AS visit_id,v.visit_status FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id LEFT JOIN checkup_visits v ON v.booking_id=b.id WHERE ${where.join(' AND ')} ORDER BY b.patient_name`,params);res.json({date,items:result.rows})}catch(error){res.status(500).json({error:'อ่านข้อมูล Pre-Checkup ไม่สำเร็จ',detail:error.message})}});
 app.patch('/api/checkup-bookings/:id/precheck',localOnly,async(req,res)=>{try{const status=String(req.body?.status||'PENDING').toUpperCase(),allowed=['PENDING','CONFIRMED','RESCHEDULED','QUESTIONNAIRE_DONE','NO_SHOW'];if(!allowed.includes(status))return res.status(400).json({error:'สถานะ Pre-Checkup ไม่ถูกต้อง'});const scheduledDate=req.body?.scheduledDate||null,questionnaire=req.body?.questionnaire&&typeof req.body.questionnaire==='object'?req.body.questionnaire:{};const result=await pool.query(`UPDATE checkup_bookings SET precheck_status=$2,questionnaire=CASE WHEN $3::jsonb='{}'::jsonb THEN questionnaire ELSE $3::jsonb END,scheduled_date=COALESCE($4::date,scheduled_date),precheck_updated_at=NOW(),updated_at=NOW(),updated_by=$5 WHERE id=$1 RETURNING *`,[req.params.id,status,JSON.stringify(questionnaire),scheduledDate,workflowActor(req)]);if(!result.rows.length)return res.status(404).json({error:'ไม่พบ Booking'});await workflowAudit(req,'BOOKING',req.params.id,'PRECHECK',{status,scheduledDate});res.json(result.rows[0])}catch(error){res.status(500).json({error:'บันทึก Pre-Checkup ไม่สำเร็จ',detail:error.message})}});
-app.post('/api/checkup-visits/quick-check-in',localOnly,async(req,res)=>{try{const code=String(req.body?.code||'').trim(),date=String(req.body?.visitDate||new Date().toISOString().slice(0,10));if(!code)return res.status(400).json({error:'กรุณาสแกน QR หรือกรอก HN / Employee ID'});const booking=(await pool.query(`SELECT b.*,p.location AS project_location FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.scheduled_date=$2::date AND (b.hn=$1 OR b.employee_code=$1 OR b.id_passport=$1 OR b.record_key=$1) ORDER BY b.updated_at DESC LIMIT 1`,[code,date])).rows[0];if(!booking)return res.status(404).json({error:'ไม่พบ Booking สำหรับวันที่เลือก'});if(booking.booking_status==='CANCELLED')return res.status(409).json({error:'Booking ถูกยกเลิก'});const actor=workflowActor(req),id=crypto.randomUUID(),result=await pool.query(`INSERT INTO checkup_visits(id,booking_id,visit_date,checkin_at,location,visit_status,updated_by) VALUES($1,$2,$3,NOW(),$4,'CHECKED_IN',$5) ON CONFLICT(booking_id) DO UPDATE SET visit_date=EXCLUDED.visit_date,checkin_at=COALESCE(checkup_visits.checkin_at,NOW()),visit_status=CASE WHEN checkup_visits.visit_status='NOT_ARRIVED' THEN 'CHECKED_IN' ELSE checkup_visits.visit_status END,updated_at=NOW(),updated_by=EXCLUDED.updated_by RETURNING *`,[id,booking.id,date,String(booking.project_location||''),actor]);await pool.query("UPDATE checkup_bookings SET booking_status='ARRIVED',precheck_status=CASE WHEN precheck_status='PENDING' THEN 'CONFIRMED' ELSE precheck_status END,updated_at=NOW(),updated_by=$2 WHERE id=$1",[booking.id,actor]);await workflowAudit(req,'VISIT',result.rows[0].id,'QUICK_CHECK_IN',{bookingId:booking.id,code});res.json({...result.rows[0],patient_name:booking.patient_name,hn:booking.hn})}catch(error){res.status(500).json({error:'ลงทะเบียนด้วย QR/HN ไม่สำเร็จ',detail:error.message})}});
-app.post('/api/checkup-visits/check-in',localOnly,async(req,res)=>{try{const bookingId=String(req.body?.bookingId||'');if(!bookingId)return res.status(400).json({error:'bookingId is required'});const booking=(await pool.query('SELECT b.*,p.location AS project_location FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.id=$1',[bookingId])).rows[0];if(!booking)return res.status(404).json({error:'ไม่พบ Booking'});if(booking.booking_status==='CANCELLED')return res.status(409).json({error:'Booking ถูกยกเลิก'});const actor=workflowActor(req),id=crypto.randomUUID(),date=req.body?.visitDate||new Date().toISOString().slice(0,10),location=String(req.body?.location||booking.project_location||'');const result=await pool.query(`INSERT INTO checkup_visits(id,booking_id,visit_date,checkin_at,location,visit_status,updated_by) VALUES($1,$2,$3,NOW(),$4,'CHECKED_IN',$5) ON CONFLICT(booking_id) DO UPDATE SET visit_date=EXCLUDED.visit_date,checkin_at=COALESCE(checkup_visits.checkin_at,NOW()),location=CASE WHEN EXCLUDED.location<>'' THEN EXCLUDED.location ELSE checkup_visits.location END,visit_status=CASE WHEN checkup_visits.visit_status='NOT_ARRIVED' THEN 'CHECKED_IN' ELSE checkup_visits.visit_status END,updated_at=NOW(),updated_by=EXCLUDED.updated_by RETURNING *`,[id,bookingId,date,location,actor]);await pool.query("UPDATE checkup_bookings SET booking_status=CASE WHEN booking_status='BOOKED' THEN 'ARRIVED' ELSE booking_status END,updated_at=NOW(),updated_by=$2 WHERE id=$1",[bookingId,actor]);await workflowAudit(req,'VISIT',result.rows[0].id,'CHECK_IN',{bookingId});res.json(result.rows[0])}catch(error){res.status(500).json({error:'Check-in ไม่สำเร็จ',detail:error.message})}});
-app.put('/api/checkup-visits/:id/status',localOnly,async(req,res)=>{try{const status=visitStatus(req.body?.status),actor=workflowActor(req);const result=await pool.query('UPDATE checkup_visits SET visit_status=$2,updated_at=NOW(),updated_by=$3 WHERE id=$1 RETURNING *',[req.params.id,status,actor]);if(!result.rows.length)return res.status(404).json({error:'ไม่พบ Visit'});const map={CHECKED_IN:'ARRIVED',IN_SERVICE:'IN_SERVICE',COMPLETE:'COMPLETE',CANCELLED:'CANCELLED'};if(map[status])await pool.query('UPDATE checkup_bookings SET booking_status=$2,updated_at=NOW(),updated_by=$3 WHERE id=$1',[result.rows[0].booking_id,map[status],actor]);await workflowAudit(req,'VISIT',req.params.id,'STATUS',{status});res.json(result.rows[0])}catch(error){res.status(500).json({error:'เปลี่ยนสถานะ Visit ไม่สำเร็จ',detail:error.message})}});
 app.get('/api/checkup-operations',localOnly,async(req,res)=>{try{const date=String(req.query.date||new Date().toISOString().slice(0,10));await ensureLegacyStationVisits(date);const result=await pool.query(`SELECT v.*,b.id AS booking_id,b.record_key,b.hn,b.patient_name,b.employee_code,b.company_name,b.package_code,b.package_name,p.project_code,p.project_name,p.billing_type,COALESCE(c.result_data,'{}'::jsonb) AS result_data,COALESCE(c.abnormal,FALSE) AS abnormal,COALESCE(c.doctor_review,'{}'::jsonb) AS doctor_review,COALESCE(c.review_status,'PENDING') AS review_status,COALESCE(c.follow_up,'{}'::jsonb) AS follow_up,COALESCE(c.follow_up_status,'NONE') AS follow_up_status,COALESCE(jsonb_agg(jsonb_build_object('station',s.station_name,'status',s.station_status,'queuedAt',s.queued_at,'startedAt',s.started_at,'completedAt',s.completed_at) ORDER BY s.queued_at) FILTER(WHERE s.id IS NOT NULL),'[]'::jsonb) AS stations FROM checkup_visits v JOIN checkup_bookings b ON b.id=v.booking_id JOIN checkup_projects p ON p.id=b.project_id LEFT JOIN checkup_station_events s ON s.visit_id=v.id LEFT JOIN checkup_clinical_records c ON c.visit_id=v.id WHERE v.visit_date=$1::date GROUP BY v.id,b.id,p.id,c.visit_id ORDER BY v.checkin_at DESC NULLS LAST,b.patient_name`,[date]);const state=await readState(),recordMap=new Map((state.records||[]).map(record=>[String(record.key||''),record])),items=result.rows.map(item=>{const record=recordMap.get(String(item.record_key||''))||{},hn=String(item.hn||record.hn||'').trim(),vn=String(item.vn||record.hisLastVisitUID||'').trim();return {...item,hn,vn}}),hnFixes=items.filter((item,index)=>!String(result.rows[index].hn||'').trim()&&item.hn&&item.booking_id);if(hnFixes.length)await Promise.all(hnFixes.map(item=>pool.query(`UPDATE checkup_bookings SET hn=$2,updated_at=NOW(),updated_by='HN_SYNC' WHERE id=$1 AND COALESCE(hn,'')=''`,[item.booking_id,item.hn])));res.json({date,items})}catch(error){res.status(500).json({error:'อ่านข้อมูล Operations ไม่สำเร็จ',detail:error.message})}});
 app.get('/api/checkup-analytics',localOnly,async(req,res)=>{try{const year=Number(req.query.year)||new Date().getFullYear(),summary=await pool.query(`SELECT COUNT(*)::int AS visits,COUNT(*) FILTER(WHERE c.abnormal)::int AS abnormal,COUNT(*) FILTER(WHERE COALESCE(c.review_status,'PENDING')<>'APPROVED')::int AS review_pending,COUNT(*) FILTER(WHERE c.follow_up_status='OPEN')::int AS follow_up_open FROM checkup_visits v LEFT JOIN checkup_clinical_records c ON c.visit_id=v.id WHERE EXTRACT(YEAR FROM v.visit_date)=$1`,[year]),stations=await pool.query(`SELECT station_name,COUNT(*) FILTER(WHERE station_status='WAITING')::int AS waiting,ROUND(AVG(EXTRACT(EPOCH FROM (COALESCE(completed_at,NOW())-COALESCE(started_at,queued_at)))/60))::int AS average_minutes FROM checkup_station_events s JOIN checkup_visits v ON v.id=s.visit_id WHERE EXTRACT(YEAR FROM v.visit_date)=$1 GROUP BY station_name ORDER BY waiting DESC,average_minutes DESC LIMIT 5`,[year]);res.json({year,...summary.rows[0],stations:stations.rows})}catch(error){res.status(500).json({error:'อ่าน Clinical Analytics ไม่สำเร็จ',detail:error.message})}});
 app.post('/api/checkup-visits/:id/stations',localOnly,async(req,res)=>{try{const station=String(req.body?.station||'').trim(),action=String(req.body?.action||'QUEUE').toUpperCase(),actor=workflowActor(req);if(!station)return res.status(400).json({error:'กรุณาระบุ Station'});if(!['QUEUE','START','COMPLETE','SKIP'].includes(action))return res.status(400).json({error:'คำสั่ง Station ไม่ถูกต้อง'});const status={QUEUE:'WAITING',START:'IN_SERVICE',COMPLETE:'COMPLETE',SKIP:'SKIPPED'}[action],result=await pool.query(`INSERT INTO checkup_station_events(visit_id,station_name,station_status,started_at,completed_at,updated_by) VALUES($1,$2,$3,CASE WHEN $3='IN_SERVICE' THEN NOW() END,CASE WHEN $3='COMPLETE' THEN NOW() END,$4) ON CONFLICT(visit_id,station_name) DO UPDATE SET station_status=EXCLUDED.station_status,started_at=CASE WHEN EXCLUDED.station_status='IN_SERVICE' THEN COALESCE(checkup_station_events.started_at,NOW()) ELSE checkup_station_events.started_at END,completed_at=CASE WHEN EXCLUDED.station_status='COMPLETE' THEN NOW() ELSE checkup_station_events.completed_at END,updated_by=EXCLUDED.updated_by RETURNING *`,[req.params.id,station,status,actor]);if(action==='START')await pool.query("UPDATE checkup_visits SET visit_status='IN_SERVICE',updated_at=NOW(),updated_by=$2 WHERE id=$1",[req.params.id,actor]);if(action==='COMPLETE'){const pending=await pool.query("SELECT COUNT(*)::int AS n FROM checkup_station_events WHERE visit_id=$1 AND station_status NOT IN ('COMPLETE','SKIPPED')",[req.params.id]);if(!Number(pending.rows[0]?.n||0))await pool.query("UPDATE checkup_visits SET visit_status='COMPLETE',updated_at=NOW(),updated_by=$2 WHERE id=$1",[req.params.id,actor])}await workflowAudit(req,'VISIT',req.params.id,'STATION_'+action,{station});res.json(result.rows[0])}catch(error){res.status(500).json({error:'อัปเดต Station ไม่สำเร็จ',detail:error.message})}});
-app.put('/api/checkup-visits/:id/clinical',localOnly,async(req,res)=>{try{const section=String(req.body?.section||'result'),data=req.body?.data&&typeof req.body.data==='object'?req.body.data:{},actor=workflowActor(req);if(!['result','review','followup'].includes(section))return res.status(400).json({error:'ส่วนข้อมูล Clinical ไม่ถูกต้อง'});await pool.query("INSERT INTO checkup_clinical_records(visit_id,updated_by) VALUES($1,$2) ON CONFLICT(visit_id) DO NOTHING",[req.params.id,actor]);let result;if(section==='result'){result=await pool.query(`UPDATE checkup_clinical_records SET result_data=$2::jsonb,abnormal=$3,updated_at=NOW(),updated_by=$4 WHERE visit_id=$1 RETURNING *`,[req.params.id,JSON.stringify(data),Boolean(req.body?.abnormal),actor]);await pool.query("UPDATE checkup_visits SET result_status=$2,updated_at=NOW(),updated_by=$3 WHERE id=$1",[req.params.id,req.body?.abnormal?'ABNORMAL':'RESULT_READY',actor])}if(section==='review')result=await pool.query(`UPDATE checkup_clinical_records SET doctor_review=$2::jsonb,review_status=$3,updated_at=NOW(),updated_by=$4 WHERE visit_id=$1 RETURNING *`,[req.params.id,JSON.stringify(data),String(req.body?.status||'APPROVED'),actor]);if(section==='followup')result=await pool.query(`UPDATE checkup_clinical_records SET follow_up=$2::jsonb,follow_up_status=$3,updated_at=NOW(),updated_by=$4 WHERE visit_id=$1 RETURNING *`,[req.params.id,JSON.stringify(data),String(req.body?.status||'OPEN'),actor]);await workflowAudit(req,'VISIT',req.params.id,'CLINICAL_'+section.toUpperCase(),{status:req.body?.status||''});res.json(result.rows[0])}catch(error){res.status(500).json({error:'บันทึกข้อมูล Clinical ไม่สำเร็จ',detail:error.message})}});
+const {activeOrder,worklistStage,eligibleConfirmedRecords,buildConfirmedRows,buildUnconfirmedRows}=require('./worklist-confirmed-fallback');
 app.get('/api/checkup-worklist',localOnly,async(req,res)=>{try{
   const date=String(req.query.date||new Date().toISOString().slice(0,10)),q=String(req.query.q||'').trim(),companyId=String(req.query.companyId||''),projectId=String(req.query.projectId||''),status=String(req.query.status||'');
   await ensureLegacyStationVisits(date);
@@ -3258,23 +3585,40 @@ app.get('/api/checkup-worklist',localOnly,async(req,res)=>{try{
   if(status){params.push(status);where.push(`COALESCE(v.visit_status,'NOT_ARRIVED')=$${params.length}`)}
   if(q){params.push(`%${q}%`);where.push(`(b.patient_name ILIKE $${params.length} OR b.hn ILIKE $${params.length} OR b.employee_code ILIKE $${params.length} OR b.id_passport ILIKE $${params.length})`)}
   const result=await pool.query(`SELECT b.id AS booking_id,b.project_id,p.project_code,p.project_name,b.record_key,b.hn,b.employee_code,b.patient_name,b.birth_date,b.sex,b.company_id,b.company_name,b.department_name,b.position_name,b.package_code,b.package_name,b.scheduled_date,b.booking_status,v.id AS visit_id,v.visit_date,v.checkin_at,v.vn,v.location,v.visit_status,v.updated_by AS visit_updated_by,COALESCE(v.result_status,'WAITING_RESULT') AS result_status,COALESCE(v.order_total,0) AS order_total,COALESCE(v.order_complete,0) AS order_complete FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id JOIN checkup_visits v ON v.booking_id=b.id WHERE ${where.join(' AND ')} AND p.project_code<>'HIS-OPEN-VISIT' ORDER BY v.checkin_at DESC NULLS LAST,v.updated_at DESC,b.patient_name`,params);
-  const items=[...result.rows],state=await readState(),existingKeys=new Set(items.map(x=>String(x.record_key||'')).filter(Boolean));
-  const bangkokDateKey=value=>{if(!value)return'';const d=new Date(value);if(Number.isNaN(d.getTime()))return String(value).slice(0,10);return new Date(d.getTime()+7*60*60*1000).toISOString().slice(0,10)};
-  const qNorm=q.toLowerCase();
-  if(false&&!projectId){
-    for(const r of (state.records||[])){
-      if(!r.openVisitAt||!String(r.hisLastVisitUID||'').trim()||bangkokDateKey(r.openVisitAt)!==date)continue;
-      const recordKey=String(r.key||r.id||'');if(recordKey&&existingKeys.has(recordKey))continue;
-      if(companyId&&String(r.companyId||'')!==companyId)continue;
-      if(status&&status!=='CHECKED_IN')continue;
-      const co=(state.companies||[]).find(c=>String(c.id)===String(r.companyId))||{};
-      const patientName=[r.title,r.first,r.last].filter(Boolean).join(' '),searchText=[patientName,r.hn,r.employeeCode,r.id].filter(Boolean).join(' ').toLowerCase();
-      if(qNorm&&!searchText.includes(qNorm))continue;
-      const primary=Array.isArray(r.primaryPackages)&&r.primaryPackages.length?r.primaryPackages[0]:null;
-      items.push({booking_id:'',project_id:'',project_code:'',project_name:'',record_key:recordKey,hn:String(r.hn||''),employee_code:String(r.employeeCode||''),patient_name:patientName,birth_date:String(r.birth||''),sex:String(r.sex||''),company_id:String(r.companyId||''),company_name:String(co.name||''),department_name:String(r.departmentName||''),position_name:String(r.positionName||''),package_code:String(primary?.code||r.code||''),package_name:String(primary?.name||r.packageName||''),scheduled_date:null,booking_status:'ARRIVED',visit_id:'',visit_date:date,checkin_at:r.openVisitAt,vn:String(r.hisLastVisitUID||''),location:'',visit_status:'CHECKED_IN',result_status:'WAITING_RESULT',order_total:0,order_complete:0,source:'HIS_OPEN_VISIT'});
-    }
+  const state=await readState(),recordMap=new Map((state.records||[]).map(r=>[String(r.key||r.id||''),r]));
+  // A completed, non-cancelled HIS Order enables clinical actions. Pending
+  // confirmation and pending Order rows share the board without those actions.
+  const listedOrderKeys=new Set();
+  const items=result.rows.filter(row=>{
+    const key=String(row.record_key||'');
+    if(!key||listedOrderKeys.has(key)||worklistStage(recordMap.get(key))!=='ORDERED')return false;
+    listedOrderKeys.add(key);return true;
+  }).map(row=>({...row,workflow_stage:'ORDERED'}));
+  const existingKeys=new Set(items.map(x=>String(x.record_key||'')).filter(Boolean));
+  // Include confirmed but not-yet-ordered cases in the pending queue without
+  // creating a fake VN or check-in. Ordered cases not yet in normalized visits
+  // also remain visible as a fallback, without duplicating true visits.
+  const candidateRecords=eligibleConfirmedRecords({records:state.records||[],date,companyId,status,q,existingKeys});
+  let bookingByRecord=new Map();
+  if(candidateRecords.length){
+    const keys=[...new Set(candidateRecords.map(r=>String(r.key||r.id||'')))];
+    const bookingParams=[keys,date];
+    const projectCondition=projectId?` AND b.project_id=$3`:'';
+    if(projectId)bookingParams.push(projectId);
+    const bookingRows=await pool.query(`SELECT DISTINCT ON (b.record_key) b.record_key,b.id AS booking_id,b.project_id,p.project_code,p.project_name,b.company_name FROM checkup_bookings b LEFT JOIN checkup_projects p ON p.id=b.project_id WHERE b.record_key=ANY($1::text[])${projectCondition} ORDER BY b.record_key,(b.scheduled_date=$2::date) DESC,b.updated_at DESC`,bookingParams);
+    bookingByRecord=new Map(bookingRows.rows.map(x=>[String(x.record_key),x]));
   }
-  const recordMap=new Map((state.records||[]).map(r=>[String(r.key||r.id||''),r]));
+  items.push(...buildConfirmedRows({records:candidateRecords,companies:state.companies||[],date,companyId,projectId,status,q,existingKeys,bookingByRecord}));
+  // Scheduled, unconfirmed bookings share the same read-only board. Never create
+  // a Visit or infer confirmation from an old HN/VN while listing these cases.
+  if(!status||status==='NOT_ARRIVED'){
+    const pendingParams=[date],pendingWhere=["b.scheduled_date=$1::date","b.booking_status<>'CANCELLED'","p.status<>'CANCELLED'","p.project_code<>'HIS-OPEN-VISIT'"];
+    if(companyId){pendingParams.push(companyId);pendingWhere.push(`b.company_id=$${pendingParams.length}`)}
+    if(projectId){pendingParams.push(projectId);pendingWhere.push(`b.project_id=$${pendingParams.length}`)}
+    if(q){pendingParams.push('%'+q+'%');pendingWhere.push(`(b.patient_name ILIKE $${pendingParams.length} OR b.hn ILIKE $${pendingParams.length} OR b.employee_code ILIKE $${pendingParams.length} OR b.id_passport ILIKE $${pendingParams.length})`)}
+    const pendingRows=(await pool.query(`SELECT DISTINCT ON (b.record_key) b.*,b.id AS booking_id,p.project_code,p.project_name FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE ${pendingWhere.join(' AND ')} ORDER BY b.record_key,b.updated_at DESC,b.id`,pendingParams)).rows;
+    items.push(...buildUnconfirmedRows({bookings:pendingRows,records:state.records||[],date,existingKeys:new Set(items.map(x=>String(x.record_key||'')))}));
+  }
   const itemKeys=[...new Set(items.map(x=>String(x.record_key||'')).filter(Boolean))];
   const visitIds=[...new Set(items.map(x=>String(x.visit_id||'')).filter(Boolean))],operationMap=new Map();
   if(visitIds.length){const operations=await pool.query(`SELECT v.id,COALESCE(COUNT(s.id),0)::int AS total,COALESCE(COUNT(s.id) FILTER(WHERE s.station_status IN ('COMPLETE','SKIPPED')),0)::int AS complete,COALESCE((array_agg(s.station_name ORDER BY COALESCE(s.updated_at,s.completed_at,s.started_at,s.queued_at) DESC) FILTER(WHERE s.id IS NOT NULL))[1],'') AS current_station,COALESCE(c.abnormal,FALSE) AS abnormal FROM checkup_visits v LEFT JOIN checkup_station_events s ON s.visit_id=v.id LEFT JOIN checkup_clinical_records c ON c.visit_id=v.id WHERE v.id=ANY($1::text[]) GROUP BY v.id,c.visit_id`,[visitIds]);for(const row of operations.rows)operationMap.set(String(row.id),row)}
@@ -3287,16 +3631,28 @@ app.get('/api/checkup-worklist',localOnly,async(req,res)=>{try{
     const logs=await pool.query(`SELECT DISTINCT ON (record_key) record_key,performed_by_display_name,performed_by_username FROM checkup_audit_log WHERE record_key=ANY($1::text[]) AND action='CREATE' ORDER BY record_key,performed_at DESC,id DESC`,[itemKeys]);
     registeredBy=new Map(logs.rows.map(x=>[String(x.record_key),String(x.performed_by_display_name||x.performed_by_username||'')]))
   }
+  const hisStates=itemKeys.length?(await pool.query("SELECT record_key,data->'his' AS his FROM clinical_case_controls WHERE record_key=ANY($1::text[])",[itemKeys])).rows:[];
+  const hisStateMap=new Map(hisStates.map(x=>[String(x.record_key),x.his]));
+  const worklistCompanies=new Map((state.companies||[]).map(c=>[String(c.id),c]));
   for(const item of items){
+    item.company_name=item.company_name||worklistCompanies.get(String(item.company_id||''))?.name||'';
     const r=recordMap.get(String(item.record_key||''))||{};
     const packageLabel=(p={},fallbackCode='',fallbackName='')=>{const code=String(p.code||p.packageCode||fallbackCode||'').trim(),name=String(p.name||p.itemName||p.packageName||fallbackName||'').trim();return [code,name].filter(Boolean).join(' · ')};
-    const mains=Array.isArray(r.primaryPackages)&&r.primaryPackages.length?r.primaryPackages.map(p=>packageLabel(p)).filter(Boolean):[packageLabel({},item.package_code,item.package_name)].filter(Boolean);
-    const bill=Array.isArray(r.acceptedBillingItems)?r.acceptedBillingItems.map(p=>packageLabel(p)).filter(Boolean):[];
-    const cash=Array.isArray(r.acceptedCashItems)?r.acceptedCashItems.map(p=>packageLabel(p)).filter(Boolean):[];
+    // Use the successful HIS request snapshot, never the editable booking selection.
+    const ordered=worklistStage(r)==='ORDERED'&&Array.isArray(r.orderHisRequest?.Package)?r.orderHisRequest.Package:[];
+    const orderedLabel=p=>[String(p.PackageCode||p.code||'').trim(),String(p.PackageName||p.name||'').trim()].filter(Boolean).join(' · ');
+    item.ordered_packages=[...new Set(ordered.map(orderedLabel).filter(Boolean))];
+    const mains=ordered.filter(p=>String(p.Type||'').toLowerCase()==='main').map(orderedLabel).filter(Boolean);
+    const bill=ordered.filter(p=>String(p.Type||'').toLowerCase()!=='main').map(orderedLabel).filter(Boolean);
+    const cash=[];
     const operation=operationMap.get(String(item.visit_id||''))||{},stationTotal=Number(operation.total||0),stationComplete=Number(operation.complete||0);
-    item.hn=String(item.hn||r.hn||'');item.vn=String(item.vn||r.hisLastVisitUID||'');item.main_package=mains.join(' || ');item.billing_packages=bill.join(' || ');item.cash_packages=cash.join(' || ');item.registered_by=String(visitRegisteredBy.get(String(item.visit_id||''))||item.visit_updated_by||registeredBy.get(String(item.record_key||''))||'');item.current_station=String(operation.current_station||'');item.station_progress=stationTotal?Math.round(stationComplete*100/stationTotal):0;item.abnormal=Boolean(operation.abnormal);
+    item.workflow_stage=worklistStage(r);item.order_at=item.workflow_stage==='ORDERED'?r.orderHisAt:null;item.hn=String(item.hn||r.hn||'');item.vn=item.workflow_stage==='NOT_CONFIRMED'?'':String(item.vn||r.hisLastVisitUID||'');item.main_package=mains.join(' || ');item.billing_packages=bill.join(' || ');item.cash_packages=cash.join(' || ');item.registered_by=String(visitRegisteredBy.get(String(item.visit_id||''))||item.visit_updated_by||registeredBy.get(String(item.record_key||''))||'');item.current_station=String(operation.current_station||'');item.station_progress=stationTotal?Math.round(stationComplete*100/stationTotal):0;item.abnormal=Boolean(operation.abnormal);
+    item.confirmed_at=r.checkupConfirmedAt||r.visitedAt||item.confirmed_at||null;
+    const his=hisStateMap.get(String(item.record_key||''));
+    item.his_visit_status=his&&his.hn===item.hn&&his.vn===item.vn?{matched:Boolean(his.matched),rawStatus:his.rawStatus||'',visitState:his.visitState||'UNKNOWN',checkedAt:his.checkedAt||null,message:his.message||''}:null;
+
   }
-  items.sort((a,b)=>new Date(b.checkin_at||0)-new Date(a.checkin_at||0)||String(a.patient_name||'').localeCompare(String(b.patient_name||''),'th'));
+  items.sort((a,b)=>new Date(b.checkin_at||b.confirmed_at||0)-new Date(a.checkin_at||a.confirmed_at||0)||String(a.patient_name||'').localeCompare(String(b.patient_name||''),'th'));
   res.json({date,items});
 }catch(error){res.status(500).json({error:'อ่าน Worklist ไม่สำเร็จ',detail:error.message})}});
 
@@ -3348,6 +3704,8 @@ app.use('/external-api/v1', (req, res, next) => {
 });
 
 app.use('/customer-api', customerCors);
+require('./customer-services').registerCustomerServices({app,pool,customerSessionRequired,readState,renderPdf:healthBookPdfBytesForRecord});
+require('./appointments-self-service').registerAppointments({app,pool,localOnly,staffPermissionRequired,customerSessionRequired,readState});
 
 app.get('/customer-api/read-thai-id', localOnly, async (_req, res) => {
   try {
@@ -3381,7 +3739,7 @@ app.post('/customer-api/session', async (req, res) => {
     const matches = (state.records || []).filter(record => normalizedBirth(record.birth) === birthDate && (method === 'id'
       ? normalizedIdentity(record.id) === idPassport
       : normalizedPersonName(record.first) === firstName && normalizedPersonName(record.last) === lastName));
-    if (matches.length !== 1) {
+    if (!matches.length || (matches.length > 1 && method !== 'id')) {
       attempt.count += 1; customerLoginAttempts.set(address, attempt);
       return res.status(401).json({ error:matches.length > 1 ? 'พบชื่อและวันเกิดซ้ำ กรุณาติดต่อเจ้าหน้าที่เพื่อยืนยันข้อมูล' : 'ข้อมูลยืนยันตัวตนไม่ถูกต้อง หรือไม่พบข้อมูลในระบบ' });
     }
@@ -3393,13 +3751,19 @@ app.post('/customer-api/session', async (req, res) => {
   } catch (error) { res.status(500).json({ error:'ยืนยันตัวตนไม่สำเร็จ' }); }
 });
 
-app.get('/customer-api/me', customerSessionRequired, async (req, res) => {
-  try {
+async function customerProfileFor(recordKey,qrAuthenticated=false) {
     const state = await readState();
-    const record = (state.records || []).find(item => String(item.key || item.id) === req.customerSession.recordKey);
-    if (!record) return res.status(404).json({ error:'ไม่พบข้อมูลลูกค้า' });
+    const record = (state.records || []).find(item => String(item.key || item.id) === recordKey);
+    if (!record) throw Object.assign(new Error('ไม่พบข้อมูลลูกค้า'),{status:404});
     const company = (state.companies || []).find(item => item.id === record.companyId);
     const profile = safeCustomerProfile(record, company, state);
+    profile.contextKey=recordKey;
+    profile.qrAuthenticated=qrAuthenticated;
+    const categoryRows=(await pool.query(`SELECT c.code,c.name,c.active,c.sort_order,COALESCE(json_agg(json_build_object('name',s.name,'active',s.active,'sortOrder',s.sort_order) ORDER BY s.sort_order,s.name) FILTER(WHERE s.id IS NOT NULL),'[]'::json) subcategories FROM package_categories c LEFT JOIN package_subcategories s ON s.category_id=c.id GROUP BY c.id ORDER BY c.sort_order,c.name`)).rows;
+    const categories=new Map(categoryRows.map(c=>[String(c.code),c]));
+    profile.categoryMaster=categoryRows.filter(c=>c.active!==false).map(c=>({code:c.code,name:c.name,subcategories:(c.subcategories||[]).filter(s=>s.active!==false)}));
+    for(const type of Object.keys(profile.choices))profile.choices[type]=profile.choices[type].filter(p=>{const c=categories.get(p.category);return !c||c.active!==false&&!(c.subcategories||[]).some(s=>s.name===p.subcategory&&s.active===false)}).map(p=>({...p,categoryName:categories.get(p.category)?.name||p.category}));
+
     const codes=(profile.primaryPackages||[]).map(item=>String(item.code||'').trim()).filter(Boolean);
     if(codes.length){
       const prices=await pool.query('SELECT package_code,package_name,total_price FROM his_packages WHERE package_code = ANY($1::text[])',[codes]);
@@ -3407,52 +3771,33 @@ app.get('/customer-api/me', customerSessionRequired, async (req, res) => {
       profile.primaryPackages=(profile.primaryPackages||[]).map(item=>{const found=byCode.get(String(item.code||''));return {...item,name:item.name||found?.package_name||'',price:found?.total_price==null?Number(item.price||0):Number(found.total_price)};});
     } else profile.primaryPackages=(profile.primaryPackages||[]).map(item=>({...item,price:Number(item.price||0)}));
     profile.primaryPackageTotal=profile.primaryPackages.reduce((sum,item)=>sum+Number(item.price||0),0);
-    res.set('Cache-Control','no-store'); res.json(profile);
-  } catch (error) { res.status(500).json({ error:'อ่านข้อมูลไม่สำเร็จ' }); }
+    return profile;
+}
+app.get('/customer-api/me', customerSessionRequired, async (req,res)=>{
+  try {res.set('Cache-Control','no-store').json(await customerProfileFor(req.customerSession.recordKey,req.customerSession.loginMethod==='qr'));}
+  catch(error){res.status(error.status||500).json({error:error.status===404?error.message:'อ่านข้อมูลไม่สำเร็จ'});}
 });
+require('./customer-staff-preview').registerCustomerStaffPreview({app,localOnly,staffPermissionRequired,profileFor:customerProfileFor});
 
-app.put('/customer-api/me/profile', customerSessionRequired, async (req, res) => {
+require('./customer-profile-save').registerCustomerProfileSave({app,pool,customerSessionRequired,safeCustomerProfile,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
+
+app.post('/customer-api/me/selection/verify', customerSessionRequired, customerAccess.selectionLease, async (req, res) => {
   try {
     const state = await readState();
     const record = (state.records || []).find(item => String(item.key || item.id) === req.customerSession.recordKey);
     if (!record) return res.status(404).json({ error:'ไม่พบข้อมูลลูกค้า' });
-    if (record.visitedAt) return res.status(409).json({ error:'เจ้าหน้าที่ยืนยันรายการแล้ว ไม่สามารถแก้ไขข้อมูลได้อีก', locked:true });
-    const next = {
-      title:String(req.body?.title || '').trim().slice(0,30), first:String(req.body?.firstName || '').trim().slice(0,100),
-      last:String(req.body?.lastName || '').trim().slice(0,100), phone:String(req.body?.phone || '').trim().slice(0,30),
-      email:String(req.body?.email || '').trim().slice(0,160)
-    };
-    if (!next.first || !next.last) return res.status(400).json({ error:'กรุณากรอกชื่อและนามสกุล' });
-    if (next.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.email)) return res.status(400).json({ error:'รูปแบบอีเมลไม่ถูกต้อง' });
-    const before = { title:record.title || '', firstName:record.first || '', lastName:record.last || '', phone:record.phone || '', email:record.email || '' };
-    Object.assign(record, next); state.at = new Date().toISOString(); await writeState(state);
-    const company = (state.companies || []).find(item => item.id === record.companyId);
-    await pool.query(`INSERT INTO checkup_audit_log
-      (record_key,customer_name,id_passport,company_id,company_name,company_year,package_code,package_name,action,
-       performed_by_user_id,performed_by_username,performed_by_display_name,details)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8,'UPDATE','customer-self-service','customer','ลูกค้าแก้ไขข้อมูลส่วนตัว',$9::jsonb)`,
-      [String(record.key || record.id),[record.title,record.first,record.last].filter(Boolean).join(' '),record.id || '',record.companyId || '',company?.name || '',company?.year || '',record.code || '',record.packageName || '',JSON.stringify({kind:'CUSTOMER_PROFILE_UPDATE',before,after:{title:next.title,firstName:next.first,lastName:next.last,phone:next.phone,email:next.email}})]);
-    res.json({ ok:true, profile:safeCustomerProfile(record, company, state) });
-  } catch (error) { res.status(500).json({ error:error.message || 'บันทึกข้อมูลส่วนตัวไม่สำเร็จ' }); }
-});
-
-app.post('/customer-api/me/selection/verify', customerSessionRequired, async (req, res) => {
-  try {
-    const state = await readState();
-    const record = (state.records || []).find(item => String(item.key || item.id) === req.customerSession.recordKey);
-    if (!record) return res.status(404).json({ error:'ไม่พบข้อมูลลูกค้า' });
-    if (record.visitedAt) return res.status(409).json({ error:'เจ้าหน้าที่ยืนยันรายการแล้ว ไม่สามารถแก้ไขได้อีก', locked:true });
+    if (customerCatalog.locked(record)) return res.status(409).json({ error:'รายการนี้ส่ง Order หรือปิดค่าใช้จ่ายแล้ว กรุณาติดต่อเจ้าหน้าที่หากต้องการซื้อเพิ่มเติม', locked:true });
     const company = (state.companies || []).find(item => item.id === record.companyId);
     const expected = normalizedIdentity(record.id).slice(-4), supplied = normalizedIdentity(req.body?.idLast4);
     const suppliedFirst = normalizedPersonName(req.body?.firstName), suppliedLast = normalizedPersonName(req.body?.lastName);
-    if (expected) {
+    if(req.customerSession.loginMethod==='qr') { /* The scoped QR session already authenticates this case. */ } else if (expected) {
       if (expected.length < 4 || supplied !== expected) return res.status(401).json({ error:'เลข 4 ตัวท้ายของ ID / Passport ไม่ถูกต้อง' });
     } else if (!req.body?.confirmedNoId || suppliedFirst !== normalizedPersonName(record.first) || suppliedLast !== normalizedPersonName(record.last)) {
       return res.status(401).json({ error:'ชื่อ–นามสกุลสำหรับยืนยันไม่ถูกต้อง' });
     }
-    const selection = await saveCustomerSelection(record, company, state, buildCustomerSelection(req, company, state));
+    const selection = await saveCustomerSelection(record, company, state, await buildCustomerSelection(req, company, state));
     res.json({ ok:true, pendingSelection:selection });
-  } catch (error) { res.status(500).json({ error:error.message || 'ยืนยันและบันทึกรายการไม่สำเร็จ' }); }
+  } catch (error) { res.status(error.status||500).json({ error:error.message || 'ยืนยันและบันทึกรายการไม่สำเร็จ' }); }
 });
 
 app.put('/customer-api/me/selection', customerSessionRequired, (_req, res) => res.status(428).json({ error:'กรุณายืนยันเลข 4 ตัวท้ายของ ID / Passport ก่อนส่งรายการ' }));
@@ -3709,12 +4054,14 @@ async function buildOrganizationColumnTablePdf(records,groupKeys,meta){
 }
 
 
+// v7.64.67: unified two-stage policy; old raw query remains unchanged below.
+async function queryHisVisitStatusBatch(requests=[]){return require('./visit-status-reader').createVisitStatusReader({readOpd:queryHisOpdVisitBatch,readPatientLog:fetchLatestPatientLogStatuses})(requests)}
 // v7.62.80: query HIS opdvisit in one batch for Booking/Worklist display.
 async function queryHisOpdVisitBatch(vns=[]){
   const clean=[...new Set((vns||[]).map(v=>String(v||'').trim()).filter(Boolean))].slice(0,500);if(!clean.length)return [];
   const config=await readHisAppointmentConfig(),table=process.env.HIS_VISIT_STATUS_TABLE||'opdvisit';if(!safeIdentifier(table))throw new Error('ชื่อตาราง Visit Status ไม่ถูกต้อง');
   const client=appointmentPool(config);try{const placeholders=clean.map((_,index)=>`$${index+1}`).join(','),result=await client.query(`SELECT DISTINCT ON ("vn") "vn" AS vn,"hn" AS hn,"registereddate" AS registered_date,"chargecloseddate" AS charge_closed_date,"lovvisithstscode" AS visit_status,"lastvisitsts" AS last_visit_status,"cancelleddate" AS cancelled_date FROM "${config.schema}"."${table}" WHERE "vn" IN (${placeholders}) ORDER BY "vn","id" DESC`,clean);return result.rows.map(row=>{const cancelledFlag=Boolean(row.cancelled_date)||String(row.last_visit_status||'').trim().toLowerCase()==='cancelled',resolved=cancelledFlag?'Cancelled':String(row.visit_status||row.last_visit_status||'Unknown').trim()||'Unknown';return {vn:String(row.vn||''),hn:String(row.hn||''),registeredDate:row.registered_date||null,chargeClosedDate:row.charge_closed_date||null,status:resolved,cancelledDate:row.cancelled_date||null,source:'opdvisit'}})}finally{await client.end().catch(()=>{})}}
-app.post('/api/his/visit-status/batch',localOnly,async(req,res)=>{try{const recordKeys=[...new Set((req.body?.recordKeys||[]).map(value=>String(value||'').trim()).filter(Boolean))].slice(0,500),state=recordKeys.length?await readState():null,selected=state?(state.records||[]).filter(record=>recordKeys.includes(String(record.key||record.id||''))):[],requested=[...(req.body?.vns||[]),...selected.map(record=>record.hisLastVisitUID||record.vn||'')],items=await queryHisOpdVisitBatch(requested),byVn=new Map(items.map(item=>[String(item.vn||'').trim(),item]));let revision=null;if(state){const now=new Date().toISOString();selected.forEach(record=>{const vn=String(record.hisLastVisitUID||record.vn||'').trim(),item=byVn.get(vn);record.hisVisitStatus=item?.status||'NOT_FOUND';record.hisVisitStatusAt=now;record.hisVisitStatusSource=item?.source||'';if(item?.registeredDate)record.checkupDate=item.registeredDate;if(item?.chargeClosedDate)record.checkupEndDate=item.chargeClosedDate});state.at=now;revision=await writeState(state)}res.set('Cache-Control','no-store');res.json({ok:true,items,updated:selected.length,revision})}catch(error){res.status(502).json({error:`ตรวจสอบสถานะ Visit จาก HIS ไม่สำเร็จ: ${error.message||error}`})}});
+app.post('/api/his/visit-status/batch',localOnly,async(req,res)=>{try{const recordKeys=[...new Set((Array.isArray(req.body?.recordKeys)?req.body.recordKeys:[]).map(String))].slice(0,500),state=recordKeys.length?await readState():null,selected=state?(state.records||[]).filter(r=>recordKeys.includes(String(r.key||r.id))):[];const requested=[...(Array.isArray(req.body?.items)?req.body.items:[]),...selected.map(r=>({key:r.key||r.id,hn:r.hn,vn:r.hisLastVisitUID||r.vn}))];const known=new Set(requested.map(x=>String(x.vn||'').trim()));for(const vn of (Array.isArray(req.body?.vns)?req.body.vns:[]))if(!known.has(String(vn).trim())){requested.push({vn});known.add(String(vn).trim())}const items=await queryHisVisitStatusBatch(requested),byKey=new Map(items.map(x=>[String(x.key),x]));let revision=null;if(state){const now=new Date().toISOString();for(const r of selected){const x=byKey.get(String(r.key||r.id));if(!x)continue;Object.assign(r,{hisVisitStatus:x.status||'NOT_FOUND',hisVisitStatusAt:now,hisVisitStatusSource:x.source,hisVisitStatusWarning:x.message});if(x.registeredDate)r.checkupDate=x.registeredDate;if(x.chargeClosedDate)r.checkupEndDate=x.chargeClosedDate}state.at=now;revision=await writeState(state)}res.set('Cache-Control','no-store').json({ok:true,items,updated:selected.length,revision})}catch(e){console.error('[VISIT STATUS BATCH]',e);res.status(502).json({error:'ตรวจสอบ VisitStatusHIS ไม่สำเร็จ กรุณาติดต่อผู้ดูแลระบบ'})}});
 
 
 // v7.63.73 Operations Center API.
@@ -3727,6 +4074,7 @@ app.post('/api/ops/jobs/:id/retry',localOnly,async(req,res)=>{try{const old=(awa
 app.post('/api/ops/jobs/:id/cancel',localOnly,async(req,res)=>{try{const old=(await pool.query('SELECT job_type,status FROM operations_jobs WHERE id=$1',[req.params.id])).rows[0];if(!old)return res.status(404).json({error:'ไม่พบ Job'});return staffPermissionRequired(operationsPermissionForType(old.job_type))(req,res,async()=>{try{const r=await pool.query(`UPDATE operations_jobs SET status='CANCELLED',finished_at=NOW(),updated_at=NOW(),current_item='' WHERE id=$1 AND status IN ('PENDING','RUNNING') RETURNING id`,[req.params.id]);if(!r.rows.length)return res.status(409).json({error:'Job นี้จบแล้วหรือไม่สามารถยกเลิกได้'});await pool.query(`UPDATE operations_job_items SET status='CANCELLED',finished_at=NOW(),updated_at=NOW() WHERE job_id=$1 AND status IN ('PENDING','RUNNING')`,[req.params.id]);await workflowAudit(req,'OPS_JOB',req.params.id,'CANCEL',{jobType:old.job_type});res.json({ok:true})}catch(error){res.status(500).json({error:'ยกเลิก Job ไม่สำเร็จ',detail:error.message})}})}catch(error){res.status(500).json({error:'โหลด Job สำหรับยกเลิกไม่สำเร็จ',detail:error.message})}});
 app.get('/api/ops/notifications',localOnly,staffPermissionRequired('worklistView'),async(req,res)=>{try{const limit=Math.min(Math.max(Number(req.query.limit)||100,1),500),items=(await pool.query('SELECT * FROM system_notifications ORDER BY created_at DESC LIMIT $1',[limit])).rows;res.set('Cache-Control','no-store').json({items})}catch(error){res.status(500).json({error:'โหลด Notification ไม่สำเร็จ',detail:error.message})}});
 app.post('/api/ops/notifications/read',localOnly,staffPermissionRequired('worklistView'),async(req,res)=>{try{const ids=(Array.isArray(req.body?.ids)?req.body.ids:[]).map(Number).filter(Number.isFinite);if(ids.length)await pool.query('UPDATE system_notifications SET is_read=TRUE,read_at=NOW(),read_by=$2 WHERE id=ANY($1::bigint[])',[ids,operationsActor(req)]);else await pool.query('UPDATE system_notifications SET is_read=TRUE,read_at=NOW(),read_by=$1 WHERE is_read=FALSE',[operationsActor(req)]);res.json({ok:true})}catch(error){res.status(500).json({error:'อัปเดต Notification ไม่สำเร็จ',detail:error.message})}});
+registerLoginHistory({app,pool,localOnly,staffPermissionRequired});
 app.get('/api/ops/audit',localOnly,staffPermissionRequired('auditView'),async(req,res)=>{try{const limit=Math.min(Math.max(Number(req.query.limit)||200,1),500),q=String(req.query.q||'').trim().toLowerCase(),[actions,workflow,state]=await Promise.all([pool.query('SELECT id,created_at,actor,method,route,status_code,duration_ms,client_address,detail FROM system_action_audit ORDER BY created_at DESC LIMIT $1',[limit]),pool.query('SELECT id,performed_at,performed_by,entity_type,entity_id,action,client_address,details FROM checkup_workflow_audit ORDER BY performed_at DESC,id DESC LIMIT $1',[limit]),readState()]);let items=[...actions.rows.map(x=>({source:'API',at:x.created_at,actor:x.actor,action:`${x.method} ${x.route}`,status:x.status_code>=400?'ERROR':'OK',entity:'',detail:{durationMs:x.duration_ms,statusCode:x.status_code,clientAddress:x.client_address,...(x.detail||{})}})),...workflow.rows.map(x=>({source:'WORKFLOW',at:x.performed_at,actor:x.performed_by,action:x.action,status:'OK',entity:`${x.entity_type}:${x.entity_id}`,detail:{clientAddress:x.client_address,...(x.details||{})}})),...(state.permissionAudit||[]).slice(0,limit).map((x,index)=>({source:'SECURITY',at:x.at,actor:x.by||'',action:x.action||'Permission change',status:'OK',entity:x.target||'',detail:x.details||{},id:`p${index}`}))];if(q)items=items.filter(x=>[x.actor,x.action,x.entity,x.source,JSON.stringify(x.detail||{})].some(v=>String(v||'').toLowerCase().includes(q)));items.sort((a,b)=>new Date(b.at||0)-new Date(a.at||0));res.set('Cache-Control','no-store').json({items:items.slice(0,limit)})}catch(error){res.status(500).json({error:'โหลด Audit Log ไม่สำเร็จ',detail:error.message})}});
 app.get('/api/ops/backups',localOnly,staffPermissionRequired('apiView'),async(req,res)=>{try{const dirs=[path.join(__dirname,'backups'),path.join(__dirname,'updates')],items=[];for(const dir of dirs){if(!fs.existsSync(dir))continue;for(const name of fs.readdirSync(dir)){if(!/\.backup$/i.test(name))continue;const file=path.join(dir,name),stat=fs.statSync(file);items.push({name,sizeBytes:stat.size,updatedAt:stat.mtime.toISOString(),kind:name.startsWith('database-before-')?'UPDATE_ROLLBACK':'MANUAL_BACKUP'})}}items.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));const setting=(await pool.query("SELECT value,updated_at FROM system_settings WHERE key='last_backup_at'" )).rows[0]||null;res.set('Cache-Control','no-store').json({items:items.slice(0,100),lastBackupAt:setting?.value||null,updateStatus:readUpdateStatus(),automaticRollback:true})}catch(error){res.status(500).json({error:'โหลดรายการ Backup ไม่สำเร็จ',detail:error.message})}});
 app.get('/api/ops/performance',localOnly,staffPermissionRequired('apiView'),async(req,res)=>{try{const stat=fs.statfsSync?fs.statfsSync(__dirname):null,freeBytes=stat?Number(stat.bavail)*Number(stat.bsize):null,totalBytes=stat?Number(stat.blocks)*Number(stat.bsize):null,dbStart=Date.now();await pool.query('SELECT 1');const dbLatency=Date.now()-dbStart,slow=await readSystemHealthEvents(100),poolInfo={total:pool.totalCount,idle:pool.idleCount,waiting:pool.waitingCount};res.set('Cache-Control','no-store').json({database:{latencyMs:dbLatency,pool:poolInfo},disk:{freeBytes,totalBytes,freeGb:freeBytes==null?null:Math.round(freeBytes/1073741824*10)/10},runtime:{rssMb:Math.round(process.memoryUsage().rss/1048576),heapUsedMb:Math.round(process.memoryUsage().heapUsed/1048576),uptimeSec:Math.round(process.uptime())},slowEvents:slow.filter(x=>Number(x.durationMs||0)>=2000||['CRITICAL','TIMEOUT'].includes(String(x.status))).slice(0,30),update:readUpdateStatus()})}catch(error){res.status(500).json({error:'โหลด Performance ไม่สำเร็จ',detail:error.message})}});
@@ -3738,6 +4086,7 @@ registerScalableApi(app,{pool,localOnly,readState,workflowActor,clientAddress});
 // default. Redirecting `/customer/` to `/customer` therefore matched the same
 // redirect route again and caused ERR_TOO_MANY_REDIRECTS. Serve the customer
 // page directly for both URL forms instead.
+app.get(['/customer-setup','/customer-setup/'],(_req,res)=>res.set('Cache-Control','no-store').sendFile(path.join(__dirname,'customer-setup.html')));
 app.get(['/customer', '/customer/'], (_req, res) => res.sendFile(path.join(__dirname, 'app.html')));
 // v7.62.80 System Health + In-App Update Center (Production only).
 app.get('/api/system/health',localOnly,async(req,res)=>{
@@ -3804,7 +4153,7 @@ function updateDir(){const dir=path.join(__dirname,'updates');fs.mkdirSync(dir,{
 function updateStatusPath(){return path.join(updateDir(),'update-status.json')}
 function writeUpdateStatus(status){try{fs.writeFileSync(updateStatusPath(),JSON.stringify({...status,updatedAt:new Date().toISOString()},null,2),'utf8')}catch(error){console.warn('write update status failed',error.message)}}
 function readUpdateStatus(){try{const status=JSON.parse(fs.readFileSync(updateStatusPath(),'utf8').replace(/^\uFEFF/,''));if(String(status?.phase||'').toUpperCase()==='QUEUED'){const age=Date.now()-new Date(status.updatedAt||0).getTime();if(Number.isFinite(age)&&age>15000){const failed={...status,phase:'FAILED',message:'Updater Helper ไม่เริ่มทำงานภายใน 15 วินาที กรุณาเปิด Launch Log เพื่อตรวจสอบ แล้วลองใหม่',staleQueue:true};writeUpdateStatus(failed);return failed}}return status}catch(_){return {phase:'IDLE',message:'ยังไม่มีงานอัปเดต'}}}
-app.get('/api/system/update/public-status',(req,res)=>{const status=readUpdateStatus();res.set('Cache-Control','no-store').json({phase:status.phase||'IDLE',message:status.message||'',version:status.version||status.targetVersion||'',targetVersion:status.targetVersion||'',runningCommand:status.runningCommand||'',elapsedMs:Number(status.elapsedMs||0),updatedAt:status.updatedAt||''})});
+app.get('/api/system/update/public-status',(req,res)=>{const status=readUpdateStatus();res.set('Cache-Control','no-store').json({phase:status.phase||'IDLE',message:status.message||'',version:status.version||status.targetVersion||'',targetVersion:status.targetVersion||'',runningCommand:status.runningCommand||'',elapsedMs:Number(status.elapsedMs||0),failedPhase:status.failedPhase||'',rolledBack:status.rolledBack===true,productionKeptRunning:status.productionKeptRunning===true,updatedAt:status.updatedAt||''})});
 app.get('/api/system/update/status',packageConfigSessionRequired,(req,res)=>res.json(readUpdateStatus()));
 app.get('/api/system/update/config',packageConfigSessionRequired,async(req,res)=>{const r=await pool.query("SELECT value FROM system_settings WHERE key='app_update_manifest_url'");res.json({currentVersion:RELEASE_NAME.split('-')[0],environment:'production',manifestUrl:String(r.rows[0]?.value||''),staged:readUpdateStatus()})});
 app.put('/api/system/update/config',packageConfigSessionRequired,async(req,res)=>{const manifestUrl=String(req.body?.manifestUrl||'').trim();if(manifestUrl&&!/^https?:\/\//i.test(manifestUrl))return res.status(400).json({error:'Manifest URL ต้องขึ้นต้นด้วย http:// หรือ https://'});await pool.query("INSERT INTO system_settings(key,value,updated_at) VALUES('app_update_manifest_url',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[manifestUrl]);res.json({ok:true,manifestUrl})});
@@ -3851,7 +4200,7 @@ const startServer = () => app.listen(port, host, () => {
 });
 const databaseReady = process.env.SMOKE_TEST === '1'
   ? Promise.resolve()
-  : ensureDatabase().then(async () => {await ensureOperationsSchema();await ensureReadinessSchema();const recovered=await recoverInterruptedOperationsJobs();if(recovered)console.warn(`[OPS] recovered ${recovered} interrupted job(s) after restart`);try{const r=await pool.query("SELECT value FROM system_settings WHERE key='lan_server_enabled' LIMIT 1");if(r.rows[0])runtimeLanEnabled=String(r.rows[0].value)==='true'}catch(_error){}});
+  : ensureDatabase().then(async () => {await ensureOperationsSchema();if(await require('./customer-display-settings').ensureCustomerDisplayPermission(pool))compressedStateCache={revision:null,body:null};await ensureReadinessSchema();await ensureExperienceSchema(pool);await ensureCheckupFormats(pool);await seedExperienceWorkClaims(pool);const recovered=await recoverInterruptedOperationsJobs();if(recovered)console.warn(`[OPS] recovered ${recovered} interrupted job(s) after restart`);try{const r=await pool.query("SELECT value FROM system_settings WHERE key='lan_server_enabled' LIMIT 1");if(r.rows[0])runtimeLanEnabled=String(r.rows[0].value)==='true'}catch(_error){}});
 databaseReady.then(startServer).catch(error => {
   const detail = error && (error.stack || error.message) ? (error.stack || error.message) : String(error);
   console.error('เชื่อมต่อ PostgreSQL ไม่สำเร็จ:', detail);

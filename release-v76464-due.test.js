@@ -1,0 +1,6 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const source=fs.readFileSync('assets/app.js','utf8'),code=source.slice(source.indexOf('function companyCheckupDateValue('),source.indexOf('function companyCheckupPeriodHtml(')),context=vm.createContext({Intl,Date});vm.runInContext(code,context);
+const status=(end,now='2026-10-19T05:00:00Z',start='2026-01-01')=>context.companyCheckupPeriodStatus({checkupStartDate:start,checkupEndDate:end},new Date(now));
+test('expired / last day / calendar month threshold are distinct',()=>{assert.equal(status('2026-10-18').kind,'expired');assert.equal(status('2026-10-19').kind,'due-soon');assert.equal(status('2026-11-19').kind,'due-soon');assert.equal(status('2026-11-20').kind,'active')});
+test('calendar month clamp and Bangkok midnight',()=>{assert.equal(status('2026-02-28','2026-01-31T05:00:00Z').kind,'due-soon');assert.equal(status('2026-03-01','2026-01-31T05:00:00Z').kind,'active');assert.equal(status('2026-10-19','2026-10-19T17:01:00Z').kind,'expired')});
+test('future, unset and urgent periods',()=>{assert.equal(status('2027-01-01',undefined,'2026-12-01').kind,'upcoming');assert.equal(status('',undefined,'').kind,'unset');assert(status('2026-10-26').urgent);assert(!status('2026-10-27').urgent)});

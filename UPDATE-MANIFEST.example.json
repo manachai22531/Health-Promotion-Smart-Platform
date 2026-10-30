@@ -1,7 +1,7 @@
 {
-  "version": "7.64.00",
+  "version": "7.64.92",
   "environment": "production",
-  "downloadUrl": "https://YOUR-SERVER.example.com/updates/HealthCheck-v7.64.00-PRODUCTION-ANNUAL-EDITOR-CONSOLIDATED-WINDOWS.zip",
-  "sha256": "PUT_SHA256_OF_ZIP_HERE",
-  "releaseNotes": "v7.64.00: Consolidate annual full-page editor, per-section saves, HIS Payor master, repeatable contacts, 1.x subsidiaries, resizable PDF preview, section 09 matrix and merged attachments."
+  "downloadUrl": "https://YOUR-SERVER.example.com/updates/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "sha256": "REPLACE_WITH_INSTALLER_SHA256",
+  "releaseNotes": "v7.64.92: Align Patient Demographic upload, worksheet and template controls; same height/baseline and responsive stacking. Retains all v7.64.91 functionality."
 }

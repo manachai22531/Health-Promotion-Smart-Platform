@@ -1,0 +1,57 @@
+.customer-compact-card .cc-identity{display:grid;grid-template-columns:minmax(180px,1.25fr) minmax(200px,1.4fr) minmax(140px,1fr) minmax(120px,.8fr) minmax(145px,1fr) auto;align-items:center;gap:12px;padding:15px;border:1px solid #c7e1ed;border-radius:12px;background:linear-gradient(110deg,#fbfdff,#eaf5f9)}.customer-compact-card .cc-company{min-width:0;border-left:1px solid #d0e3eb;padding-left:12px}.customer-compact-card .cc-company b{font-size:17px;line-height:1.45}.customer-compact-card .cc-company strong{display:inline-block;font-size:16px;padding:2px 8px;margin-left:5px;background:#e0f1f5;border-radius:6px}.customer-compact-card .cc-copy-box{display:block;text-align:left;min-width:0;background:linear-gradient(#fff,#f0f8fc);border:1px solid #b9dce9;border-radius:10px;padding:9px 11px;box-shadow:inset 0 1px white,0 3px 7px #123c5010}.customer-compact-card .cc-copy-box small{font-size:10px;display:block;color:#74919f}.customer-compact-card .cc-copy-box small span{float:right}.customer-compact-card .cc-copy-box b{font-size:14px;color:#104c65;overflow-wrap:anywhere;margin:4px 0}.customer-compact-card .cc-copy-box:disabled{opacity:.65;cursor:not-allowed}.customer-compact-card .cc-arrival{justify-self:end;white-space:nowrap}.customer-compact-card .cc-package-panel h3{display:flex;align-items:center;gap:12px}.customer-compact-card .cc-package-panel h3 button{padding:5px 12px;font-size:12px}.clinical-controls{margin:12px 0 6px;padding:10px 12px;border:1px solid #cee4ed;border-radius:10px;background:#f5fafc;font-size:11px}.clinical-controls.clinical-locked{background:#fff4e1;border-color:#ecd2a7}.clinical-state{color:#537482;line-height:1.6}.clinical-buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.clinical-buttons .button{font-size:11px;padding:6px 9px;min-height:28px}.clinical-buttons button:disabled,[data-clinical-forced="1"]{background:#f0f3f5!important;border-color:#dce5e9!important;color:#94a5af!important;box-shadow:none!important;cursor:not-allowed!important}.clinical-dialog{padding:24px;border:1px solid #c7dee8;border-radius:18px;width:min(540px,92vw);color:#16495d;box-shadow:0 18px 70px #123b4d45}.clinical-dialog::backdrop{background:#123e5366;backdrop-filter:blur(3px)}.clinical-dialog h2{font-size:20px;margin:0 0 10px}.clinical-dialog p{font-size:14px;line-height:1.7;white-space:pre-line}.clinical-dialog textarea{display:block;width:100%;padding:10px;border:1px solid #bad8e7;border-radius:9px;font:inherit;margin-top:6px}.clinical-dialog footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}#clinicalToast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);max-width:90vw;background:#084e4b;color:white;box-shadow:0 6px 22px #123c5030;border-radius:12px;padding:12px 20px;font-size:13px;z-index:2147483647;pointer-events:none}.clinical-dialog .clinical-cancel{background:#fff1f3;color:#b84d64;border-color:#efcbd4}@media(max-width:1350px){.customer-compact-card .cc-identity{grid-template-columns:1fr 1.2fr 1fr}.customer-compact-card .cc-name{grid-row:1}.customer-compact-card .cc-company{grid-row:1}.customer-compact-card .cc-arrival{grid-row:1;grid-column:3}.customer-compact-card .cc-copy-box{grid-row:2}}@media(max-width:650px){.customer-compact-card .cc-identity{grid-template-columns:1fr 1fr;gap:10px}.customer-compact-card .cc-name{grid-column:1/3}.customer-compact-card .cc-name strong{font-size:16px;max-width:65%}.customer-compact-card .cc-arrival{grid-column:2;font-size:10px}.customer-compact-card .cc-company{grid-row:2;grid-column:1/3;border:0;padding:0}.customer-compact-card .cc-copy-box{grid-row:auto}.customer-compact-card .cc-copy-box:first-of-type{grid-column:1/3}}@media print{.clinical-controls,#clinicalToast,.clinical-dialog{display:none!important}}
+
+/* Case controls follow ChargeClose; the status remains beside the record. */
+#detailOverlay .clinical-footer-buttons{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;margin:0 0 0 4px;padding-left:6px;border-left:1px solid #d9e6ed;min-width:0}
+#detailOverlay .clinical-footer-buttons .button{font-size:11px;padding:6px 9px;min-height:28px}
+#detailOverlay .clinical-footer-buttons button:disabled{background:#f0f3f5!important;border-color:#dce5e9!important;color:#94a5af!important;box-shadow:none!important;cursor:not-allowed!important}
+@media print{.clinical-footer-buttons{display:none!important}}
+
+/* Arrival is a status card matching identifier cards, with the actual saved arrival time. */
+.customer-compact-card .cc-identity{grid-template-columns:minmax(180px,1.25fr) minmax(200px,1.4fr) minmax(140px,1fr) minmax(120px,.8fr) minmax(145px,1fr) minmax(155px,.95fr)}
+.customer-compact-card .cc-copy-box,.customer-compact-card .cc-arrival{box-sizing:border-box;min-height:80px}
+.customer-compact-card .cc-arrival{align-self:stretch;justify-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;margin:0;padding:9px 11px;border-radius:10px;white-space:normal;text-align:center}
+.customer-compact-card .cc-arrival b{font-size:14px;line-height:1.4}
+.customer-compact-card .cc-arrival small{display:block;font-size:11px;line-height:1.5;font-weight:500}
+.customer-compact-card [data-clinical-circular].pdf-button{background:#c63f3f!important;color:#fff!important;border:1px solid #b63535!important}
+.customer-compact-card [data-clinical-circular].pdf-button:hover{background:#ae3030!important}
+.customer-compact-card [data-clinical-circular].pdf-button:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:1350px){.customer-compact-card .cc-identity{grid-template-columns:1fr 1.2fr 1fr}}
+@media(max-width:650px){.customer-compact-card .cc-identity{grid-template-columns:1fr 1fr}.customer-compact-card .cc-arrival{min-height:80px}.customer-compact-card .cc-arrival b{font-size:12px}.customer-compact-card .cc-arrival small{font-size:10px}}
+
+/* One shared audit strip below the clinical/print toolbar. */
+.customer-compact-card .cc-audit-strip{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;flex:1 0 100%;min-width:0;box-sizing:border-box;padding:10px 12px;background:#f5fafc;border:1px solid #cee4ed;border-radius:10px}
+.customer-compact-card .cc-audit-strip .cc-log{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0;padding:0;border:0;min-width:0}
+.customer-compact-card .cc-audit-strip .clinical-controls{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;flex:1 1 400px;min-width:0;margin:0;padding:0;border:0;background:transparent}
+.customer-compact-card .cc-audit-strip .clinical-buttons{margin:0}
+.customer-compact-card .cc-audit-strip .clinical-state{overflow-wrap:anywhere}
+.customer-compact-card .cc-audit-strip:has(.clinical-locked){background:#fff4e1;border-color:#ecd2a7}
+@media(max-width:650px){.customer-compact-card .cc-audit-strip{padding:9px;gap:9px}.customer-compact-card .cc-audit-strip .clinical-controls{flex-basis:100%}}
+/* Staff-facing status: prominent refresh button; technical payload remains on server. */
+.clinical-state{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.clinical-state .clinical-status-badge{min-height:36px;padding:8px 12px;border:1px solid #accfdf;border-radius:8px;background:#edf6fa;color:#154e69;font-size:13px;font-weight:700;line-height:1.3;white-space:normal;text-align:left;box-shadow:none}
+.clinical-state .clinical-status-badge.has-status{background:#e1f4ef;border-color:#8dcdbb;color:#12674f}
+.clinical-state .clinical-status-badge.status-stale{background:#fff1d9;border-color:#e9c788;color:#865413}
+.clinical-state .clinical-status-note{font-size:11px;color:#607d8c;line-height:1.5}
+.clinical-state .clinical-status-badge:disabled{opacity:.7;cursor:not-allowed}
+/* Shared footer: HIS actions first row, status and case controls second row. */
+#detailOverlay.cf-unified .cf-editor-actions>.clinical-footer-row{order:4;flex:0 0 100%;box-sizing:border-box;display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:4px 0 0;padding:4px 0 0;border:0;border-top:1px solid #d9e6ed;border-radius:0;background:transparent}
+#detailOverlay .clinical-footer-row .clinical-state{flex:0 1 auto;display:flex;align-items:center;gap:8px;min-width:0}
+#detailOverlay .clinical-footer-row .clinical-status-note{max-width:430px}
+#detailOverlay .clinical-footer-row .clinical-buttons{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0;padding-left:8px;border-left:1px solid #d9e6ed}
+#detailOverlay .clinical-footer-row .button{min-height:34px!important}
+#detailOverlay .clinical-append-button{order:2!important;white-space:normal!important;max-width:150px!important;font-size:10px!important;opacity:.7;cursor:not-allowed}
+@media(max-width:700px){#detailOverlay .clinical-footer-row .clinical-buttons{border-left:0;padding-left:0}#detailOverlay .clinical-footer-row .clinical-status-note{max-width:100%}}
+.clinical-state .clinical-status-time{font-size:11px;color:#607d8c;white-space:nowrap;line-height:1.5}
+/* Compact search card: one horizontal audit/status/action row. */
+.customer-compact-card .cc-audit-strip{flex-wrap:nowrap;gap:12px;overflow-x:auto}
+.customer-compact-card .cc-audit-strip .cc-log{flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap}
+.customer-compact-card .cc-audit-strip .clinical-controls{flex:0 0 auto;flex-wrap:nowrap;gap:8px}
+.customer-compact-card .cc-audit-strip .clinical-state,
+.customer-compact-card .cc-audit-strip .clinical-buttons{flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap}
+.customer-compact-card .cc-audit-strip .clinical-status-badge,
+.customer-compact-card .cc-audit-strip .clinical-status-note,
+.customer-compact-card .cc-audit-strip .clinical-buttons .button{flex-shrink:0;white-space:nowrap}
+.customer-compact-card .cc-audit-strip .clinical-buttons{padding-left:8px;border-left:1px solid #d9e6ed}
+
+/* Unconfirmed cases have no visible HIS/audit action strip. */
+.clinical-controls[hidden],.customer-compact-card .cc-audit-strip[hidden]{display:none!important}
