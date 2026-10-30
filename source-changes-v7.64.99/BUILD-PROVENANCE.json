@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.99",
+  "base_release": "v7.64.98",
+  "base_archive": "HealthCheck-v7.64.98-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "dcf55b261ee4cb008fb5b2eb5816704d536658e9316f2953e6606b1f4e03ffea",
+  "changes": "Consolidate post-v7.64.98 requests: search-matched period backgrounds, both table header rows sticky, short search with full-width Booking list, white report/contact cards, single-row package header and customer actions, softer six-region fills and theme-aware borders. Preserve all earlier fixes.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.98",
+  "base_github_commit": "f354275",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}
