@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.95",
+  "base_release": "v7.64.94",
+  "base_archive": "HealthCheck-v7.64.94-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "664be1b62e5449798be2a5a59b7d20a72c68e2f0b6493d314e60dbc85c1bb767",
+  "changes": "Remove duplicate native search cancel icons only where an explicit custom clear button already exists; audit company and customer list search, preserve native clears elsewhere; repair void input markup.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.94",
+  "base_github_commit": "37efaba",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}

@@ -1,0 +1,374 @@
+--- a/assets/style.css
++++ b/assets/style.css
+@@ -6740,3 +6740,13 @@
+   #projectOverlay > .workflow-project-modal > header { padding: 14px 16px !important; }
+   #projectOverlay > .workflow-project-modal > .project-create-form { padding: 16px !important; }
+ }
++
++/* Search fields with an explicit clear action must not also show the browser clear icon.
++   Keep native clearing on all other search fields. IDs cover older Chromium builds. */
++#companySearch::-webkit-search-cancel-button,
++#customerListSearch::-webkit-search-cancel-button{
++  -webkit-appearance:none;appearance:none;display:none;width:0;height:0;
++}
++#companySearch::-ms-clear,#customerListSearch::-ms-clear{display:none;width:0;height:0}
++
++input[type="search"]:has(+ button[aria-label="ล้างคำค้น"])::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none;width:0;height:0}
+--- a/app.html
++++ b/app.html
+@@ -7,9 +7,9 @@
+ <title>Health Check Up Smart Search</title>
+ <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
+ <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
+-<link href="assets/style.css?v=7.64.94-customer-setup" rel="stylesheet"/>
+-<link href="assets/global-ui-density.css?v=7.64.94-users-exp" rel="stylesheet"/>
+-<link href="assets/appearance-settings.css?v=7.64.94-panel-viewport-fix" rel="stylesheet"/>
++<link href="assets/style.css?v=7.64.95-customer-setup" rel="stylesheet"/>
++<link href="assets/global-ui-density.css?v=7.64.95-users-exp" rel="stylesheet"/>
++<link href="assets/appearance-settings.css?v=7.64.95-panel-viewport-fix" rel="stylesheet"/>
+ <script>/* Restore visual density before first paint; default = Compact. */
+ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
+   document.documentElement.setAttribute('data-hc-density', /^(normal|compact|dense)$/.test(hcDensityValue || '') ? hcDensityValue : 'compact');
+@@ -18,24 +18,24 @@
+   document.documentElement.setAttribute('data-hc-effects', localStorage.getItem('healthcheck.appearance.effects.v1') === 'off' ? 'off' : 'on');
+ } catch (_) { document.documentElement.setAttribute('data-hc-density', 'compact'); }
+ </script>
+-<link href="assets/user-experience.css?v=7.64.7.64.94-header-shield-only" rel="stylesheet"/>
+-<link rel="stylesheet" href="assets/role-experience.css?v=7.64.94-role-exp"/>
+-<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.94-remove-open-button"/>
+-<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.94-global-dismiss"/>
+-<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.94-single-busy"/>
+-<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.94"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.94"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.94-knowledge"/>
+-<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.94-confirmed-only-1">
+-<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.94">
+-<link rel="stylesheet" href="assets/auth-session.css?v=7.64.94-role-security"/>
+-<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.94-mobile-compact">
+-<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.94-search-align-1">
+-<link rel="stylesheet" href="assets/customer-services.css?v=7.64.94"/>
+-<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.94"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.94"/>
+-<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.94-note-detail"/>
+-<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.94"/>
+-<script src="/assets/theme-sync.js?v=7.64.94"></script>
+-<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.94"/>
+-<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.94"></head>
++<link href="assets/user-experience.css?v=7.64.7.64.95-header-shield-only" rel="stylesheet"/>
++<link rel="stylesheet" href="assets/role-experience.css?v=7.64.95-role-exp"/>
++<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.95-remove-open-button"/>
++<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.95-global-dismiss"/>
++<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.95-single-busy"/>
++<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.95"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.95"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.95-knowledge"/>
++<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.95-confirmed-only-1">
++<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.95">
++<link rel="stylesheet" href="assets/auth-session.css?v=7.64.95-role-security"/>
++<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.95-mobile-compact">
++<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.95-search-align-1">
++<link rel="stylesheet" href="assets/customer-services.css?v=7.64.95"/>
++<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.95"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.95"/>
++<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.95-note-detail"/>
++<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.95"/>
++<script src="/assets/theme-sync.js?v=7.64.95"></script>
++<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.95"/>
++<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.95"></head>
+ <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
+ <div class="app-version-corner">Version <b data-app-version="">-</b></div>
+ <header class="topbar">
+@@ -143,7 +143,7 @@
+ <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/guide-lightbulb-3d.svg"/></i>
+ <span class="nav-popover" role="tooltip"><strong>คู่มือ</strong><small>เปิดคู่มือการใช้งานของหน้าปัจจุบัน</small></span>
+ </button>
+-<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.94"/></button>
++<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.95"/></button>
+ <section class="hc-appearance-panel" hidden id="hcAppearancePanel" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์"><header><div><small>PERSONAL APPEARANCE</small><strong>ปรับแต่งหน้าตาและเอฟเฟกต์</strong></div><button id="hcAppearanceClose" type="button" aria-label="ปิด">×</button></header>
+ <div class="hc-appearance-body">
+ <div class="hc-theme-options" role="radiogroup" aria-label="เลือกธีม"><button type="button" data-hc-theme-choice="current"><span class="hc-theme-preview current"></span><b>ค่าเริ่มต้น</b><small>ฟ้า–เขียวแบบเดิม</small></button><button type="button" data-hc-theme-choice="premium"><span class="hc-theme-preview premium"></span><b>พรีเมียม</b><small>กรมท่า มรกต และทอง</small></button><button type="button" data-hc-theme-choice="warm"><span class="hc-theme-preview warm"></span><b>อบอุ่นสายตา</b><small>ครีม เซจ และเทอร์ราคอตตา</small></button></div>
+@@ -549,7 +549,7 @@
+ <span aria-hidden="true">⌕</span><input autocomplete="off" id="companySearch" placeholder="ค้นหาชื่อบริษัท รหัสบริษัท หรือปี" type="search"><button aria-label="ล้างคำค้น" id="clearCompanySearch" type="button">
+                 ×
+               </button>
+-</input></div></label>
++</div></label>
+ <div class="company-board-filters" aria-label="ตัวกรองข้อมูลบริษัท">
+ <label class="company-status-filter-label"><span>สถานะ <button aria-expanded="false" aria-controls="companyStatusLegend" aria-label="ดูคำอธิบายสถานะ" class="company-status-help" id="companyStatusHelp" type="button">i</button></span><select id="companyStatusFilter"><option value="">สถานะทั้งหมด</option><option value="NOT_STARTED">ยังไม่เริ่ม</option><option value="IN_PROGRESS">กำลังดำเนินการ</option><option value="COMPLETE">เสร็จสิ้น</option><option value="CLOSED">ปิดปีแล้ว</option><option value="CANCELLED">ยกเลิก</option></select></label>
+ <label><span>ปี</span><select id="companyYearFilter"><option value="">ทุกปี</option></select></label>
+@@ -1908,7 +1908,7 @@
+ <label><input id="selectAllFilteredCustomers" type="checkbox"/> เลือกทั้งหมดที่กรอง</label>
+ <span id="selectedCustomerMeta">เลือก 0 รายการ</span>
+ </div>
+-<label class="customer-list-search customer-list-search-v75922"><span aria-hidden="true">⌕</span><input autocomplete="off" id="customerListSearch" placeholder="ค้นหาข้อมูลลูกค้าจากทุกคอลัมน์" type="search"><button aria-label="ล้างคำค้น" id="clearCustomerListSearch" type="button">×</button></input></label>
++<label class="customer-list-search customer-list-search-v75922"><span aria-hidden="true">⌕</span><input autocomplete="off" id="customerListSearch" placeholder="ค้นหาข้อมูลลูกค้าจากทุกคอลัมน์" type="search"><button aria-label="ล้างคำค้น" id="clearCustomerListSearch" type="button">×</button></label>
+ <div class="customer-status-filters"><select aria-label="กรองความพร้อมของข้อมูล" id="customerRecordFilter"><option value="ALL">รายชื่อทั้งหมด</option><option value="HAS_HN">มี HN แล้ว</option><option value="NO_HN">ไม่มี HN</option><option value="HAS_VN">มี VN แล้ว</option><option value="NO_VN">ไม่มี VN</option><option value="HAS_EMR">มี EMR แล้ว</option><option value="NO_EMR">ไม่มี EMR</option><option value="BOOK_APPROVED">อนุมัติเล่มแล้ว</option><option value="BOOK_NOT_APPROVED">ไม่อนุมัติเล่ม</option></select><select aria-label="กรอง Status VN" id="customerVnStatusFilter"><option value="">ทุก Status VN</option></select><button class="button secondary unified-column-settings-button" id="customerColumnSettingsButton" type="button">⚙ ตั้งค่าคอลัมน์</button></div>
+ </section>
+ <section class="customer-tools-booking">
+@@ -2518,51 +2518,51 @@
+ <div aria-hidden="true" hidden="" id="pdfFormSetupOverlay"><input id="pdfSetupX" type="number"/><input id="pdfSetupY" type="number"/><input id="pdfSetupSize" type="number"/><input id="pdfSetupTemplate" type="file"/><select id="pdfSetupForm"></select><select id="pdfSetupField"></select><div id="pdfSetupFieldList"></div><span id="pdfSetupStatus"></span><button id="openPdfFormSetup"></button><button id="savePdfSetupField"></button><button id="uploadPdfSetupTemplate"></button></div>
+ <script src="assets/vendor/xlsx.full.min.js"></script>
+ <aside id="hcExpBar" hidden role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="hcExpPanelTitle"><header class="hc-exp-panel-head"><h2 id="hcExpPanelTitle">เลเวลและประสบการณ์ของฉัน</h2><button id="hcExpHide" type="button" aria-label="ปิดข้อมูลเลเวล">×</button></header><div class="hc-exp-panel-body"><div class="hc-exp-summary"><span id="hcExpShield" class="hc-exp-shield"></span><span class="hc-exp-identity"><strong id="hcExpName"></strong><small id="hcExpRole">ผู้ใช้งาน</small><b id="hcExpTier"></b></span><button id="hcExpLatest" type="button" aria-label="ดูเหรียญผลงานล่าสุดและประวัติ EXP"><span aria-hidden="true">★</span><small id="hcExpLatestName">ยังไม่มีเหรียญ</small></button></div><div class="hc-exp-meter"><div class="hc-exp-meter-head"><strong>ความคืบหน้าเลเวล</strong><span id="hcExpNumbers">กำลังโหลด EXP…</span></div><div id="hcExpProgress" role="progressbar" aria-label="EXP สู่เลเวลถัดไป" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hcExpFill"></span></div><small id="hcExpRemaining"></small></div><div class="hc-exp-total"><small>EXP สะสมทั้งหมด</small><strong id="hcExpTotal">—</strong></div><div class="hc-exp-achievement"><span class="hc-exp-coin" aria-hidden="true">★</span><span><strong><span id="hcExpRuleTitle">กติกาการสะสม</span> <b id="hcExpRuleValue"></b></strong><small id="hcExpToday"></small></span></div><footer class="hc-exp-panel-footer"><span class="hc-exp-max">สูงสุด LV. 100</span><button id="hcExpRefresh" type="button">↻ อัปเดต EXP</button></footer><section class="hc-exp-work"><h3>ผลงานวันนี้</h3><div id="hcExpWorkToday"></div><button id="hcExpHistoryToggle" type="button" aria-expanded="false" aria-controls="hcExpHistory">ดูประวัติ EXP</button><div id="hcExpHistory" hidden><p id="hcExpHistoryStatus" role="status"></p><ol id="hcExpHistoryList"></ol></div></section></div></aside><div id="hcExpToast" role="status" aria-live="polite" hidden></div>
+-<script src="assets/user-experience.js?v=7.64.7.64.94-header-shield-only"></script>
+-<script src="assets/package-knowledge-model.js?v=7.64.94"></script>
+-<script src="assets/package-categories.js?v=7.64.94"></script>
+-<script src="assets/auth-session.js?v=7.64.94-role-security"></script>
+-<script src="assets/company-matrix-import.js?v=7.64.94-matrix-files-1"></script>
+-<script src="assets/customer-display-model.js?v=7.64.94-knowledge"></script>
++<script src="assets/user-experience.js?v=7.64.7.64.95-header-shield-only"></script>
++<script src="assets/package-knowledge-model.js?v=7.64.95"></script>
++<script src="assets/package-categories.js?v=7.64.95"></script>
++<script src="assets/auth-session.js?v=7.64.95-role-security"></script>
++<script src="assets/company-matrix-import.js?v=7.64.95-matrix-files-1"></script>
++<script src="assets/customer-display-model.js?v=7.64.95-knowledge"></script>
+ <div class="overlay" id="searchTodayDrawer" hidden aria-hidden="true"><section class="modal search-today-modal" role="dialog" aria-modal="true" aria-labelledby="searchTodayTitle"><header><h2 id="searchTodayTitle">ยืนยันแล้ววันนี้</h2><button id="searchTodayClose" type="button" class="modal-close" data-close="searchTodayDrawer" aria-label="ปิดรายชื่อยืนยัน">×</button></header><div class="search-today-body"></div></section></div>
+ <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
+-<script src="assets/emr-book-model.js?v=7.64.94"></script>
+-<script src="assets/personal-note-model.js?v=7.64.94-note-import"></script>
+-<script src="assets/customer-profile-presentation.js?v=7.64.94"></script><script src="assets/app.js?v=7.64.94-customer-summary-note-detail-customer-setup"></script>
+-<script src="assets/customer-search-one-row.js?v=7.64.94-compact-search"></script>
++<script src="assets/emr-book-model.js?v=7.64.95"></script>
++<script src="assets/personal-note-model.js?v=7.64.95-note-import"></script>
++<script src="assets/customer-profile-presentation.js?v=7.64.95"></script><script src="assets/app.js?v=7.64.95-customer-summary-note-detail-customer-setup"></script>
++<script src="assets/customer-search-one-row.js?v=7.64.95-compact-search"></script>
+ <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
+-<script src="assets/worklist-board.js?v=7.64.94"></script>
+-<script src="assets/flow-v76384.js?v=7.64.94-search-compact-no-auto-select"></script>
+-<script src="assets/global-ui-density.js?v=7.64.94-users-exp"></script>
+-<script src="assets/appearance-settings.js?v=7.64.94-panel-viewport-fix"></script>
+-<script src="assets/role-experience.js?v=7.64.94-role-exp"></script>
+-<script src="assets/coverage-names.js?v=7.64.94"></script>
+-<script src="assets/customer-compact.js?v=7.64.94-coverage-rows-remove-open-button"></script>
+-<script src="assets/checkup-summary-template.js?v=7.64.94-print-parity-qr"></script>
+-<script src="assets/booking-defaults.js?v=7.64.94"></script>
+-<script src="assets/checkup-unified.js?v=7.64.94-print-parity-direct-card-print"></script>
+-<script src="assets/customer-save-all.js?v=7.64.94-note-detail"></script>
+-<script src="assets/package-knowledge-editor.js?v=7.64.94"></script>
+-<script src="assets/customer-shop.js?v=7.64.94-knowledge"></script>
+-<script src="assets/global-dismiss-buttons.js?v=7.64.94-global-dismiss"></script>
+-<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.94">
+-<script src="assets/his-operation-monitor.js?v=7.64.94" defer></script>
+-<script src="assets/clinical-lifecycle.js?v=7.64.94-confirmed-only-1"></script>
+-<script src="assets/customer-access.js?v=7.64.94"></script>
+-<script src="assets/customer-url-settings.js?v=7.64.94"></script>
+-<script src="assets/pdf-topic-navigation.js?v=7.64.94"></script>
+-<script src="assets/customer-create-workspace.js?v=7.64.94"></script>
+-<script src="assets/customer-field-copy.js?v=7.64.94-coverage-code"></script>
+-<script src="assets/order-excel-core.js?v=7.64.94"></script>
+-<script src="assets/order-excel-ui.js?v=7.64.94"></script>
+-<script src="assets/cursor-customization.js?v=7.64.94-cursor"></script>
+-<script src="assets/cursor-star-trail.js?v=7.64.94-pointer-position-fix"></script>
+-<script src="assets/customer-knowledge.js?v=7.64.94"></script><script src="assets/customer-display-settings.js?v=7.64.94-mobile-compact"></script>
+-<script src="assets/emr-book-actions.js?v=7.64.94"></script>
+-<script src="assets/search-today-drawer.js?v=7.64.94"></script>
+-<script src="assets/customer-services.js?v=7.64.94-project-type"></script>
+-<script src="assets/customer-profile-header.js?v=7.64.94-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.94"></script><script src="assets/id-card-camera-model.js?v=7.64.94"></script><script src="assets/customer-id-camera.js?v=7.64.94"></script><script src="assets/appointment-schedules.js?v=7.64.94"></script>
+-<script src="assets/personal-notes.js?v=7.64.94-note-detail"></script>
+-<script src="assets/customer-selection-review.js?v=7.64.94"></script>
+-<script src="assets/personal-book-report.js?v=7.64.94"></script><script src="assets/personal-book-workspace.js?v=7.64.94"></script><script src="assets/customer-staff-preview.js?v=7.64.94"></script></body>
++<script src="assets/worklist-board.js?v=7.64.95"></script>
++<script src="assets/flow-v76384.js?v=7.64.95-search-compact-no-auto-select"></script>
++<script src="assets/global-ui-density.js?v=7.64.95-users-exp"></script>
++<script src="assets/appearance-settings.js?v=7.64.95-panel-viewport-fix"></script>
++<script src="assets/role-experience.js?v=7.64.95-role-exp"></script>
++<script src="assets/coverage-names.js?v=7.64.95"></script>
++<script src="assets/customer-compact.js?v=7.64.95-coverage-rows-remove-open-button"></script>
++<script src="assets/checkup-summary-template.js?v=7.64.95-print-parity-qr"></script>
++<script src="assets/booking-defaults.js?v=7.64.95"></script>
++<script src="assets/checkup-unified.js?v=7.64.95-print-parity-direct-card-print"></script>
++<script src="assets/customer-save-all.js?v=7.64.95-note-detail"></script>
++<script src="assets/package-knowledge-editor.js?v=7.64.95"></script>
++<script src="assets/customer-shop.js?v=7.64.95-knowledge"></script>
++<script src="assets/global-dismiss-buttons.js?v=7.64.95-global-dismiss"></script>
++<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.95">
++<script src="assets/his-operation-monitor.js?v=7.64.95" defer></script>
++<script src="assets/clinical-lifecycle.js?v=7.64.95-confirmed-only-1"></script>
++<script src="assets/customer-access.js?v=7.64.95"></script>
++<script src="assets/customer-url-settings.js?v=7.64.95"></script>
++<script src="assets/pdf-topic-navigation.js?v=7.64.95"></script>
++<script src="assets/customer-create-workspace.js?v=7.64.95"></script>
++<script src="assets/customer-field-copy.js?v=7.64.95-coverage-code"></script>
++<script src="assets/order-excel-core.js?v=7.64.95"></script>
++<script src="assets/order-excel-ui.js?v=7.64.95"></script>
++<script src="assets/cursor-customization.js?v=7.64.95-cursor"></script>
++<script src="assets/cursor-star-trail.js?v=7.64.95-pointer-position-fix"></script>
++<script src="assets/customer-knowledge.js?v=7.64.95"></script><script src="assets/customer-display-settings.js?v=7.64.95-mobile-compact"></script>
++<script src="assets/emr-book-actions.js?v=7.64.95"></script>
++<script src="assets/search-today-drawer.js?v=7.64.95"></script>
++<script src="assets/customer-services.js?v=7.64.95-project-type"></script>
++<script src="assets/customer-profile-header.js?v=7.64.95-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.95"></script><script src="assets/id-card-camera-model.js?v=7.64.95"></script><script src="assets/customer-id-camera.js?v=7.64.95"></script><script src="assets/appointment-schedules.js?v=7.64.95"></script>
++<script src="assets/personal-notes.js?v=7.64.95-note-detail"></script>
++<script src="assets/customer-selection-review.js?v=7.64.95"></script>
++<script src="assets/personal-book-report.js?v=7.64.95"></script><script src="assets/personal-book-workspace.js?v=7.64.95"></script><script src="assets/customer-staff-preview.js?v=7.64.95"></script></body>
+ </html>
+--- /dev/null
++++ b/tools/search-clear-browser.test.cjs
+@@ -0,0 +1,19 @@
++'use strict';
++const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
++const {chromium}=require('playwright-core');
++test('all app custom-clear search fields have one clear control; clearing and focus work; plain search keeps native control',async t=>{
++ const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'app.html'),'utf8'),script=fs.readFileSync(path.join(root,'assets/app.js'),'utf8');
++ const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage();
++ await page.setContent('<main></main><input type="search" id="nativeSearch" aria-label="Native search">');
++ // Audit the actual complete app template, including controls in normally hidden overlays.
++ const ids=await page.evaluate(source=>{const doc=new DOMParser().parseFromString(source,'text/html'),main=document.querySelector('main'),ids=[];for(const input of doc.querySelectorAll('input[type="search"]')){const next=input.nextElementSibling;if(next?.matches('button[aria-label="ล้างคำค้น"]')){main.append(document.importNode(input.parentElement,true));ids.push(input.id)}}return ids},html);
++ assert.deepEqual(ids.sort(),['companySearch','customerListSearch']);
++ const css=process.env.CLEAR_BASELINE_CSS||path.join(root,'assets/style.css');await page.addStyleTag({content:fs.readFileSync(css,'utf8')});
++ await page.evaluate(()=>{window.$=selector=>document.querySelector(selector);window.calls={company:0,customers:0};window.renderCompanies=()=>calls.company++;window.renderCustomerList=()=>calls.customers++;window.customerListPage=7});
++ const handlers=script.split('\n').filter(line=>line.startsWith("$('#clearCompanySearch').onclick=")||line.startsWith("$('#clearCustomerListSearch').onclick="));assert.equal(handlers.length,2);await page.addScriptTag({content:handlers.join('\n')});
++ const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');async function nativeDisplay(id){const {nodes}=await cdp.send('DOM.getFlattenedDocument',{depth:-1,pierce:true});const input=nodes.find(n=>n.nodeName==='INPUT'&&n.attributes?.includes(id));const shadow=input.shadowRoots?.[0];const descendants=new Set([shadow?.nodeId]);let changed=true;while(changed){changed=false;for(const n of nodes)if(descendants.has(n.parentId)&&!descendants.has(n.nodeId)){descendants.add(n.nodeId);changed=true}}const cancel=nodes.find(n=>descendants.has(n.nodeId)&&n.attributes?.includes('-webkit-search-cancel-button'));assert.ok(cancel,'Native clear node exists for '+id);const data=await cdp.send('CSS.getComputedStyleForNode',{nodeId:cancel.nodeId});return data.computedStyle.find(x=>x.name==='display').value}
++ for(const id of ids){const input=page.locator('#'+id);await input.fill('test');await input.focus();assert.equal(await nativeDisplay(id),'none',id+' must suppress the duplicate native clear');assert.equal(await input.locator('..').locator('button[aria-label="ล้างคำค้น"]').count(),1);await input.locator('..').locator('button').click();assert.equal(await input.inputValue(),'');assert.equal(await input.evaluate(el=>document.activeElement===el),true)}
++ assert.deepEqual(await page.evaluate(()=>calls),{company:1,customers:1});assert.equal(await page.evaluate(()=>customerListPage),1);
++ await page.locator('#nativeSearch').fill('test');assert.notEqual(await nativeDisplay('nativeSearch'),'none');
++ await page.setViewportSize({width:430,height:900});await page.locator('#companySearch').fill('mobile');await page.locator('#clearCompanySearch').click();assert.equal(await page.locator('#companySearch').inputValue(),'');
++});
+--- /dev/null
++++ b/release-v76495.test.js
+@@ -0,0 +1,35 @@
++'use strict';
++const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
++const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
++test('v7.64.95 runtime, lockfile and installer identify the same release',()=>{
++ const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
++ assert.equal(pkg.version,'7.64.95');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
++ assert.equal(read('VERSION.txt').trim(),'v7.64.95');assert.match(read('server.js'),/const RELEASE_NAME = 'v7\.64\.95-production'/);
++ for(const file of ['tools/production-installer-gui.ps1','tools/production-installer-worker.ps1'])assert.match(read(file),/v7\.64\.95/);
++ assert.match(read('app.html'),/assets\/auth-session\.js\?v=7\.64\.95/);
++});
++test('fresh startup creates company tables before circular foreign keys',()=>{
++ const server=read('server.js'),start=server.indexOf('async function ensureDatabase()');
++ const create=server.indexOf('await ensureRelationalSchema(pool)',start),reference=server.indexOf('REFERENCES company_years(id)',start);
++ assert(create>start&&create<reference);
++});
++test('installer checks public database readiness, integrity and complete runtime prerequisites',()=>{
++ const worker=read('tools/production-installer-worker.ps1'),install=read('tools/install.ps1');
++ assert.match(worker,/http:\/\/127\.0\.0\.1:3000\/api\/health/);assert.doesNotMatch(worker,/http:\/\/127\.0\.0\.1:3000\/api\/system\/health/);
++ assert.match(worker,/Test-PayloadIntegrity -Root \$sourceRoot/);assert.match(worker,/Get-FileHash -LiteralPath \$file -Algorithm SHA256/);
++ for(const dependency of ['compression','pdf-lib','fontkit','pg','dotenv','playwright-core'])assert(install.includes(dependency),dependency);
++ assert.match(install,/Database backup failed\. Installation stopped to protect existing data/);
++ assert.match(read('tools/deploy-environment.ps1'),/Existing .env\/API keys\/database connection files are preserved/);
++});
++test('memo subsections have separate PATCH field allowlists',()=>{
++ const server=read('server.js');
++ assert.match(server,/'subsidiaries':\['additionalCompanies'\]/);
++ assert.match(server,/'coordinators':\['coordinator','coordinators'\]/);
++ assert.match(server,/'employees':\['employeeCount'\]/);
++});
++test('archive contains the new security runtime and keeps startup read-only',()=>{
++ for(const file of ['security-policy.js','assets/auth-session.js','assets/auth-session.css','tools/start-production-installer.vbs','INSTALL-REPAIR.bat'])assert(read(file).length>0,file);
++ const html=read('app.html');assert(html.indexOf('assets/auth-session.js')<html.indexOf('assets/app.js'));
++ assert.match(read('server.js'),/req\.path\.startsWith\('\/api\/auth\/'\)/);
++ assert.match(read('assets/auth-session.js'),/if\(!event\.isTrusted/);
++});
+--- a/BUILD-PROVENANCE.json
++++ b/BUILD-PROVENANCE.json
+@@ -1,12 +1,12 @@
+ {
+-  "release": "v7.64.94",
+-  "base_release": "v7.64.93",
+-  "base_archive": "HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip",
+-  "base_sha256": "7b02ce0754f2e00e4f845122419e426b490db21fc4a53be2625ed33cce8cde44",
+-  "changes": "Fix staff customer-view navigation: use a native target=_blank anchor rather than window.open, which is shadowed by the app modal open function. Preserve permission checks, read-only preview and HISGender hotfix.",
++  "release": "v7.64.95",
++  "base_release": "v7.64.94",
++  "base_archive": "HealthCheck-v7.64.94-PRODUCTION-WINDOWS-INSTALLER.zip",
++  "base_sha256": "664be1b62e5449798be2a5a59b7d20a72c68e2f0b6493d314e60dbc85c1bb767",
++  "changes": "Remove duplicate native search cancel icons only where an explicit custom clear button already exists; audit company and customer list search, preserve native clears elsewhere; repair void input markup.",
+   "windows_installation_executed": false,
+-  "base_github_branch": "installers/v7.64.93",
+-  "base_github_commit": "147bdee",
++  "base_github_branch": "installers/v7.64.94",
++  "base_github_commit": "37efaba",
+   "hotfix": "patient-demographic-hisgender",
+   "source_branch": "installers/v7.64.92",
+   "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+--- /dev/null
++++ b/RELEASE-v7.64.95-CHANGES.txt
+@@ -0,0 +1,10 @@
++v7.64.95 — ช่องค้นหาเหลือปุ่มล้างเดียว
++
++ตรวจช่องค้นหาใน app template และซอร์ส dynamic controls พบปุ่มล้างซ้ำในค้นหาบริษัทและค้นหารายชื่อลูกค้า: ปุ่ม custom และ native search cancel ของ browser แสดงพร้อมกัน
++ซ่อน native clear เฉพาะช่องที่มีปุ่ม custom อยู่แล้ว ไม่ลบปุ่มยกเลิกใน dialog หรือคำสั่งยกเลิกทางคลินิก
++คง native clear สำหรับช่องค้นหาอื่น และเพิ่มกฎรองรับช่องที่มี custom clear adjacent แบบเดียวกัน
++แก้ closing tag ของ input ที่ไม่ถูกต้องใน wrapper ของสองช่อง
++คงการล้างคำค้น การกรองและ pagination reset และ focus กลับช่องเดิม
++รวม staff customer-view navigation fix และ HISGender hotfix เดิม
++
++ติดตั้ง: สำรองข้อมูล แตก ZIP ทั้งหมด เปิด INSTALL-REPAIR.bat อนุญาต Administrator รอ health check แล้ว Ctrl+F5 ตรวจ v7.64.95
+--- /dev/null
++++ b/TEST-RESULTS-v7.64.95.txt
+@@ -0,0 +1,5 @@
++npm run build: PASS
++npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
++node --test tools/search-clear-browser.test.cjs: PASS — audit custom-clear search inputs in full app template; inspect Chromium native shadow clear control with CDP; assert native duplicate hidden, one custom clear, actual clear handlers and focus/pagination reset; preserve native clear elsewhere; mobile clearing
++Same regression against v7.64.94 CSS: FAILED as expected (duplicate native clear remained visible)
++Windows installer GUI/UAC and real hospital HIS: NOT RUN
+--- a/server.js
++++ b/server.js
+@@ -28,7 +28,7 @@
+ const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
+ const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
+ const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
+-const RELEASE_NAME = 'v7.64.94-production';
++const RELEASE_NAME = 'v7.64.95-production';
+ const { registerDataCenter } = require('./datacenter');
+ const SCHEMA_VERSION = '0218';
+ const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
+--- a/VERSION.txt
++++ b/VERSION.txt
+@@ -1 +1 @@
+-v7.64.94
++v7.64.95
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.94",
++  "version": "7.64.95",
+   "private": true,
+   "scripts": {
+     "start": "node server.js",
+@@ -9,7 +9,7 @@
+     "typecheck": "tsc -p tsconfig.json --noEmit",
+     "test": "npm run typecheck && node --check server.js && node --check relational-store.js && node --test *.test.js",
+     "smoke": "node tools/smoke-test.js",
+-    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76494.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
++    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76495.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
+     "test:release:legacy": "node --check server.js && node --check assets/app.js && node --check assets/flow-v76384.js && node --check relational-store.js && node --check tools/app-update-helper.js && node --test release-candidate-v76344-update-helper-survival.test.js release-candidate-v76380-mapped-his-user-sync-filter.test.js release-candidate-v76381-admin-password-baseline.test.js release-candidate-v76382-first-login-password.test.js release-candidate-v76383-first-login-overlay.test.js release-candidate-v76384-checkup-flow.test.js release-candidate-v76385-multi-customer-import.test.js release-candidate-v76386-today-flow.test.js release-candidate-v76387-split-search.test.js release-candidate-v76388-auto-age.test.js release-candidate-v76389-no-finalize-button.test.js release-candidate-v76390-detail-confirm-flow.test.js release-candidate-v76391-worklist-layout.test.js release-candidate-v76392-release-integration.test.js release-candidate-v76394-annual-circular-sections.test.js release-candidate-v76395-fullpage-primary-documents.test.js release-candidate-v76396-programs-docs-tab.test.js release-candidate-v76397-unified-company-pdf.test.js release-candidate-v76398-installer-path.test.js"
+   },
+   "dependencies": {
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.94",
++  "version": "7.64.95",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "health-check-smart-search-postgresql",
+-      "version": "7.64.94",
++      "version": "7.64.95",
+       "dependencies": {
+         "@pdf-lib/fontkit": "^1.1.1",
+         "bwip-js": "^4.5.1",
+--- a/tools/production-installer-gui.ps1
++++ b/tools/production-installer-gui.ps1
+@@ -1,7 +1,7 @@
+ ﻿$ErrorActionPreference='Stop'
+ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.94 PRODUCTION'
++$version='v7.64.95 PRODUCTION'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){
+--- a/tools/production-installer-worker.ps1
++++ b/tools/production-installer-worker.ps1
+@@ -5,7 +5,7 @@
+ )
+ $ErrorActionPreference='Stop'
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.94'
++$version='v7.64.95'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){
