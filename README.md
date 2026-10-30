@@ -1,42 +1,23 @@
-# ตัวติดตั้ง v7.64.92 — Patient Demographic HISGender Hotfix
+# ตัวติดตั้ง Production v7.64.93
 
-แผนรุ่นถัดไป: พัฒนา 7.64.x ใน installers/* ถึง 7.64.99 แล้วรวมซอร์สพร้อม hotfix เข้า main ในรอบ 7.65.00 ดู [Release policy](RELEASE-POLICY.md)
+แถบข้อมูลแพ็กเกจลูกค้าแสดงตลอด พร้อมปุ่มเปิดข้อมูลจริงแบบลูกค้าสำหรับเจ้าหน้าที่ (อ่านอย่างเดียว) และจำนวนรายการที่ลูกค้าเลือก รวม HISGender Excel hotfix
 
-แก้ Export Excel คอลัมน์ HISGender ว่าง แม้หน้าต่าง HIS แสดง FEMALE โดยใช้ gender_label และ fallback gender ให้ตรงกันทั้งหน้าเว็บและสองชีต Excel
+[ดาวน์โหลดตัวติดตั้ง v7.64.93](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.93/HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-[ดาวน์โหลดตัวติดตั้ง Windows พร้อม hotfix](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.92-hisgender-hotfix/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER-HISGENDER-FIX.zip)
+[ดาวน์โหลด checksum SHA256](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.93/HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip.sha256)
 
-[ดาวน์โหลด SHA256](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.92-hisgender-hotfix/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER-HISGENDER-FIX.zip.sha256)
+สำรองข้อมูลตามขั้นตอนเดิม → แตก ZIP ทั้งหมด → INSTALL-REPAIR.bat → อนุญาต Administrator → รอ health check ผ่าน → เปิดเว็บ Ctrl+F5 ตรวจ v7.64.93
 
-วิธีติดตั้ง: สำรองข้อมูลตามขั้นตอนเดิม → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat → อนุญาตสิทธิ์ Administrator → รอ health check ผ่าน → เปิดเว็บ กด Ctrl+F5 แล้ว Export ใหม่
+แถบแสดงแม้ยังไม่ยืนยันการตรวจหรือไม่มีรายการ (0) พนักงานที่มีสิทธิ์ค้นหาและดูข้อมูลส่วนบุคคลเปิดหน้าลูกค้าของรายนั้นได้ ไม่สร้าง session ลูกค้า ไม่ส่งรายการแทนลูกค้า
 
-แพ็กเกจนี้ยังระบุเวอร์ชัน v7.64.92 เป็น hotfix สำหรับติดตั้ง/ซ่อมผ่าน INSTALL-REPAIR.bat ไม่ใช้ Update Center ที่ต้องการหมายเลขเวอร์ชันใหม่กว่า
+QR ลูกค้ายังคงต้องยืนยันการตรวจและตั้งค่า URL ที่มือถือเข้าถึงได้ ตามเงื่อนไขเดิม
 
-ซอร์สฐาน: installers/v7.64.92 commit 003692ab76b2c843e32cb73777bc6422aba704ea ไม่ใช้ main
+ฐานซอร์ส: installers/v7.64.92 commit 003692ab76b2c843e32cb73777bc6422aba704ea พร้อม HISGender hotfix ไม่ใช้ main
 
-ผลทดสอบ: build และ release tests ผ่าน 117 รายการ; Chromium regression ตรวจไฟล์ Excel จริงผ่านก่อนและหลังตรวจเลือกผู้ป่วย ไม่ได้ทดสอบ GUI/UAC ตัวติดตั้งบน Windows จริง
+ทดสอบ build, release tests 118 รายการ และ Chromium regression 2 รายการผ่าน ตรวจ startup/ฐานข้อมูลและปฏิเสธ anonymous preview ผ่าน ยังไม่ได้ทดสอบ GUI/UAC บน Windows จริงหรือ HIS โรงพยาบาลจริง
 
-SHA256: 4947d4605f09810569842937925c1056bf650e94bdb260a738ab9bf92e5927c9
+SHA256: 7b02ce0754f2e00e4f845122419e426b490db21fc4a53be2625ed33cce8cde44
 
-ซอร์สที่แก้, patch และ regression test อยู่ใน patient-demographic-hisgender-fix/
+ซอร์สที่แก้และ patch: source-changes-v7.64.93/ ส่วนซอร์สเต็มอยู่ใน ZIP
 
----
-
-# ตัวติดตั้ง Production v7.64.92
-
-จัดปุ่มดาวน์โหลดเทมเพลตใน Patient Demographic ให้เสมอแถว
-- ช่องเลือกไฟล์ ช่องเลือกชีต และปุ่มดาวน์โหลด สูงเท่ากัน 44px
-- ขอบบนและล่างตรงกันบนจอใหญ่/โน้ตบุ๊ก จอเล็กเรียงเป็นคอลัมน์เดียว
-- คงฟังก์ชันค้นด้วยชื่อ–นามสกุลและการตรวจเลือกผู้ป่วยจาก v7.64.91
-
-[ดาวน์โหลดตัวติดตั้ง v7.64.92](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.92/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER.zip)
-
-แตก ZIP ทั้งหมด → INSTALL-REPAIR.bat → Run as administrator
-รอ health check ผ่าน แล้วเปิดเว็บกด Ctrl+F5 ตรวจ v7.64.92
-
-ผ่าน build และ 117 release tests; ตรวจรูปแบบจริงใน Chromium ที่ 1920/1366/1024/430px
-ยังไม่ได้รัน GUI/UAC/Robocopy ของตัวติดตั้งบน Windows จริง
-
-SHA256: d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301
-
-Branch นี้เก็บเฉพาะตัวติดตั้ง ไม่เปลี่ยน main
+[นโยบายรวมซอร์สพร้อม hotfix กลับ main ในรอบ 7.65.00](RELEASE-POLICY.md)

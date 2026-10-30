@@ -1,0 +1,6 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped (110 + 8)
+node --test tools/customer-staff-preview-browser.test.cjs: PASS — 1 Chromium scenario covering permanent zero/pending/reviewed action strip, proper record link, mobile visibility, real customer renderer with scoped data, blocked writes
+node --test tools/patient-demographic-export.test.cjs: PASS — 1 Chromium XLSX export regression
+Live app on isolated local PostgreSQL: /api/version v7.64.93 HTTP 200; /api/health ok=true HTTP 200; anonymous staff-preview request HTTP 401
+Windows installer GUI/UAC and real hospital HIS integration: NOT RUN

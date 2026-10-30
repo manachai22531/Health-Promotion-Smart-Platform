@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.93",
+  "base_release": "v7.64.92",
+  "base_archive": "HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "changes": "Always-visible customer package action strip with zero/pending/reviewed counts; authenticated read-only real customer profile preview; includes HISGender Excel hotfix.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.92",
+  "base_github_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}

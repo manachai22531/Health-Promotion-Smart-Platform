@@ -1,0 +1,28 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const express=require('express'),{chromium}=require('playwright-core');
+test('permanent customer action strip, zero/pending/reviewed states, mobile and real customer renderer',async t=>{
+ const app=express(),root=path.resolve(__dirname,'..');
+ app.get('/customer',(_req,res)=>res.sendFile(path.join(root,'app.html')));
+ app.use(express.static(root));const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+ const base='http://127.0.0.1:'+server.address().port;
+ const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage();
+ await page.goto(base+'/customer-selection-review.test.js');
+ await page.setContent('<link rel="stylesheet" href="'+base+'/assets/customer-selection-review.css"><div id="resultRows"><article class="customer-compact-card" data-key="case-A"><section class="cc-package-panel"><h3>แพ็กเกจและรายการตรวจ</h3></section></article></div>');
+ await page.evaluate(()=>{window.state={records:[{key:'case-A'}]};window.currentUser={id:'staff'};window.can=()=>true;window.money=n=>String(n);window.esc=s=>String(s??'');window.detail=()=>{};window.customerPendingPanelHtml=()=>'';window.acceptCustomerSelection=()=>{};window.open=(...args)=>{window.opened=args}});
+ await page.addScriptTag({content:fs.readFileSync(path.join(root,'assets/customer-selection-review.js'),'utf8')});
+ assert.equal(await page.locator('.csr-access-strip').count(),1);assert.equal(await page.locator('[data-selection-alert] b').innerText(),'0');
+ await page.locator('[data-customer-view]').click();assert.deepEqual(await page.evaluate(()=>opened),['/customer?staffPreview=case-A','_blank','noopener,noreferrer']);
+ await page.route('**/api/customer-selections/**',route=>route.fulfill({json:{rows:[],pending:null,reviewed:null}}));await page.locator('[data-selection-alert]').click();await page.getByText('ยังไม่มีรายการที่ลูกค้าเลือก',{exact:true}).waitFor();await page.locator('.csr-dialog [data-close]').click();
+ await page.evaluate(()=>{state.records[0].customerPendingSelection={billingIds:['one','one'],cashIds:['two']};state.records[0].checkupConfirmedAt=new Date().toISOString();document.querySelector('.cc-package-panel h3').append(document.createElement('span'))});
+ await page.waitForFunction(()=>document.querySelector('[data-selection-alert] b').textContent==='2');assert.equal(await page.locator('.csr-access-strip').count(),1);
+ await page.evaluate(()=>{delete state.records[0].customerPendingSelection;state.records[0].customerSelectionReview={items:[{}]};document.querySelector('.cc-package-panel h3').append(document.createElement('span'))});await page.waitForFunction(()=>document.querySelector('[data-selection-alert] b').textContent==='1');
+ await page.setViewportSize({width:430,height:900});assert.ok(await page.locator('[data-customer-view]').isVisible());
+ const profile={name:'Fixture Customer',profile:{title:'นาย',firstName:'Fixture',lastName:'Customer'},contextKey:'case-A',company:{name:'Fixture Company',year:'2569'},primaryPackages:[{code:'BASE',name:'Annual Package',price:100}],primaryPackageTotal:100,choices:{billing:[{id:'ct',code:'CT',name:'CT Calcium Scoring',price:2200}],cash:[],contract:[]},pendingSelection:null,locked:false,staffPreview:true};
+ const writes=[],errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/**',route=>{if(route.request().method()!=='GET')writes.push(route.request().url());return route.fulfill({json:route.request().url().includes('/customer-staff-preview/')?profile:{}})});
+ await page.route('**/customer-api/**',route=>route.fulfill({json:{}}));
+ await page.goto(base+'/customer?staffPreview=case-A');await page.locator('.csr-staff-preview-banner').waitFor();await page.waitForFunction(()=>!document.querySelector('.csr-preview-loading'));
+ assert.equal(await page.locator('#customerSelfName').innerText(),'Fixture Customer');await page.locator('[data-shop-category="billing"]').click();assert.match(await page.locator('#customerProfilePanel').innerText(),/CT Calcium Scoring/);assert.equal(await page.locator('#csCheckout').isVisible(),false);
+ const forbidden=await page.evaluate(async()=>{const r=await customerApi('/me/selection/verify',{method:'POST',body:'{}'});return r.status});assert.equal(forbidden,403);assert.deepEqual(writes,[]);assert.deepEqual(errors,[]);
+});
