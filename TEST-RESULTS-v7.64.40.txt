@@ -1,0 +1,41 @@
+HealthCheck v7.64.40 PRODUCTION WINDOWS INSTALLER
+Date: 2026-10-15 UTC
+RESULT: PASS targeted release validation
+PASS new supplement button Chromium fixture: selected extras saved independently; primary edits excluded; active Order locked; failed save can retry; clear all extras persists; preconfirmation save does not confirm; no A4 opened.
+PASS changed-source typecheck and JS syntax.
+PASS updated Chromium fixture: no selections shows only eligibility; billing/cash/contract selection each shows only chosen groups and hides eligibility; clearing all choices restores eligibility; label 1 removed; totals unchanged.
+PASS updated typecheck and JS syntax. Raised desktop surfaces preserve native layout and printed documents stay flat.
+PASS compact overview Chromium fixture: confirmation success/failure gate, empty extra selections, A4 eligibility separate from totals, header order, package colors/main price and desktop bounds/no horizontal scroll.
+PASS 26 confirmation/workflow regression tests, changed-source typecheck.
+New screen browser checks use controlled data and saved-state acknowledgement fixtures; full live application/HIS/Windows not executed.
+PASS 15 workflow regression tests; actual Worklist API snapshot/pending/order/cancel checks.
+PASS Chromium final renderer: 13 headers and cells; aligned project/package; pending excluded; panel counts.
+PASS Worklist TypeScript typecheck and JS syntax checks.
+PASS bulk user enable/disable/reset handler checks: deduplication, permissions, protected/missing accounts, initial-password requirement, inactive status preservation, session invalidation, audit and button order.
+PASS changed-source TypeScript typecheck and JS syntax checks.
+
+FIX: Wrap migrations 0212 and 0213 up/down in BEGIN/COMMIT.
+PASS exact updater transaction validation against v7.64.33 and v7.64.34.
+PASS actual SQL up twice, down/up preserves legacy EXP once.
+PASS injected SQL failure rolls back new schema completely.
+Windows end-to-end updater still requires verification on target host.
+
+PASS 24 integration checks: actual registered handlers + PostgreSQL engine PGlite;
+role rules/permissions, nursing worklist, duplicate prevention, reversals,
+HIS rejection, rollback, imports, projects, approvals, historical claims/migration.
+PASS 7 Chromium UI scenarios: Role settings, permissions, save/revision errors,
+responsive drawer, dynamic footer, pause/resume, shield-only/read-only controls.
+PASS 23 unit/regression checks: rules, 100-level thresholds, confirmation,
+first-login password and overlay.
+PASS TypeScript typecheck.
+PASS actual server startup v7.64.40 / v7.64.40-production; new Role EXP assets
+and existing footer/cursors served; anonymous EXP read denied (bootstrap skipped).
+PDF no-logo/black-fill validation retained from pending source verification.
+Installer scripts unchanged except release labels; PowerShell BOM preserved.
+
+Limitations: Windows installer execution, live HIS and production database migration
+not run. Integration HIS/browser API responses use controlled fixtures.
+Historical dynamic circular-table and installer-path assertions have known baseline
+failures on prior releases; no claim of full legacy suite passing.
+UPDATE-MANIFEST downloadUrl is a placeholder; configure hosted ZIP URL before
+using an automatic update feed. Drive file is intended for manual download.

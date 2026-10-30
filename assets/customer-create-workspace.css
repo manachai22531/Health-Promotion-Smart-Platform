@@ -1,0 +1,33 @@
+.customer-create-preview{display:none}
+@media screen{
+body:has(#customerOverlay.customer-create-workspace.open){zoom:1!important;overflow:hidden}
+#customerOverlay.customer-create-workspace{inset:0!important;width:auto!important;height:auto!important;padding:0!important;overflow:hidden!important}
+#customerOverlay.customer-create-workspace>.customer-form-modal{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.customer-create-workspace .modal-header{flex:none;padding:12px 20px;background:#fff;border-bottom:1px solid #d5e6ed}
+.customer-create-workspace .modal-header h2{font-size:20px;margin:4px 0;color:#103f58;overflow-wrap:anywhere}
+.customer-create-workspace .customer-create-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:12px;min-height:0;flex:1;overflow:hidden;background:#eaf5f9;padding:10px 12px}
+.customer-create-workspace .customer-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:8px;min-height:0;max-height:none;overflow:auto;margin:0;padding:12px;background:#eef7fa;border-radius:10px}
+.customer-create-workspace .customer-form-grid>label{min-width:0;margin:0;padding:6px;border:1px solid #d2e7f0;border-radius:10px;background:#eaf5fa;color:#176b6c;font-size:12px;display:flex;flex-direction:column;gap:4px;align-self:start}
+.customer-create-workspace .customer-form-grid input,.customer-create-workspace .customer-form-grid select{box-sizing:border-box;min-width:0;width:100%;height:32px;background:white;border:1px solid #c9deed;border-radius:10px;padding:5px 8px;color:#143e52}
+.customer-create-workspace label:has(#customerCompany),.customer-create-workspace label:has(#customerAddress){grid-column:1/-1}
+.customer-create-workspace .customer-form-grid>label:has(input[disabled]:not([id])){display:none}
+.customer-create-workspace .customer-form-status{grid-column:1/-1}
+.customer-create-workspace .customer-create-preview{display:flex;flex-direction:column;min-width:0;min-height:0;background:#fff;border-radius:12px;overflow:hidden}
+.customer-create-preview>header{display:flex;justify-content:space-between;gap:8px;padding:12px;font-size:12px;color:#103f58;flex:none}.customer-create-preview>header>span{color:#a7641d}.customer-create-preview>p{margin:0;padding:8px 12px;background:#fff6e6;color:#8a5d22;font-size:12px;flex:none}
+.customer-create-preview>iframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
+.customer-create-workspace .modal-footer{flex:none;display:flex;justify-content:flex-start;gap:8px;padding:8px 12px;background:white;border-top:1px solid #d5e6ed}
+.customer-create-workspace .modal-footer [data-close]{order:2;margin-left:auto}
+@media(max-width:800px){.customer-create-workspace .customer-create-layout{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(190px,.8fr)}.customer-create-workspace .customer-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.customer-create-preview>header,.customer-create-preview>p{padding:6px 10px}}
+}
+@media screen{
+.customer-create-workspace .customer-form-grid>label{order:50}
+.customer-create-workspace .customer-form-grid label:has(#customerCompany){order:1;grid-column:auto}
+.customer-create-workspace label:has(#customerHN){order:2}.customer-create-workspace label:has(#customerVN){order:3}
+.customer-create-workspace label:has(#customerTitle){order:4}.customer-create-workspace label:has(#customerFirst){order:5}.customer-create-workspace label:has(#customerLast){order:6}
+.customer-create-workspace label:has(#customerPrefixEN){order:7}.customer-create-workspace label:has(#customerFirstNameEN){order:8}.customer-create-workspace label:has(#customerLastNameEN){order:9}
+.customer-create-workspace label:has(#customerIdentificationType){order:10}.customer-create-workspace label:has(#customerId){order:11}.customer-create-workspace label:has(#customerBirth){order:12}
+.customer-create-workspace label:has(#customerSex){order:13}.customer-create-workspace label:has(#customerAge){order:14}.customer-create-workspace label:has(#customerEmail){order:15}
+.customer-create-workspace label:has(#customerPhone){order:16}.customer-create-workspace label:has(#customerNationality){order:17}.customer-create-workspace label:has(#customerMaritalStatus){order:18}
+.customer-create-workspace label:has(#customerAddress){order:19}.customer-create-workspace label:has(#customerPositionName){order:20}.customer-create-workspace label:has(#customerEmployeeCode){order:21}.customer-create-workspace label:has(#customerDepartmentName){order:22}
+.customer-create-workspace label:has(#customerDisplayOrder){display:none}.customer-create-workspace .customer-form-status{order:100}
+}

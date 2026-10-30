@@ -384,7 +384,9 @@ function Stop-ExistingAppServers {
     # Older Windows builds may not provide Get-NetTCPConnection. The path and
     # command-line checks below remain as the safe fallback.
   }
-  $appProcesses = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue |
+  # Pause our startup task before replacing the runtime; do not touch unrelated tasks.
+Stop-ScheduledTask -TaskName 'HealthCheck-Production-AutoStart' -ErrorAction SilentlyContinue
+$appProcesses = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue |
     Where-Object {
       $_.CommandLine -and
       $_.CommandLine -match '(?i)(^|[\\/"\s])server\.js([\"\s]|$)' -and
@@ -547,7 +549,7 @@ if ($isUpgrade) {
   $backupDir = Join-Path $appRoot 'backups'
   New-Item -ItemType Directory -Force $backupDir | Out-Null
   $backupStamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-  $backupOutput = Join-Path $backupDir "before-update-v7.62.75-$backupStamp.backup"
+  $backupOutput = Join-Path $backupDir "before-update-v7.64.87-$backupStamp.backup"
   if ($adminConnected) {
     $backupUser = 'postgres'; $env:PGPASSWORD = $adminPassword
   } else {
@@ -556,7 +558,7 @@ if ($isUpgrade) {
   & $pgDump.FullName -h 127.0.0.1 -p $port -U $backupUser -d $dbName -Fc -f $backupOutput
   Assert-LastExit 'Database backup failed. Installation stopped to protect existing data.'
   Write-Host ("Existing database backup created with {0}: {1}" -f $backupUser, $backupOutput) -ForegroundColor Green
-  Copy-Item $envPath (Join-Path $backupDir ".env-before-v7.62.75-$backupStamp.txt") -Force
+  Copy-Item $envPath (Join-Path $backupDir ".env-before-v7.64.87-$backupStamp.txt") -Force
 }
 
 Write-Step 'Create or repair application database'
@@ -814,7 +816,9 @@ function Invoke-NpmCiChecked {
 }
 
 Write-Step 'Install application dependencies'
-if (-not (Test-Path (Join-Path $appRoot 'node_modules\express')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\qrcode')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\bwip-js')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\pdf-lib')) -or -not (Test-Path (Join-Path $appRoot 'node_modules\@pdf-lib\fontkit'))) {
+$runtimeModules = @('express','qrcode','bwip-js','compression','pg','dotenv','pdf-lib','@pdf-lib\fontkit','pdfjs-dist','playwright-core')
+$missingRuntimeModules = @($runtimeModules | Where-Object { -not (Test-Path (Join-Path $appRoot ('node_modules\' + $_))) })
+if ($missingRuntimeModules.Count -gt 0) {
   Invoke-NpmCiChecked -WorkingDirectory $appRoot
 } else {
   Write-Host 'Application dependencies are already installed.'
@@ -844,7 +848,9 @@ Remove-Item -LiteralPath $testError -Force -ErrorAction SilentlyContinue
 $testProcess = Start-Process -FilePath $nodePath -ArgumentList 'server.js' -WorkingDirectory $appRoot `
   -WindowStyle Hidden -RedirectStandardOutput $testOutput -RedirectStandardError $testError -PassThru
 $serverReady = $false
-for ($attempt = 0; $attempt -lt 20; $attempt++) {
+# v7.64.21: real Production startup can spend time validating/initializing PostgreSQL.
+# Allow up to ~90 seconds before declaring the test server unhealthy.
+for ($attempt = 0; $attempt -lt 180; $attempt++) {
   Start-Sleep -Milliseconds 500
   try {
     $testHealth = Invoke-RestMethod -Uri "http://127.0.0.1:$testPort/api/health" -TimeoutSec 2
@@ -862,7 +868,7 @@ if (-not $serverReady) {
     $testErrorDetail = (Get-Content $testError -Tail 12 -ErrorAction SilentlyContinue) -join "`n"
     if (-not [string]::IsNullOrWhiteSpace($testErrorDetail)) { $testDetail = $testErrorDetail }
   }
-  if ([string]::IsNullOrWhiteSpace($testDetail)) { $testDetail = 'The test server did not respond.' }
+  if ([string]::IsNullOrWhiteSpace($testDetail)) { $testDetail = if($testProcess.HasExited){"The test server exited before responding (exit code $($testProcess.ExitCode))."}else{'The test server did not respond within 90 seconds.'} }
   throw "Server validation failed: $testDetail"
 }
 
@@ -1001,6 +1007,9 @@ if (-not [string]::IsNullOrWhiteSpace($userDesktop)) {
     Remove-Item $userShortcutPath -Force -ErrorAction SilentlyContinue
   }
 }
+
+Write-Step 'Register automatic Windows startup'
+& (Join-Path $appRoot 'tools\install-autostart.ps1')
 
 if ($env:HEALTH_CHECK_PERMANENT_BOOTSTRAP -eq '1') {
   Write-Host "`nCore installation completed. Permanent bootstrap will start and verify the server..." -ForegroundColor Green

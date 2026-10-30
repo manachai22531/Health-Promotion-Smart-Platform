@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $appRoot = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $appRoot '.env'
 $updateDir = Join-Path $appRoot 'updates'

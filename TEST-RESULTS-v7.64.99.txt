@@ -1,0 +1,11 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+Chromium browser regressions: 6 passed, 0 failed, 0 skipped
+- Company layout/filtering and period backgrounds/borders match search for all 5 states
+- 100-row workspace at 1920/1366 and 3 densities: toolbar/buttons not overlapping; 2 sticky header rows and hit testing; frozen HN/scrolling sequence; CSV copying; 1920/1366/430 full-screen editor
+- Short search and full-width Booking area: 8 long project names + all/unassigned, real multirow height, selection/reset filtering, no overlap with table
+- White report card, package actions on same row, 3 distinct theme border colors, 6 soft region fills, semantic package colors preserved; 1920/1366/430 layout
+- Actual native popup for read-only customer preview, authorization checks
+- Real XLSX HISGender export regression
+- Search clear icon regression
+Windows installer GUI/UAC and real hospital HIS: NOT RUN

@@ -1,0 +1,79 @@
+HealthCheck v7.64.60 — Validation report
+Base: uploaded v7.64.59 production installer
+Base SHA-256: cd50a9ac1999f20aa5713ac81e53332c88c5268de8def4e4806906c8db461505
+Schema: 0217 (unchanged)
+
+Dependency install: npm ci --ignore-scripts --no-audit --no-fund passed; lockfile unchanged except version.
+Syntax: changed runtime JS modules parsed successfully.
+TypeScript: npm run typecheck passed.
+
+Targeted server and workflow regression tests:
+✔ canonical identity removes formatting and normalizes case (1.398557ms)
+✔ same-file duplicate strong identities collapse to one customer record (1.372578ms)
+✔ formatted strong identity matches an existing record (0.352203ms)
+✔ different strong IDs never merge through the same employee code (0.464366ms)
+✔ HN can fill a legacy record that has no strong identity (0.302614ms)
+✔ name plus DOB is review-only and does not auto-merge (0.413693ms)
+✔ clinical status uses exact VN Booking reader and confirms HN (4.093855ms)
+✔ cancelled/ChargeClose/unknown status remain distinct (0.350753ms)
+✔ failed read keeps last matched result and cannot reconcile pending ChargeClose (0.950049ms)
+✔ DB exception is not exposed as HTML or mistaken for CLOSED (1.083526ms)
+✔ PDF topics survive save/load and appended attachment page refs (441.907117ms)
+✔ URL settings require apiManage and commit audit with before/after actor (1.621953ms)
+✔ audit failure rolls settings change back (0.446802ms)
+Checkup is saved, but audit logging needs follow-up: Error: LOG FAILED
+    at Object.saveConfirmedCheckupV76416 (evalmachine.<anonymous>:45:27)
+    at async TestContext.<anonymous> (/workspace/work/release60/single-confirmation-v76417.test.js:43:15)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+✔ one confirmation persists all packages and both timestamps before enabling HIS Order (4.142163ms)
+✔ failed database save never modifies patient confirmation (2.566337ms)
+✔ audit failure is distinguishable from saved confirmation (2.827698ms)
+✔ no first confirmation without receiveCreate permission (1.366052ms)
+✔ existing confirmation does not allow duplicate confirmation (1.450592ms)
+✔ changed selections save as an edit while retaining original confirmed timestamps (1.859342ms)
+✔ no edits after HIS order until cancelled (2.02927ms)
+✔ legacy records with no stored price are not falsely marked as changed (2.00085ms)
+✔ A4 footer does not contain the old confirmation call to action (10.498616ms)
+✔ OrderHIS remains gated by persisted visitedAt, HN, VN, and an active order guard (6.517455ms)
+✔ A4 status buttons keep receiveFinalize for HIS Order, receiveEdit for changed selections (1.948098ms)
+✔ legacy checkupConfirmedAt prevents an initial duplicate and permits a permission-checked repeat edit (3.071868ms)
+✔ a newly confirmed patient first appears in pending, not TODAY cases (17.612172ms)
+✔ HIS OpenVisit alone does not advance a patient (0.16471ms)
+✔ only successfully ordered patients move to TODAY cases (1.771083ms)
+✔ canceling HIS Order moves the case back to pending (0.252292ms)
+✔ older cancellation does not override a newer successful order (0.144988ms)
+✔ unconfirmed records do not appear in either Worklist panel (0.131501ms)
+✔ status and company filters are honored (0.572292ms)
+✔ existingKeys prevent duplicate true visits and fallback rows (0.236009ms)
+✔ Order on a later date moves the record onto its order date, not confirmation date (0.695845ms)
+✔ frontend partitions by explicit backend workflow_stage, not confirmed flag (0.913405ms)
+✔ API uses a successful order as the gate, not a nonempty VN (5.0586ms)
+✔ new PDF workflow saves existing company/circular through one company-scoped API (17.018095ms)
+✔ no extra PDF parsing and save for an empty attachments list (3.413056ms)
+✔ Thai text wrapping runs at close to linear glyph measuring cost (7.9696ms)
+✔ company-scoped PDF API commits company/circular once without patient table writes (6.020108ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1157.773909
+
+Browser component verification (Chromium, actual CSS and PDF.js):
+PASS PDF.js reads Thai semantic topics from generated PDF
+PASS topic click jumps to actual page and vertical destination
+PASS 1920x910 viewport, all three densities: footer and PDF inside screen
+PASS 2133x1011 viewport, all three densities: footer and PDF inside screen
+PASS 1536x730 viewport, all three densities: footer and PDF inside screen
+PASS 1366x650 viewport, all three densities: footer and PDF inside screen
+PASS 1024x600 viewport, all three densities: footer and PDF inside screen
+PASS 390x844 viewport, all three densities: footer and PDF inside screen
+PASS 844x390 viewport, all three densities: footer and PDF inside screen
+PASS navigator collapses; closing preview restores page zoom
+PASS contract list stays 92px, two columns, internally scrolls all 20 items
+PASS regular user cannot view/request/edit URL; authorized System & API save succeeds
+
+Limits: No live HIS, Windows installation, DNS/HTTPS setup, physical printer or production database tested. Historical release-specific version assertion tests were not used as current-version acceptance tests. No claim that every historical test was run.

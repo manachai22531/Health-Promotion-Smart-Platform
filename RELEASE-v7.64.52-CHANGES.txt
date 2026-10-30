@@ -1,0 +1,12 @@
+HealthCheck v7.64.52 — editable coverage section and left-aligned A4 header
+1. เพิ่มหัวข้อ สิทธิ์การรับบริการ ก่อนส่วนแพ็กเกจหลัก ตามตำแหน่งในภาพ
+   ย้ายช่อง Payor, Payor Plan และ Payor Office เดิมมาแสดงโดยใช้ ID เดิม ไม่มีช่องหรือข้อมูลซ้ำ
+   ผู้มีสิทธิ์ customerEdit ระบุ/แก้ไขและบันทึกด้วยปุ่ม บันทึกข้อมูล ได้ ผู้ไม่มีสิทธิ์เห็นค่าแบบอ่านอย่างเดียว
+   Payor Plan ใช้ข้อมูล payorAgreement ตามเดิม ค่าที่แก้แสดงใน HTML ระหว่างทำงาน และหลังบันทึกใช้ใน A4/PDF/พิมพ์ตรง
+2. จัดกลุ่ม HN/VN บริษัท/ปี บนหัว A4 ให้ข้อความชิดซ้าย และลดพื้นที่ยืดของชื่อเอกสาร
+คง QR HN/VN ตารางค่าใช้จ่าย การปิดบัง ID/Passport และขั้นตอน HIS เดิม
+ไม่มี migration ใหม่ และ dependency ไม่เปลี่ยนจาก v7.64.51 ระบบ updater จึงข้าม npm ci เมื่ออัปเดตจากรุ่นนี้
+
+ติดตั้ง: Application Update > Upload ZIP > Preflight Only > Install Update
+ตรวจ /api/version เป็น v7.64.52 หลังอัปเดต
+ปุ่มพิมพ์ A4 เรียกหน้าต่างพิมพ์ตรงตามเดิม ปุ่มพรีวิว PDF ใช้ Edge/Chrome บนเซิร์ฟเวอร์

@@ -1,0 +1,30 @@
+HealthCheck v7.64.69 - Validation results
+
+PASS npm ci: clean dependency installation (134 packages).
+PASS npm run build: TypeScript build.
+PASS npm run test:release: 21/21 tests, including release/version consistency,
+  password/idle security policies, actual PDF rendering, service text,
+  Excel template binary round trip and invalid workbook rejection.
+PASS fresh PostgreSQL database startup and forced initial admin password change.
+PASS real HTTP/PostgreSQL and Chromium end-to-end: login, role policies,
+  password expiration, idle logout, medical choices and service-format persistence.
+PASS matrix Excel template download, import, section 12 save/reload,
+  invalid Excel preserves existing table, typed PDF upload/reload/delete,
+  merged PDF page counts, unreadable PDF rejection and upload permission checks.
+PASS real browser: cancel matrix confirmation, reset, recreation,
+  PDF removal without dropping additional tests.
+PASS real browser: hide HIS/audit strip before confirmation despite existing HN/VN;
+  show after confirmation and hide after cancellation; retain financial/order locks.
+PASS real PostgreSQL upgrade v7.64.68 -> v7.64.69 with repair-admin:
+  company/year, circular, credentials, password age, Role policies and custom state preserved.
+PASS real PowerShell child process on Linux: live stdout/stderr, heartbeat,
+  concurrent output drain, stdin closed and nonzero exit propagation.
+
+Packaging checks: PowerShell syntax parsing, source SHA256 manifest,
+  ZIP CRC and manifest hashes must pass before publishing.
+
+Limits: Windows PowerShell 5.1 GUI/WPF, VBScript, UAC, Task Scheduler,
+  Robocopy, winget and a full Windows installation were not executed here.
+  PowerShell checks used PowerShell 7.5.4 on Linux.
+  Existing source/database backup behavior is retained; no faster backup claim.
+  Tests used isolated disposable databases and local fixtures, not Production/HIS.

@@ -1,0 +1,11 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+Chromium browser regressions: 6 passed, 0 failed, 0 skipped
+- Company/year compact layout, real period separate from Booking dates, search/clear/year filter, existing actions, 1920/1366/430px
+- Patient workspace with 100 rows, full action combinations, 1920/1366px at comfortable/compact/dense density: toolbar contents above table, row buttons contained and non-overlapping; frozen HN and scrolling sequence; CSV copy including sequence and masked identity; full-screen editor 1920/1366/430px
+- Six colored patient regions with actual renderer and existing controls retained; semantic billing/cash colors preserved; responsive layout 1920/1366/430px
+- Staff customer preview actual popup navigation and read-only enforcement
+- HISGender real XLSX export regression
+- Native/custom search-clear duplication regression
+Prior layout CSS reproduced toolbar content crossing table boundary; fixed layout passed.
+Windows GUI/UAC and hospital HIS integration: NOT RUN

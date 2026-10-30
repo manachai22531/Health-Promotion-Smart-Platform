@@ -1,0 +1,125 @@
+HealthCheck v7.64.57 TEST REPORT
+Synthetic fixtures; no live HIS, physical printer, or Windows execution.
+
+clinical57-db-results.txt
+PASS exact HN/VN binding, unmapped status stays unknown, Bangkok midnight boundary
+PASS unconfirm clears both timestamps and relational visit flag, preserves package/history, audits actor and reason
+PASS reverse sequence enforced, active Visit/order prevents unconfirmation or out-of-order cancellation
+PASS server midnight lock, reasoned request, privileged case-bound 30-minute approval and expiry
+PASS durable mutex permits exactly one concurrent HIS dispatch
+PASS uncertain timeout remains blocked across fresh server/module instances, no automatic resend
+PASS empty acknowledgement cannot commit success; explicit HIS rejection safely releases guard
+PASS profile save excludes concurrent HIS writes and stale profile token cannot commit
+PASS ChargeClose preflight requires known Visit status, differentiates accepted command from financial verification and blocks duplicate close
+PASS contact edits remain possible, lifecycle fields cannot be erased, ordered data frozen, HN/ID/DOB checked with HIS, unsupported append cannot dispatch
+
+
+clinical57-ui-results.txt
+PASS production overview HN/VN/ID clipboard, company/year emphasis, phone and birth/age/sex rows, arrival position and real circular URL
+PASS missing financial field is shown as unavailable, not paid or verified
+PASS reasoned retro request and approval restore only eligible native controls
+PASS unknown operation keeps HIS disabled while copying/printing remain possible; mobile bounds
+
+
+booking57-db-results.txt
+PASS migration idempotence; real PostgreSQL-compatible create/update stores editable employee/family snapshot and payer deletions independently, with before/after actor audit
+PASS wrong company/year, unknown package and invalid Payor relation rejected; read-only write forbidden; failed transactions leave saved Booking unchanged
+PASS new migration rollback/reapply (test database only)
+
+
+booking57-ui-results.txt
+PASS company/year auto-load, employee/family groups, code edit, group edit, removal and canonical Payor edits in payload
+PASS reopening saved Booking retains removals and edits without reimporting company defaults
+PASS slow defaults response never overwrites manual edits
+PASS read-only Booking cannot import, edit or remove defaults
+
+
+location57-results.txt
+PASS unique original payer controls moved into visible editable coverage section before primary packages
+PASS existing Location field visible between HIS and coverage without duplicate IDs
+PASS historical confirmed-only record stays orange repeat-confirm through workflow sync
+PASS delayed save blocks duplicate save/confirmation and Escape; unlocks only after saved preview refresh
+PASS failed write unlocks screen, preserves editable fields, reports failure
+PASS code-name inputs, name-only saved HTML/PDF and canonical code-only record persistence without false dirty state
+PASS header HN/VN/company/year text begins at left edge in shared document
+PASS repeat confirmation locks save and repeat actions through completion
+PASS first confirmation allows format choice before blocking writes and changes to orange after save
+PASS read-only Role sees payer values without edit controls or duplicate sections
+
+
+print57-results.txt
+PASS default preview is shared-template HTML, retains clinical data and hides legacy source; no PDF POST
+PASS confirm/reconfirm precedes Save Data; HIS group shares the same editor toolbar
+PASS Print A4 invokes browser print directly from saved shared HTML after fonts/images load, no PDF POST or preview
+PASS Ctrl+P inside live preview also prints saved data directly
+PASS explicit Preview PDF still opens the saved PDF viewer separately
+PASS desktop action groups retain all five HIS buttons without horizontal page overflow
+PASS narrow footer keeps all HIS buttons visible and stacks print controls without overflow
+
+
+dirty57-results.txt
+PASS default preview is shared-template HTML, retains clinical data and hides legacy source; no PDF POST
+PASS unchanged-save acknowledgement clears stale dirty state, label restored, searches do not mark patient dirty, clean close has no warning
+PASS edits made after save snapshot remain dirty and close warning remains
+PASS Close button aligned to right edge of editor action group
+
+
+runtime-v57-results.txt
+PASS production runtime starts; v7.64.57 identity, widget/cursor assets served, anonymous EXP read rejected. Database bootstrap skipped for this smoke test.
+
+
+typecheck-v57.txt
+
+> health-check-smart-search-postgresql@7.64.57 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+
+unit-v57.txt
+✔ nursing defaults to Worklist tasks, filtered by actual permissions (8.662807ms)
+✔ admin and viewer defaults are off; other job families map to real activities (3.359711ms)
+✔ policy must select an authorized activity and use bounded whole-number EXP (5.230746ms)
+✔ project needs saved company, package, coherent date range and ready status (1.676797ms)
+✔ import batch key is stable across row order, duplicate rows, file metadata and volatile keys (75.37472ms)
+Checkup is saved, but audit logging needs follow-up: Error: LOG FAILED
+    at Object.saveConfirmedCheckupV76416 (evalmachine.<anonymous>:45:27)
+    at async TestContext.<anonymous> (/workspace/work/healthcheck/single-confirmation-v76417.test.js:43:15)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+✔ one confirmation persists all packages and both timestamps before enabling HIS Order (8.785538ms)
+✔ failed database save never modifies patient confirmation (65.872228ms)
+✔ audit failure is distinguishable from saved confirmation (19.625608ms)
+✔ no first confirmation without receiveCreate permission (10.801559ms)
+✔ existing confirmation does not allow duplicate confirmation (2.919223ms)
+✔ changed selections save as an edit while retaining original confirmed timestamps (39.783006ms)
+✔ no edits after HIS order until cancelled (5.549154ms)
+✔ legacy records with no stored price are not falsely marked as changed (7.195781ms)
+✔ A4 footer does not contain the old confirmation call to action (44.101974ms)
+✔ OrderHIS remains gated by persisted visitedAt, HN, VN, and an active order guard (59.125202ms)
+✔ A4 status buttons keep receiveFinalize for HIS Order, receiveEdit for changed selections (10.956865ms)
+✔ legacy checkupConfirmedAt prevents an initial duplicate and permits a permission-checked repeat edit (15.275692ms)
+✔ all 100 level transitions and 10 shield ranks follow the EXP thresholds (10.530042ms)
+✔ invalid and negative totals start at level one (1.548385ms)
+✔ a newly confirmed patient first appears in pending, not TODAY cases (115.004783ms)
+✔ HIS OpenVisit alone does not advance a patient (0.309112ms)
+✔ only successfully ordered patients move to TODAY cases (2.796471ms)
+✔ canceling HIS Order moves the case back to pending (1.02964ms)
+✔ older cancellation does not override a newer successful order (0.392152ms)
+✔ unconfirmed records do not appear in either Worklist panel (0.566698ms)
+✔ status and company filters are honored (1.684393ms)
+✔ existingKeys prevent duplicate true visits and fallback rows (0.312901ms)
+✔ Order on a later date moves the record onto its order date, not confirmation date (3.659491ms)
+✔ frontend partitions by explicit backend workflow_stage, not confirmed flag (2.58608ms)
+✔ API uses a successful order as the gate, not a nonempty VN (8.123025ms)
+✔ new PDF workflow saves existing company/circular through one company-scoped API (69.514779ms)
+✔ no extra PDF parsing and save for an empty attachments list (8.509685ms)
+✔ Thai text wrapping runs at close to linear glyph measuring cost (16.755625ms)
+✔ company-scoped PDF API commits company/circular once without patient table writes (18.51524ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2474.367895

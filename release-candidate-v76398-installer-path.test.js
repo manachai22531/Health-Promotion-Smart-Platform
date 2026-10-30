@@ -7,10 +7,10 @@ const app = path.join(__dirname,'tools');
 const gui = fs.readFileSync(path.join(app,'production-installer-gui.ps1'),'utf8');
 const vbs = fs.readFileSync(path.join(app,'start-production-installer.vbs'),'utf8');
 const worker = fs.readFileSync(path.join(app,'installer-worker.ps1'),'utf8');
-test('v7.63.99 release metadata is consistent', () => {
- assert.match(require('./package.json').version,/^7\.(?:63\.99|64\.\d+)$/);
- assert.match(fs.readFileSync('VERSION.txt','utf8'),/v7\.(?:63\.99|64\.\d+)/);
- assert.match(fs.readFileSync('server.js','utf8'),/RELEASE_NAME = 'v7\.(?:63\.99|64\.\d+)-production'/);
+test('v7.63.98 release metadata is consistent', () => {
+ assert.equal(require('./package.json').version,'7.63.98');
+ assert.match(fs.readFileSync('VERSION.txt','utf8'),/v7\.63\.98/);
+ assert.match(fs.readFileSync('server.js','utf8'),/RELEASE_NAME = 'v7\.63\.98-production'/);
 });
 test('VBS launcher elevates from real Windows system folder, not Downloads profile', () => {
  assert.match(vbs,/safeWorkDir = shell\.ExpandEnvironmentStrings\("%SystemRoot%"\)/);

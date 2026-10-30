@@ -1,0 +1,30 @@
+HealthCheck v7.64.42 release validation — 2026-10-15 Asia/Bangkok
+PASS targeted checks (not a claim of running all historical tests)
+PASS latest-layout Chromium checks: personal field ordering without duplicate inputs; 60/40 split; single footer grouped by pane; extra print actions retained; type/station/A4 controls contained within columns at 1920 and 1366 viewport widths.
+Backend/format/EXP integration evidence below is retained from unchanged v7.64.41 source.
+
+PASS actual PostgreSQL-engine PGlite: migration idempotency, master CRUD,
+revision conflict/duplicate code, validation, active-only confirmation,
+canonical label snapshot, historic snapshot after edit/deactivation,
+missing format and active-order change rejection.
+PASS 24 existing actual-handler workflow/EXP integration checks, updated fixtures
+include the required format and actual new validator.
+PASS 33 confirmation/workflow/EXP unit regressions; TypeScript typecheck.
+PASS Chromium controlled-data unified-workspace checks: one editor/A4 node,
+required active-only format picker, snapshot to A4, saved-vs-unsaved indicator,
+SetUpMaster tab/add/save, viewport bounds and visible HIS/print controls.
+PASS PDF export: sample is one A4 page; 100 rows continue across pages.
+PASS all 71 existing data-close buttons plus dynamic dialog classification,
+light-red palette, state changes, theme class changes; control behavior retained.
+PASS pending customer-card tests: CancelVisit directly follows OpenVisit,
+raised label surfaces, supplement saves, confirmation gate, A4 selection switch.
+PASS actual server startup v7.64.42; all new assets served; anonymous format/EXP
+read denied. Database bootstrap intentionally skipped in runtime smoke.
+PASS updater migration transaction condition and new 0214 BEGIN/COMMIT.
+
+Limits: UI fixtures use controlled data/API/save acknowledgements; HIS responses
+in integration are fixtures. Windows installer execution, live HIS and live
+production PostgreSQL migration were not performed. Full legacy test suite has
+known pre-existing assertions and is not claimed as passing.
+Automatic updater manifest downloadUrl is a placeholder for your hosted ZIP;
+Drive links are for manual download/upload to Application Update.

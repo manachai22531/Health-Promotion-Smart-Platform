@@ -1,0 +1,4 @@
+{"test":"Thai PDF wrapping, 45 paragraphs","beforeMs":2291.32,"afterMs":453.36,"beforeMeasurements":16530,"afterMeasurements":1505,"linesIdentical":true}
+{"test":"Order search, 20000 rows, 36 searches","beforeMs":2351.02,"afterMs":398.76,"resultsIdentical":true}
+
+These are isolated local benchmark timings, not whole-system or live HIS speed guarantees.

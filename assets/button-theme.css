@@ -1,0 +1,27 @@
+/* Shared action colors. Keep danger/status/category/rank semantics intact. */
+:root{--hc-action-start:#0aa69d;--hc-action-end:#0874c9;--hc-action-border:#128eae;--hc-action-ink:#25587d;--hc-action-soft:#f1f7fb;--hc-action-ring:#079cad;--hc-action-shadow:rgba(10,142,160,.18)}
+:root[data-hc-theme="premium"]{--hc-action-start:#087a70;--hc-action-end:#07574f;--hc-action-border:#c9a644;--hc-action-ink:#18574d;--hc-action-soft:#edf5ef;--hc-action-ring:#a88326;--hc-action-shadow:rgba(7,87,79,.18)}
+:root[data-hc-theme="warm"]{--hc-action-start:#6f825e;--hc-action-end:#4f6544;--hc-action-border:#9b8067;--hc-action-ink:#654735;--hc-action-soft:#f8f2e7;--hc-action-ring:#9b5b40;--hc-action-shadow:rgba(79,101,68,.16)}
+/* Matrix deletion is a compact danger action, rather than a native browser button. */
+#companyProgramMatrixTable .matrix-remove,.matrix-column-heading .matrix-remove,.matrix-thai-edit .matrix-remove{display:inline-flex;align-items:center;justify-content:center;flex:0 0 29px;width:29px;height:29px;min-height:29px;padding:0;border:1px solid #f2bfc6;border-radius:8px;background:#fff1f3;color:#b52a40;font-family:inherit;font-weight:700;font-size:18px;line-height:1;cursor:pointer;appearance:none;transition:background .15s,border-color .15s}
+.matrix-column-heading .matrix-remove:hover,.matrix-thai-edit .matrix-remove:hover{background:#ffe0e5;border-color:#d95367}
+.matrix-column-heading .matrix-remove:focus-visible,.matrix-thai-edit .matrix-remove:focus-visible{outline:2px solid #b52a40;outline-offset:2px}
+/* Existing tabs retain their layout, while selected actions share the active theme. */
+html body #worklistView .worklist-stage-tabs button,html body #userView .permission-tabs-v76430 button{border-color:var(--hc-action-border);color:var(--hc-action-ink);background:var(--hc-action-soft)}
+html body #worklistView .worklist-stage-tabs button.active,html body #userView .permission-tabs-v76430 button.active{background:linear-gradient(135deg,var(--hc-action-start),var(--hc-action-end))!important;border-color:var(--hc-action-border)!important;color:#fff!important;box-shadow:0 4px 12px var(--hc-action-shadow)}
+html body #worklistView .worklist-stage-tabs button span{background:rgba(255,255,255,.85);color:var(--hc-action-ink)}
+html body #worklistView .worklist-stage-tabs button:focus-visible,html body #userView .permission-tabs-v76430 button:focus-visible{outline:2px solid var(--hc-action-ring);outline-offset:2px}
+/* The customer portal uses its own administrator-configured brand colors. */
+.customer-display-surface{--customer-action-start:var(--cd-secondary,#07918b);--customer-action-end:var(--cd-primary,#075574)}
+.customer-display-surface .cs-tabs button,.customer-display-surface .cp-nav button,.customer-display-surface .cp-panel button,.customer-display-surface .cs-list-actions button{color:var(--customer-action-end);border-color:var(--customer-action-end)}
+.customer-display-surface .cs-tabs button.active,.customer-display-surface .cp-nav button.active,.customer-display-surface .cp-panel button.primary,.customer-display-surface .cs-list-actions [data-shop-add],.customer-display-surface #csCheckout.button.primary,.customer-display-surface #customerProfileForm .button.primary{background:linear-gradient(135deg,var(--customer-action-start),var(--customer-action-end))!important;border-color:var(--customer-action-end)!important;color:#fff!important;box-shadow:0 4px 12px rgba(7,85,116,.12)}
+.customer-display-surface .cs-list-actions [data-shop-add].cs-added{background:#f0f8f4!important;color:var(--customer-action-end)!important;box-shadow:none}
+.customer-display-surface .cs-category-nav button.active{border-color:var(--customer-action-start);color:var(--customer-action-end);background:#f2faf9;background:color-mix(in srgb,var(--customer-action-start) 10%,white)}
+.customer-display-surface :is(.cs-tabs button,.cp-nav button,.cp-panel button,.cs-list-actions button,.cs-category-nav button):focus-visible{outline:2px solid var(--customer-action-end);outline-offset:2px}
+/* Standalone marketing setup shares the stored staff theme. */
+html body.cd-standalone .button.primary{background:linear-gradient(135deg,var(--hc-action-start),var(--hc-action-end))!important;border:1px solid var(--hc-action-border)!important;color:#fff!important;box-shadow:0 5px 14px var(--hc-action-shadow)}
+html body.cd-standalone .button.secondary,html body.cd-standalone .cd-section-tabs .button{background:var(--hc-action-soft);color:var(--hc-action-ink);border:1px solid var(--hc-action-border)}
+html body.cd-standalone .cd-section-tabs [aria-pressed="true"]{background:linear-gradient(135deg,var(--hc-action-start),var(--hc-action-end));color:#fff;border-color:var(--hc-action-border)}
+html body.cd-standalone .button:focus-visible{outline:2px solid var(--hc-action-ring);outline-offset:2px}
+
+.matrix-column-heading .matrix-remove.button.danger,.matrix-thai-edit .matrix-remove.button.danger{background:#fff1f3!important;color:#b52a40!important;border-color:#f2bfc6!important}.matrix-column-heading .matrix-remove.button.danger:hover,.matrix-thai-edit .matrix-remove.button.danger:hover{background:#ffe0e5!important;border-color:#d95367!important}

@@ -1,0 +1,13 @@
+HealthCheck v7.64.32
+- Create/edit user forms have no password field. New local accounts use configured
+  initial password and must change it before obtaining a normal staff session.
+- Individual reset restores the configured initial credential and revokes sessions
+  and pending change tokens. Disabled accounts remain disabled.
+- Mandatory password dialog is stacked above login, login is inert and keyboard
+  focus stays inside the dialog.
+- Compact 48px bottom EXP footer with show/hide and user-specific stored preference.
+- Server ledger awards 10 EXP once per newly confirmed case, in the same transaction
+  as the patient save. Existing/historical confirmations receive no retroactive EXP.
+- Levels 1–100; next-level cost is 100 + 50*(current level-1) EXP. Ten shield ranks
+  change every ten levels; level 100 retains lifetime EXP and case totals.
+- Previous v7.64.31 cursor small/medium/large fixes retained.

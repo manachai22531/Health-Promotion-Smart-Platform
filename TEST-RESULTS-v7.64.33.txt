@@ -1,0 +1,26 @@
+HealthCheck v7.64.33 PRODUCTION — EXP visual refinement
+Date: 2026-10-14 (Asia/Bangkok)
+RESULT: PASS (current release checks)
+
+Changes:
+- Metallic dimensional shield with laurel, tier ornaments, stars/gems/crown.
+- Reference-style turquoise luminous EXP fill and highlighted leading edge.
+- User/role, progress, EXP remaining to next level, daily confirmed cases/EXP.
+- Preserve 48px footer, bottom location, show/hide and per-user saved preference.
+- Preserve all v7.64.32 account lifecycle, password dialog and 100-level logic.
+
+PASS JavaScript syntax: widget, application and server
+PASS Browser widget checks: 3 viewports (1640,1366,390) x 3 themes;
+  footer fits and stays slim; progress and hide/reopen; SVG gradients are unique;
+  daily/remaining/role labels; reward/level-up; print exclusion; saved collapse.
+PASS Node tests: all 100 level boundaries/10 ranks, invalid-total handling (2/2).
+PASS Actual runtime starts with v7.64.33, serves assets, denies anonymous EXP read.
+  Database bootstrap skipped in runtime smoke.
+PASS Backend/password/EXP ledger source matches tested v7.64.32 byte-for-byte,
+  except release identity. Prior release behavioral evidence is inherited (18 checks).
+
+Limits: browser widget checks used controlled data. Windows installer and live
+HIS integration not run here. Full-page fixture navigation timed out in this
+workspace; focused widget browser verification succeeded. Existing v7.64.32
+account/confirmation/browser checks remain the baseline for unchanged behavior.
+Update Manifest downloadUrl requires real server hosting for automatic updates.

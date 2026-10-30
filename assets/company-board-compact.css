@@ -1,0 +1,47 @@
+/* Company/year overview: compact rows, keeping real workflow and period states separate. */
+html body #companyView .hero{padding:12px 16px!important;min-height:0!important;margin-bottom:10px!important;gap:12px!important}
+html body #companyView .hero h1{font-size:28px!important;line-height:1.2!important;margin:0!important}
+html body #companyView .hero .eyebrow{display:none!important}
+html body #companyView .hero-note{font-size:11px!important;margin:4px 0 0!important}
+html body #companyView .hero-actions{gap:6px!important;flex-wrap:wrap!important}
+html body #companyView .hero-actions .button{min-height:32px!important;padding:6px 10px!important;font-size:11px!important}
+html body #companyView .company-board-toolbar{padding:8px 12px!important;margin-bottom:10px!important;gap:10px!important}
+html body #companyView .company-board-toolbar input,html body #companyView .company-board-toolbar select{height:34px!important;min-height:34px!important;padding-block:5px!important}
+html body #companyView .company-board-head,html body #companyView .company-board-group{grid-template-columns:260px minmax(0,1fr)!important}
+html body #companyView .company-board-head{min-height:34px!important;margin-bottom:6px!important}
+html body #companyView .company-board-head>div{padding:7px 12px!important}
+html body #companyView .company-board-list{gap:8px!important}
+html body #companyView .company-board-company-cell{padding:10px!important;gap:7px!important}
+html body #companyView .company-board-building{width:36px!important;height:36px!important;font-size:20px!important}
+html body #companyView .company-board-company-title{grid-template-columns:36px minmax(0,1fr)!important;gap:7px!important}
+html body #companyView .company-board-company-title>.company-status-pill{grid-column:2;justify-self:start}
+html body #companyView .company-board-company-title h3{font-size:14px!important}
+html body #companyView .company-board-company-meta{margin-top:0!important;gap:4px!important;font-size:10px!important}
+html body #companyView .company-board-company-actions{gap:5px!important;margin-top:0!important}
+html body #companyView .company-board-company-actions .button{min-height:29px!important;padding:5px 7px!important;font-size:10px!important}
+html body #companyView .company-board-years{align-content:start!important}
+html body #companyView .company-board-year-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto auto!important;align-content:start!important;align-items:center!important;gap:5px 10px!important;padding:8px 10px!important;min-height:0!important}
+html body #companyView .company-board-year-cell,html body #companyView .company-board-booking-cell{display:contents!important}
+html body #companyView .company-board-year-title{grid-column:1/-1!important;display:flex!important;justify-content:flex-start!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important}
+html body #companyView .company-board-year-title h3{font-size:18px!important;white-space:nowrap}
+html body #companyView .company-board-year-actions{margin:0 0 0 auto!important;display:flex!important;gap:5px!important;align-items:center}
+html body #companyView .company-board-year-actions .button{min-height:28px!important;padding:4px 8px!important;font-size:11px!important}
+.company-board-period-inline{display:inline-flex;align-items:center;gap:6px;color:#087c79;font-size:12px;font-weight:700;flex-wrap:wrap}.company-board-period-inline.unset{color:#748999;font-weight:500}.company-board-period-inline small{font-size:10px;background:#e2f6e9;color:#287347;border-radius:10px;padding:3px 7px;white-space:nowrap}.company-board-period-inline.expired small{background:#fff0ed;color:#ae5546}.company-board-period-inline.upcoming small{background:#edf3fb;color:#446b9d}.company-board-period-inline.due-soon small{background:#fff3d5;color:#9c701d}
+.company-board-year-metrics{grid-column:1;display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;color:#617c8e;font-size:10px;line-height:1.5}.company-board-year-metrics .company-board-updated{display:inline;color:#478c79;font-size:10px}
+html body #companyView .company-board-booking-actions{grid-column:2;display:flex!important;align-items:center!important;flex-wrap:wrap!important;justify-content:flex-end!important;margin:0!important;gap:5px!important}
+html body #companyView .company-board-booking-actions .button{min-height:28px!important;padding:4px 8px!important;font-size:11px!important;white-space:nowrap!important}
+html body #companyView .company-project-bars,html body #companyView .company-project-empty{grid-column:1/-1!important;width:auto!important;min-width:0!important}
+html body #companyView .company-board-booking-cell .company-project-empty{min-height:0!important;padding:5px 8px!important;margin:0!important;border:1px solid #e1edf2!important;border-radius:6px!important;font-size:11px!important;line-height:1.4!important}
+html body #companyView .company-board-booking-cell .company-project-bar{grid-template-columns:100px minmax(120px,1fr) minmax(150px,1.3fr) 70px!important;min-height:42px!important;padding:5px 8px!important;gap:7px!important;font-size:11px!important}
+html body #companyView .company-project-arrow{display:none!important}
+@media(max-width:1450px){html body #companyView .company-board-year-metrics{grid-column:1/-1}html body #companyView .company-board-booking-actions{grid-column:1/-1;justify-content:flex-start!important}}
+@media(max-width:900px){html body #companyView .company-board-head{display:none!important}html body #companyView .company-board-group{grid-template-columns:1fr!important}html body #companyView .company-board-company-cell{border-right:0!important;border-bottom:1px solid #d6e6ef}html body #companyView .company-board-company-title{grid-template-columns:36px minmax(0,1fr) auto!important}html body #companyView .company-board-company-title>.company-status-pill{grid-column:auto}html body #companyView .hero{flex-wrap:wrap!important}html body #companyView .company-board-booking-cell .company-project-bar{grid-template-columns:1fr!important}html body #companyView .company-board-year-title{gap:6px!important}.company-board-period-inline{font-size:11px}}
+@media(max-width:500px){html body #companyView .company-board-year-actions{width:100%;margin-left:0!important}.company-board-period-inline{max-width:100%}html body #companyView .company-board-booking-actions{gap:4px!important}html body #companyView .company-board-company-actions{display:flex!important;flex-wrap:wrap}.company-board-year-metrics{overflow-wrap:anywhere}}
+/* Match examination-period backgrounds to the patient search card palette. */
+#companyView .company-board-period-inline{padding:4px 8px;border:1px solid transparent;border-radius:7px;line-height:1.3}
+#companyView .company-board-period-inline.active{background:#e5f5eb;border-color:#abd8bb;color:#176b43}
+#companyView .company-board-period-inline.due-soon{background:#fff0dc;border-color:#eac697;color:#92581d}
+#companyView .company-board-period-inline.expired{background:#fde8e8;border-color:#edb3b3;color:#a93434}
+#companyView .company-board-period-inline.upcoming{background:#e8f2fc;border-color:#bfd6ed;color:#2b657f}
+#companyView .company-board-period-inline.unset{background:#f1f3f5;border-color:#d6dce1;color:#667b88}
+#companyView .company-board-period-inline small{background:rgba(255,255,255,.55);color:inherit}

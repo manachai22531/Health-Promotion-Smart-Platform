@@ -3,12 +3,12 @@ const fs=require('fs'),path=require('path'),os=require('os'),http=require('http'
 const {spawn,spawnSync}=require('child_process');
 const arg=(n,d='')=>{const i=process.argv.indexOf(n);return i>=0&&process.argv[i+1]!=null?process.argv[i+1]:d};
 const pkg=arg('--package'),root=arg('--app-root'),pid=Number(arg('--server-pid'))||0,current=arg('--current-version'),dry=process.argv.includes('--dry-run');
-const status=arg('--status-path')||path.join(root,'updates','update-status.json'),updates=path.dirname(status),workRoot=path.join(os.tmpdir(),'HealthCheck-Updater');
+const status=arg('--status-path')||path.join(root,'updates','update-status.json'),updates=path.dirname(status),workRoot=root?path.join(path.dirname(root),'UpdaterWork'):path.join(os.tmpdir(),'HealthCheck-Updater');
 fs.mkdirSync(workRoot,{recursive:true});fs.mkdirSync(updates,{recursive:true});
 const logPath=path.join(workRoot,`in-app-update-${Date.now()}.log`);
-const T={archive:180000,copy:600000,dump:300000,restore:300000,psql:120000,npm:300000,probe:30000,stop:30000,start:60000,health:60000};
+const T={archive:180000,copy:600000,dump:300000,restore:300000,psql:120000,npm:300000,probe:30000,stop:30000,start:120000,health:90000};
 const log=x=>fs.appendFileSync(logPath,`[${new Date().toISOString()}] ${x}\n`);
-function state(phase,message,extra={}){let previous={};try{previous=JSON.parse(fs.readFileSync(status,'utf8'))||{}}catch{}const carry={};for(const key of ['packagePath','filename','version','sha256','sizeBytes','releaseNotes'])if(previous[key]!=null&&previous[key]!=='')carry[key]=previous[key];const o={...carry,phase,message,updatedAt:new Date().toISOString(),logPath,...extra},tmp=`${status}.tmp-${process.pid}`;fs.writeFileSync(tmp,JSON.stringify(o,null,2));fs.renameSync(tmp,status);log(`[${phase}] ${message}`)}
+function state(phase,message,extra={}){let previous={};try{previous=JSON.parse(fs.readFileSync(status,'utf8'))||{}}catch{}const carry={};for(const key of ['packagePath','filename','version','sha256','sizeBytes','releaseNotes'])if(previous[key]!=null&&previous[key]!=='')carry[key]=previous[key];const o={...carry,phase,message,updatedAt:new Date().toISOString(),logPath,...extra},text=JSON.stringify(o,null,2);let lastError=null;for(let attempt=0;attempt<20;attempt++){try{fs.writeFileSync(status,text,'utf8');lastError=null;break}catch(error){lastError=error;if(!['EPERM','EBUSY','EACCES'].includes(error.code))throw error;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,25+attempt*10)}}if(lastError)throw lastError;log(`[${phase}] ${message}`)}
 const has=p=>{try{return fs.existsSync(p)}catch{return false}};
 function env(file){const out={};for(const l of fs.readFileSync(file,'utf8').split(/\r?\n/)){const m=l.match(/^\s*([A-Za-z_][\w]*)\s*=\s*(.*)$/);if(m)out[m[1]]=m[2].trim().replace(/^['"]|['"]$/g,'')}return out}
 function pg(name){const c=[];const add=x=>{if(x&&!c.includes(x))c.push(x)};if(process.env.PG_BIN)add(path.join(process.env.PG_BIN,name));if(process.env.PGHOME)add(path.join(process.env.PGHOME,'bin',name));for(const dir of String(process.env.PATH||'').split(path.delimiter))if(dir)add(path.join(dir,name));for(const b of [process.env.ProgramFiles,'C:\\Program Files','D:\\Program Files','E:\\Program Files','F:\\Program Files'])try{for(const v of fs.readdirSync(path.join(b,'PostgreSQL')))add(path.join(b,'PostgreSQL',v,'bin',name))}catch{}return c.find(has)||name}
@@ -25,13 +25,140 @@ function packageRoot(dir){const found=[];const walk=(d,n=0)=>{if(n>4)return;for(
 const changed=(src,f)=>!has(path.join(src,f))||!has(path.join(root,f))||fs.readFileSync(path.join(src,f)).compare(fs.readFileSync(path.join(root,f)))!==0;
 function dependencySignature(base){const pkgJson=JSON.parse(fs.readFileSync(path.join(base,'package.json'),'utf8')),lockJson=JSON.parse(fs.readFileSync(path.join(base,'package-lock.json'),'utf8'));delete pkgJson.version;delete lockJson.version;if(lockJson.packages?.[''])delete lockJson.packages[''].version;return JSON.stringify({dependencies:pkgJson.dependencies||{},optionalDependencies:pkgJson.optionalDependencies||{},engines:pkgJson.engines||{},lock:lockJson})}
 const dependenciesChanged=source=>!has(path.join(root,'package.json'))||!has(path.join(root,'package-lock.json'))||dependencySignature(source)!==dependencySignature(root);
-function request(url,timeout=3000){return new Promise((resolve,reject)=>{const r=http.get(url,{timeout},response=>{let data='';response.on('data',chunk=>data+=chunk);response.on('end',()=>{try{resolve(JSON.parse(data))}catch(error){reject(error)}})});r.on('error',reject);r.on('timeout',()=>r.destroy(new Error('timeout')))})}
+function request(url,timeout=3000){return new Promise((resolve,reject)=>{
+ const endpoint=new URL(url).pathname;
+ const r=http.get(url,{timeout},response=>{
+  let data='';response.on('data',chunk=>data+=chunk);
+  response.on('error',reject);
+  response.on('end',()=>{
+   if(response.statusCode<200||response.statusCode>=300)return reject(new Error(`${endpoint} returned HTTP ${response.statusCode}`));
+   try{resolve(JSON.parse(data))}catch(_){reject(new Error(`${endpoint} returned invalid JSON`))}
+  });
+ });r.on('error',reject);r.on('timeout',()=>r.destroy(new Error(`${endpoint} timed out`)));
+})}
+async function checkProductionReadiness(expectedVersion,baseUrl='http://127.0.0.1:3000'){
+ const [info,health]=await Promise.all([request(baseUrl+'/api/version',3000),request(baseUrl+'/api/health',5000)]);
+ const release=expectedVersion+'-production';
+ if(info?.environment!=='production'||info?.productionOnly!==true||info?.version!==expectedVersion||info?.release!==release)throw Error(`Production version mismatch: expected ${expectedVersion} production; observed ${info?.version||'unknown'} ${info?.environment||'unknown'}`);
+ if(health?.ok!==true||health?.database!=='PostgreSQL'||health?.release!==release)throw Error(`Production database health failed for ${expectedVersion}`);
+ return {info,health};
+}
+// A version endpoint alone is not proof that the *intended* Node process owns Port 3000.
+function parseNetstatOwner(output,port=3000){
+  const owners=new Set();
+  for(const line of String(output||'').split(/\r?\n/)){
+    const m=line.match(/^\s*TCP\s+(\S+)\s+\S+\s+LISTENING\s+(\d+)\s*$/i);
+    if(m&&m[1].endsWith(':'+port)&&Number(m[2])>0)owners.add(Number(m[2]));
+  }
+  return owners.size===1?[...owners][0]:0;
+}
+function portOwnerPid(){
+  if(process.platform!=='win32')return 0;
+  const r=spawnSync('netstat.exe',['-ano','-p','TCP'],{encoding:'utf8',windowsHide:true,timeout:8000});
+  if(r.error||r.status!==0){log(`Port owner probe failed: ${r.error?.message||r.stderr||r.status}`);return 0}
+  return parseNetstatOwner(r.stdout,3000);
+}
+async function servedVersion(){try{return await request('http://127.0.0.1:3000/api/version',2000)}catch{return null}}
+function sourceVersion(base){
+  try{const source=fs.readFileSync(path.join(base,'server.js'),'utf8');return source.match(/RELEASE_NAME\s*=\s*['"](v[\d.]+)-production['"]/i)?.[1]||null}catch{return null}
+}
+function logTail(file,bytes=2600){try{const d=fs.readFileSync(file);return d.subarray(Math.max(0,d.length-bytes)).toString('utf8')}catch{return ''}}
+function classifyRecovery({currentVersion,served,installed,portOwner}){
+  const live=served?.environment==='production'&&served?.version===currentVersion&&served?.release===`${currentVersion}-production`;
+  if(live&&installed===currentVersion)return {safe:true,message:'เวอร์ชันเดิมกลับมาให้บริการแล้ว และ Source บนดิสก์ตรงกัน'};
+  if(live)return {safe:false,message:`Port 3000 ยังตอบ ${currentVersion} แต่ Source บนดิสก์เป็น ${installed||'unknown'}; ไม่แก้ไฟล์ขณะระบบให้บริการอยู่`};
+  return {safe:false,message:`Port 3000 ยังไม่ให้บริการเวอร์ชันเดิม (PID ${portOwner||'unknown'})`};
+}
 let startedPid=0;
-async function start(version){const fd=fs.openSync(path.join(workRoot,`server-${Date.now()}.log`),'a'),child=spawn(process.execPath,[path.join(root,'server.js')],{cwd:root,detached:true,windowsHide:true,stdio:['ignore',fd,fd]});startedPid=child.pid;child.unref();const started=Date.now();while(Date.now()-started<T.start){await sleep(1000);try{const info=await request('http://127.0.0.1:3000/api/version',2000);if(info.environment==='production'&&info.version===version)return true}catch{}}return false}
-async function stopServer(targetPid,phase='STOP'){targetPid=Number(targetPid)||0;if(!targetPid)return;if(targetPid===process.pid)throw Error('Refusing to stop the Updater Helper process itself');state(phase,'กำลังหยุด Production process',{runningCommand:'stop-server',serverPid:targetPid,helperPid:process.pid});log(`STOP exact server PID ${targetPid}; helper PID ${process.pid}; process-tree kill disabled`);try{if(process.platform==='win32')await cmd('taskkill.exe',['/PID',String(targetPid),'/F'],{name:'stop-server',ok:[0,128],timeout:T.stop,phase});else process.kill(targetPid,'SIGTERM')}catch(error){log(`STOP warning ${error.message}`)}const started=Date.now();while(Date.now()-started<T.stop){try{await request('http://127.0.0.1:3000/api/version',1000);await sleep(500)}catch{log(`STOP confirmed: Production API is offline; helper PID ${process.pid} continues`);return}}throw Error('Production server did not stop before timeout')}
+let lastServerLog='';
+async function start(version,{allowAlreadyRunning=false}={}){
+  const already=await servedVersion();
+  if(already){
+    const owner=portOwnerPid();
+    if(allowAlreadyRunning&&already.version===version&&already.release===`${version}-production`&&already.productionOnly===true){
+      log(`Existing Production service is healthy at ${version} (port owner PID ${owner||'unavailable'})`);return true;
+    }
+    throw Error(`Port 3000 is already serving ${already.version||'unknown'} (PID ${owner||'unavailable'}); refusing to start a second instance`);
+  }
+  if(process.platform==='win32'){
+    const owner=portOwnerPid();
+    if(owner)throw Error(`Port 3000 is owned by PID ${owner}, but /api/version is unavailable. Refusing to spawn another server`);
+  }
+  lastServerLog=path.join(workRoot,`server-start-${version}-${Date.now()}.log`);
+  const fd=fs.openSync(lastServerLog,'a');
+  let child;
+  try{child=spawn(process.execPath,[path.join(root,'server.js')],{cwd:root,detached:true,windowsHide:true,stdio:['ignore',fd,fd]});}
+  finally{fs.closeSync(fd)}
+  startedPid=child.pid||0;
+  let failure=null;
+  child.once('error',error=>failure=error.message);
+  child.once('exit',(code,signal)=>failure=`Node exited (code=${code}, signal=${signal})`);
+  child.unref();log(`START expected=${version}, spawnedPID=${startedPid}, serverLog=${lastServerLog}`);
+  const started=Date.now();
+  while(Date.now()-started<T.start){
+    await sleep(1000);
+    if(failure)throw Error(`${failure}; server log: ${lastServerLog}; ${logTail(lastServerLog)}`);
+    const info=await servedVersion();
+    if(info?.environment==='production'&&info.version===version&&info.release===`${version}-production`&&info.productionOnly===true){
+      const owner=portOwnerPid();
+      if(process.platform==='win32'&&owner&&startedPid&&owner!==startedPid)throw Error(`Port 3000 is responding as ${version} from unexpected PID ${owner} (spawned ${startedPid})`);
+      return true;
+    }
+    if(info&&info.version!==version)throw Error(`Port 3000 responded ${info.version} instead of ${version}; owner PID ${portOwnerPid()||'unknown'}`);
+  }
+  throw Error(`Server startup timed out for ${version}; PID ${startedPid}; log ${lastServerLog}; ${logTail(lastServerLog)}`);
+}
+async function stopServer(targetPid,phase='STOP'){
+  targetPid=Number(targetPid)||0;
+  if(!targetPid)throw Error('Missing target Production server PID; refusing to stop an unverified process');
+  if(targetPid===process.pid)throw Error('Refusing to stop the Updater Helper process itself');
+  const owner=portOwnerPid();
+  if(process.platform==='win32'&&(!owner||owner!==targetPid))throw Error(`Refusing to stop PID ${targetPid}: Port 3000 owner PID is ${owner||'unknown'}`);
+  state(phase,'กำลังหยุด Production process',{runningCommand:'stop-server',serverPid:targetPid,helperPid:process.pid});
+  log(`STOP exact server PID ${targetPid}; helper PID ${process.pid}; process-tree kill disabled`);
+  if(process.platform==='win32')await cmd('taskkill.exe',['/PID',String(targetPid),'/F'],{name:'stop-server',ok:[0,128],timeout:T.stop,phase});
+  else process.kill(targetPid,'SIGTERM');
+  const started=Date.now();
+  while(Date.now()-started<T.stop){
+    const live=await servedVersion();
+    const newOwner=portOwnerPid();
+    if(!live&&(!newOwner||process.platform!=='win32')){log(`STOP confirmed: Production API is offline; helper PID ${process.pid} continues`);return}
+    if(newOwner&&newOwner!==targetPid)throw Error(`Port 3000 was taken over by PID ${newOwner} after stopping PID ${targetPid}; manual inspection required`);
+    await sleep(500);
+  }
+  throw Error(`PID ${targetPid} did not release Port 3000 before timeout`);
+}
 function migrationFiles(source){const dir=path.join(source,'migrations');if(!has(dir))return[];return fs.readdirSync(dir).filter(f=>f.endsWith('.up.sql')&&(!has(path.join(root,'migrations',f))||changed(source,path.join('migrations',f)))).sort()}
-async function preflight(){state('PREFLIGHT','ตรวจสอบความพร้อมของ Server โดยยังไม่หยุด Production');if(!pkg||!has(pkg))throw Error('Update package not found');const dot=path.join(root,'.env');if(!has(dot))throw Error('.env not found');const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\..*/,'').replace('T','-'),work=path.join(workRoot,`work-${stamp}-${process.pid}`),extract=path.join(work,'extract');fs.mkdirSync(extract,{recursive:true});const power=exe([path.join(process.env.SystemRoot||'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe'),'powershell.exe']);await cmd(power,['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',`Expand-Archive -LiteralPath '${pkg.replace(/'/g,"''")}' -DestinationPath '${extract.replace(/'/g,"''")}' -Force`],{name:'Expand-Archive',timeout:T.archive});const source=packageRoot(extract);if(!source)throw Error('ไม่พบ server.js ใน Update Package');const sourceServer=fs.readFileSync(path.join(source,'server.js'),'utf8'),match=sourceServer.match(/RELEASE_NAME\s*=\s*['"]v([\d.]+)-production['"]/);if(!match)throw Error('แพ็กเกจนี้ไม่ใช่ Production release');if(!sourceServer.includes("const RUNTIME_ENVIRONMENT = 'production'"))throw Error('แพ็กเกจไม่มี Production-only runtime lock');const target=`v${match[1]}`;if(!newer(target,current))throw Error(`แพ็กเกจ ${target} ต้องใหม่กว่า ${current}`);const deps=dependenciesChanged(source),migrations=migrationFiles(source),e=env(dot),dump=pg('pg_dump.exe'),psql=pg('psql.exe'),restore=pg('pg_restore.exe');if(!has(dump))throw Error('pg_dump.exe not found');if(!has(restore))throw Error('pg_restore.exe not found for rollback');if(!has(psql))throw Error('psql.exe not found');if(String(e.APP_ENV||'production').toLowerCase()!=='production')throw Error('Current .env is not Production');if(Number(e.PORT||3000)!==3000)throw Error('Production PORT must be 3000');if(String(e.PGDATABASE||'')!=='health_check_smart_search')throw Error('Production PGDATABASE must be health_check_smart_search');const probe=path.join(updates,`.preflight-${process.pid}`);fs.writeFileSync(probe,'ok');fs.unlinkSync(probe);if(fs.statfsSync&&fs.statfsSync(root).bavail*fs.statfsSync(root).bsize<1073741824)throw Error('พื้นที่ disk เหลือน้อยกว่า 1 GB');await cmd(dump,['--version'],{name:'pg_dump --version'});await cmd(restore,['--version'],{name:'pg_restore --version'});const pgEnv={...process.env,PGPASSWORD:e.PGPASSWORD||''};await cmd(psql,['-X','-h',e.PGHOST||'localhost','-p',e.PGPORT||'5432','-U',e.PGUSER,'-d',e.PGDATABASE,'-v','ON_ERROR_STOP=1','-c','SELECT 1'],{name:'psql database probe',env:pgEnv});for(const file of migrations){const sql=fs.readFileSync(path.join(source,'migrations',file),'utf8');if(/^\s*\\/m.test(sql))throw Error(`migration ${file} contains unsupported psql meta-command`);if(!/\bBEGIN\s*;/i.test(sql)||!/\bCOMMIT\s*;/i.test(sql))throw Error(`migration ${file} must be transactional`)}try{const info=await request('http://127.0.0.1:3000/api/version',3000),health=await request('http://127.0.0.1:3000/api/system/health',5000);if(info.environment!=='production'||info.version!==current||!health?.database?.ok)throw Error('Production health/version preflight failed')}catch(error){throw Error(`Production health/version preflight failed: ${error.message}`)}if(deps){const cli=path.join(path.dirname(process.execPath),'node_modules','npm','bin','npm-cli.js');await cmd(has(cli)?process.execPath:exe(['C:\\Program Files\\nodejs\\npm.cmd','npm.cmd']),has(cli)?[cli,'--version']:['--version'],{name:'npm --version'})}return{work,source,target,stamp,e,dump,psql,restore,deps,migrations,pgEnv}}
+async function preflight(){state('PREFLIGHT','ตรวจสอบความพร้อมของ Server โดยยังไม่หยุด Production');if(!pkg||!has(pkg))throw Error('Update package not found');const dot=path.join(root,'.env');if(!has(dot))throw Error('.env not found');const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\..*/,'').replace('T','-'),work=path.join(workRoot,`work-${stamp}-${process.pid}`),extract=path.join(work,'extract');fs.mkdirSync(extract,{recursive:true});const power=exe([path.join(process.env.SystemRoot||'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe'),'powershell.exe']);await cmd(power,['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-Command',`Expand-Archive -LiteralPath '${pkg.replace(/'/g,"''")}' -DestinationPath '${extract.replace(/'/g,"''")}' -Force`],{name:'Expand-Archive',timeout:T.archive});const source=packageRoot(extract);if(!source)throw Error('ไม่พบ server.js ใน Update Package');const sourceServer=fs.readFileSync(path.join(source,'server.js'),'utf8'),match=sourceServer.match(/RELEASE_NAME\s*=\s*['"]v([\d.]+)-production['"]/);if(!match)throw Error('แพ็กเกจนี้ไม่ใช่ Production release');if(!sourceServer.includes("const RUNTIME_ENVIRONMENT = 'production'"))throw Error('แพ็กเกจไม่มี Production-only runtime lock');const target=`v${match[1]}`;const packageVersion=JSON.parse(fs.readFileSync(path.join(source,'package.json'),'utf8')).version;const versionTxt=fs.readFileSync(path.join(source,'VERSION.txt'),'utf8').trim();if(packageVersion!==target.slice(1)||versionTxt!==target)throw Error(`Package version mismatch: server ${target}, package ${packageVersion}, VERSION.txt ${versionTxt}`);if(!newer(target,current))throw Error(`แพ็กเกจ ${target} ต้องใหม่กว่า ${current}`);const deps=dependenciesChanged(source),migrations=migrationFiles(source),e=env(dot),dump=pg('pg_dump.exe'),psql=pg('psql.exe'),restore=pg('pg_restore.exe');if(!has(dump))throw Error('pg_dump.exe not found');if(!has(restore))throw Error('pg_restore.exe not found for rollback');if(!has(psql))throw Error('psql.exe not found');if(process.platform==='win32'){const owner=portOwnerPid();if(!owner||owner!==pid)throw Error(`Port 3000 owner PID ${owner||'unknown'} does not match running Production PID ${pid}; refusing deployment`)}if(String(e.APP_ENV||'production').toLowerCase()!=='production')throw Error('Current .env is not Production');if(Number(e.PORT||3000)!==3000)throw Error('Production PORT must be 3000');if(String(e.PGDATABASE||'')!=='health_check_smart_search')throw Error('Production PGDATABASE must be health_check_smart_search');const probe=path.join(updates,`.preflight-${process.pid}`);fs.writeFileSync(probe,'ok');fs.unlinkSync(probe);if(fs.statfsSync&&fs.statfsSync(root).bavail*fs.statfsSync(root).bsize<1073741824)throw Error('พื้นที่ disk เหลือน้อยกว่า 1 GB');await cmd(dump,['--version'],{name:'pg_dump --version'});await cmd(restore,['--version'],{name:'pg_restore --version'});const pgEnv={...process.env,PGPASSWORD:e.PGPASSWORD||''};await cmd(psql,['-X','-h',e.PGHOST||'localhost','-p',e.PGPORT||'5432','-U',e.PGUSER,'-d',e.PGDATABASE,'-v','ON_ERROR_STOP=1','-c','SELECT 1'],{name:'psql database probe',env:pgEnv});for(const file of migrations){const sql=fs.readFileSync(path.join(source,'migrations',file),'utf8');if(/^\s*\\/m.test(sql))throw Error(`migration ${file} contains unsupported psql meta-command`);if(!/\bBEGIN\s*;/i.test(sql)||!/\bCOMMIT\s*;/i.test(sql))throw Error(`migration ${file} must be transactional`)}try{await checkProductionReadiness(current)}catch(error){throw Error(`Production health/version preflight failed: ${error.message}`)}if(deps){const cli=path.join(path.dirname(process.execPath),'node_modules','npm','bin','npm-cli.js');await cmd(has(cli)?process.execPath:exe(['C:\\Program Files\\nodejs\\npm.cmd','npm.cmd']),has(cli)?[cli,'--version']:['--version'],{name:'npm --version'})}return{work,source,target,stamp,e,dump,psql,restore,deps,migrations,pgEnv}}
 async function restoreDatabase(c,db){state('ROLLBACK','กำลังคืนฐานข้อมูลจาก Backup',{runningCommand:'pg_restore'});await cmd(c.restore,['-h',c.e.PGHOST||'localhost','-p',c.e.PGPORT||'5432','-U',c.e.PGUSER,'-d',c.e.PGDATABASE,'--clean','--if-exists','--no-owner','--no-privileges','--single-transaction','--exit-on-error',db],{name:'pg_restore',timeout:T.restore,phase:'ROLLBACK',env:c.pgEnv})}
-async function main(){let phase='PREFLIGHT',backup='',db='',databaseTouched=false,c;try{c=await preflight();const detail={targetVersion:c.target,dependenciesChanged:c.deps,newMigrations:c.migrations,dryRun:dry};if(dry)return state('READY',`Preflight ผ่าน: พร้อมอัปเดต ${c.target}${c.deps?' · npm ci required':' · ข้าม npm ci'}${c.migrations.length?` · migration ${c.migrations.length} ไฟล์`:' · ไม่มี migration ใหม่'}`,detail);phase='BACKUP';state('BACKUP',`สำรอง Source และ Database ก่อนอัปเดตเป็น ${c.target}`,detail);backup=path.join(c.work,'rollback-source');await copy(root,backup,false,phase);db=path.join(updates,`database-before-${c.target}-${c.stamp}.backup`);await cmd(c.dump,['-h',c.e.PGHOST||'localhost','-p',c.e.PGPORT||'5432','-U',c.e.PGUSER,'-d',c.e.PGDATABASE,'-F','c','-f',db],{name:'pg_dump',timeout:T.dump,phase,env:c.pgEnv});if(!has(db)||fs.statSync(db).size<1024)throw Error('Database backup file is missing or empty');phase='STOP';state('STOP','Preflight และ Backup ผ่านแล้ว กำลังหยุด Production',detail);await stopServer(pid,phase);phase='DEPLOY';state('DEPLOY',`ติดตั้ง ${c.target}`,detail);await copy(c.source,root,true,phase);if(c.deps){const cli=path.join(path.dirname(process.execPath),'node_modules','npm','bin','npm-cli.js');await cmd(has(cli)?process.execPath:exe(['C:\\Program Files\\nodejs\\npm.cmd','npm.cmd']),has(cli)?[cli,'ci','--omit=dev','--no-audit','--no-fund']:['ci','--omit=dev','--no-audit','--no-fund'],{cwd:root,name:'npm ci',timeout:T.npm,phase})}else state('DEPLOY','ข้าม npm ci: dependencies ไม่เปลี่ยน',detail);phase='MIGRATE';if(c.migrations.length){state('MIGRATE',`รัน migration ${c.migrations.length} ไฟล์`,detail);databaseTouched=true;for(const file of c.migrations)await cmd(c.psql,['-X','-h',c.e.PGHOST||'localhost','-p',c.e.PGPORT||'5432','-U',c.e.PGUSER,'-d',c.e.PGDATABASE,'-v','ON_ERROR_STOP=1','-f',path.join(root,'migrations',file)],{name:`psql ${file}`,timeout:T.psql,phase,env:c.pgEnv})}else state('MIGRATE','ข้าม migration: ไม่มีไฟล์ใหม่',detail);phase='START';state('START','เปิด Production server เวอร์ชันใหม่',detail);if(!await start(c.target))throw Error(`เปิด ${c.target} ไม่สำเร็จ`);phase='HEALTH';state('HEALTH','ตรวจสอบ Version และ Database Health',detail);let health;const healthStarted=Date.now();while(Date.now()-healthStarted<T.health){try{health=await request('http://127.0.0.1:3000/api/system/health',3000);if(health?.database?.ok&&health.release===`${c.target}-production`)break}catch{}await sleep(1000)}if(!health?.database?.ok||health.release!==`${c.target}-production`)throw Error('Version หรือ Database health check ไม่ผ่าน');state('SUCCESS',`อัปเดต Production สำเร็จเป็น ${c.target}`,{...detail,version:c.target,databaseBackup:db})}catch(error){const msg=error.message||String(error);log(`ERROR ${phase}: ${msg}`);if(dry)return state('FAILED',`Preflight ไม่ผ่าน: ${msg}`,{failedPhase:phase,dryRun:true});if(phase==='PREFLIGHT'||phase==='BACKUP'){state('FAILED',`อัปเดตไม่สำเร็จก่อนหยุด Production ระบบเดิมยังทำงานอยู่: ${msg}`,{rolledBack:false,productionKeptRunning:true,failedPhase:phase});process.exitCode=1;return}try{state('ROLLBACK',`ขั้น ${phase} ล้มเหลว กำลังคืนระบบเดิม: ${msg}`,{failedPhase:phase});if(phase==='STOP'){let running=false;try{const info=await request('http://127.0.0.1:3000/api/version',3000);running=info.version===current}catch{}if(!running&&!await start(current))throw Error(`เปิดเวอร์ชันเดิม ${current} หลัง Stop ล้มเหลวไม่สำเร็จ`);state('FAILED',`หยุด Production ไม่สำเร็จ จึงไม่ Deploy และคงเวอร์ชันเดิม: ${msg}`,{rolledBack:true,databaseRestored:false,failedPhase:phase});process.exitCode=1;return}if(startedPid)await stopServer(startedPid,'ROLLBACK');if(backup&&has(backup)){await copy(backup,root,true,'ROLLBACK');if(databaseTouched&&db&&has(db))await restoreDatabase(c,db);if(!await start(current))throw Error(`เปิดเวอร์ชันเดิม ${current} หลัง rollback ไม่สำเร็จ`);state('FAILED',`อัปเดตไม่สำเร็จ แต่คืน Source${databaseTouched?' และ Database':''} เดิมเรียบร้อย: ${msg}`,{rolledBack:true,databaseRestored:databaseTouched,failedPhase:phase})}else state('FAILED',`อัปเดตไม่สำเร็จก่อน Backup: ${msg}`,{rolledBack:false,failedPhase:phase})}catch(rollbackError){state('FAILED',`อัปเดตและ rollback ไม่สำเร็จ: ${msg} / ${rollbackError.message||rollbackError}`,{rolledBack:false,failedPhase:phase})}process.exitCode=1}}
+async function main(){let phase='PREFLIGHT',backup='',db='',databaseTouched=false,c;try{c=await preflight();const detail={targetVersion:c.target,dependenciesChanged:c.deps,newMigrations:c.migrations,dryRun:dry};if(dry)return state('READY',`Preflight ผ่าน: พร้อมอัปเดต ${c.target}${c.deps?' · npm ci required':' · ข้าม npm ci'}${c.migrations.length?` · migration ${c.migrations.length} ไฟล์`:' · ไม่มี migration ใหม่'}`,detail);phase='BACKUP';state('BACKUP',`สำรอง Source และ Database ก่อนอัปเดตเป็น ${c.target}`,detail);backup=path.join(c.work,'rollback-source');await copy(root,backup,false,phase);db=path.join(updates,`database-before-${c.target}-${c.stamp}.backup`);await cmd(c.dump,['-h',c.e.PGHOST||'localhost','-p',c.e.PGPORT||'5432','-U',c.e.PGUSER,'-d',c.e.PGDATABASE,'-F','c','-f',db],{name:'pg_dump',timeout:T.dump,phase,env:c.pgEnv});if(!has(db)||fs.statSync(db).size<1024)throw Error('Database backup file is missing or empty');phase='STOP';state('STOP','Preflight และ Backup ผ่านแล้ว กำลังหยุด Production',detail);await stopServer(pid,phase);phase='DEPLOY';state('DEPLOY',`ติดตั้ง ${c.target}`,detail);await copy(c.source,root,true,phase);if(c.deps){const cli=path.join(path.dirname(process.execPath),'node_modules','npm','bin','npm-cli.js');await cmd(has(cli)?process.execPath:exe(['C:\\Program Files\\nodejs\\npm.cmd','npm.cmd']),has(cli)?[cli,'ci','--omit=dev','--no-audit','--no-fund']:['ci','--omit=dev','--no-audit','--no-fund'],{cwd:root,name:'npm ci',timeout:T.npm,phase})}else state('DEPLOY','ข้าม npm ci: dependencies ไม่เปลี่ยน',detail);phase='MIGRATE';if(c.migrations.length){state('MIGRATE',`รัน migration ${c.migrations.length} ไฟล์`,detail);databaseTouched=true;for(const file of c.migrations)await cmd(c.psql,['-X','-h',c.e.PGHOST||'localhost','-p',c.e.PGPORT||'5432','-U',c.e.PGUSER,'-d',c.e.PGDATABASE,'-v','ON_ERROR_STOP=1','-f',path.join(root,'migrations',file)],{name:`psql ${file}`,timeout:T.psql,phase,env:c.pgEnv})}else state('MIGRATE','ข้าม migration: ไม่มีไฟล์ใหม่',detail);phase='START';state('START','เปิด Production server เวอร์ชันใหม่',detail);if(!await start(c.target))throw Error(`เปิด ${c.target} ไม่สำเร็จ`);phase='HEALTH';state('HEALTH','ตรวจสอบ Version และ Database Health',detail);let ready=false,lastHealthError='';const healthStarted=Date.now();while(Date.now()-healthStarted<T.health){try{await checkProductionReadiness(c.target);ready=true;break}catch(error){lastHealthError=error.message}await sleep(1000)}if(!ready)throw Error('Version หรือ Database health check ไม่ผ่าน: '+lastHealthError);state('SUCCESS',`อัปเดต Production สำเร็จเป็น ${c.target}`,{...detail,version:c.target,databaseBackup:db})}catch(error){const msg=error.message||String(error);log(`ERROR ${phase}: ${msg}`);if(dry)return state('FAILED',`Preflight ไม่ผ่าน: ${msg}`,{failedPhase:phase,dryRun:true});if(phase==='PREFLIGHT'||phase==='BACKUP'){state('FAILED',`อัปเดตไม่สำเร็จก่อนหยุด Production ระบบเดิมยังทำงานอยู่: ${msg}`,{rolledBack:false,productionKeptRunning:true,failedPhase:phase});process.exitCode=1;return}try{
+  state('ROLLBACK',`ขั้น ${phase} ล้มเหลว กำลังคืนระบบเดิม: ${msg}`,{failedPhase:phase,serverLogPath:lastServerLog});
+  const before=classifyRecovery({currentVersion:current,served:await servedVersion(),installed:sourceVersion(root),portOwner:portOwnerPid()});
+  if(before.safe){
+    state('FAILED',`อัปเดตไม่สำเร็จ แต่ระบบเดิมพร้อมใช้งาน: ${msg}`,{rolledBack:true,productionKeptRunning:true,failedPhase:phase,serverLogPath:lastServerLog});
+    process.exitCode=1;return;
+  }
+  if(phase==='STOP'){
+    const owner=portOwnerPid();
+    if(owner)throw Error(`ไม่สามารถคืนบริการอัตโนมัติ: Port 3000 มี PID ${owner} ใช้งานอยู่`);
+    await start(current);
+    state('FAILED',`หยุดบริการไม่สำเร็จ แต่เปิดเวอร์ชันเดิมกลับมาแล้ว: ${msg}`,{rolledBack:true,productionKeptRunning:true,failedPhase:phase,serverLogPath:lastServerLog});
+    process.exitCode=1;return;
+  }
+  const owner=portOwnerPid();
+  if(owner){
+    if(startedPid&&owner===startedPid)await stopServer(startedPid,'ROLLBACK');
+    else throw Error(`ไม่แก้ไฟล์ระหว่างมีบริการบน Port 3000 (PID ${owner}). ${before.message}`);
+  }
+  if(!backup||!has(backup))throw Error('Source backup is unavailable; cannot recover automatically');
+  await copy(backup,root,true,'ROLLBACK');
+  if(databaseTouched&&db&&has(db))await restoreDatabase(c,db);
+  await start(current);
+  state('FAILED',`อัปเดตไม่สำเร็จ แต่คืน Source${databaseTouched?' และ Database':''} เดิมสำเร็จ: ${msg}`,{rolledBack:true,productionKeptRunning:true,databaseRestored:databaseTouched,failedPhase:phase,serverLogPath:lastServerLog});
+}catch(rollbackError){
+  const after=classifyRecovery({currentVersion:current,served:await servedVersion(),installed:sourceVersion(root),portOwner:portOwnerPid()});
+  state('FAILED',`อัปเดตล้มเหลว: ${msg}; การกู้คืน: ${rollbackError.message||rollbackError}; ${after.message}`,{rolledBack:after.safe,productionKeptRunning:after.safe,failedPhase:phase,serverLogPath:lastServerLog,portOwnerPid:portOwnerPid()});
+}
+process.exitCode=1}}
 if(require.main===module)main();
-module.exports={T,migrationFiles,newer,dependencySignature,dependenciesChanged};
+module.exports={request,checkProductionReadiness,T,migrationFiles,newer,dependencySignature,dependenciesChanged,parseNetstatOwner,classifyRecovery,sourceVersion};

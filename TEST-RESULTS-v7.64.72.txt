@@ -1,0 +1,25 @@
+HealthCheck v7.64.72 validation — 2026-10-22
+PASS TypeScript build and current Node release suite: 28 tests.
+PASS real PostgreSQL upgrade v7.64.71 -> v7.64.72, including repair-admin:
+ company/year, circular, custom credentials, password age, Role policy and extra
+ configuration preserved; existing login works; readiness validates public health
+ and exact version; protected system health still returns 401 anonymously.
+PASS source-backup.test.ps1 executed using PowerShell 7.5.4 on Linux:
+ real streaming ZIP round-trip, 3 MiB random binary exact bytes, Thai path/content,
+ hidden .env and uploads retained, top-level generated caches excluded,
+ similarly named nested user folders retained, existing ZIP not overwritten,
+ failed backup leaves no partial/final ZIP, low-space guard rejects,
+ actual deployment preflight block with mocked low disk never invokes stop,
+ linked user content rejected explicitly rather than silently omitted.
+PASS bootstrap repair core: actual replacement and verified original backup,
+ checksum rejection, idempotency, active-job guard, preserved .env and quoted paths.
+Package checks required before publication: PowerShell syntax, payload verifier,
+ hash coverage, ZIP CRC, corruption/traversal rejection and Git download-back hash.
+
+No full Windows GUI/UAC/VBS/Robocopy/Task Scheduler deployment was run here.
+PowerShell 5.1 compatible APIs were selected; actual runtime tests used 7.5.4 Linux.
+The disk guard estimates Source ZIP + payload + 1 GiB; database backup and dependency
+installation can require additional space. No automatic old backup deletion occurs.
+Unchanged app workflows were tested in v7.64.71 (see historical report); the full
+browser integration suite was not rerun for this installer-only repair.
+No user's Production database or external HIS was used in testing.

@@ -1,0 +1,103 @@
+HealthCheck v7.64.63 — Validation report
+Base: local v7.64.62 production installer (based on user-uploaded v7.64.61 performance)
+Base SHA-256: d87a0149b8c6b14a0f59c7062caf4dc6970f2be65e153e76f2ca606988355679
+Schema: 0217 (unchanged)
+
+Dependency install: npm ci --ignore-scripts --no-audit --no-fund passed; lockfile unchanged except version.
+Syntax: changed runtime JS modules parsed successfully.
+TypeScript: npm run typecheck passed.
+
+Targeted server and workflow regression tests:
+✔ canonical identity removes formatting and normalizes case (3.081606ms)
+✔ same-file duplicate strong identities collapse to one customer record (1.563492ms)
+✔ formatted strong identity matches an existing record (0.372447ms)
+✔ different strong IDs never merge through the same employee code (0.511536ms)
+✔ HN can fill a legacy record that has no strong identity (0.36251ms)
+✔ name plus DOB is review-only and does not auto-merge (0.33418ms)
+✔ release identity and browser cache key are v7.64.63 (1.096948ms)
+✔ production responses use compression and version-aware asset caching (0.296138ms)
+✔ state response is coalesced and cached as JSON and gzip per revision (0.658112ms)
+✔ auto refresh is slower, jittered, and pauses in hidden tabs (1.612461ms)
+✔ clinical status uses exact VN Booking reader and confirms HN (4.464462ms)
+✔ cancelled/ChargeClose/unknown status remain distinct (0.344409ms)
+✔ failed read keeps last matched result and cannot reconcile pending ChargeClose (1.155496ms)
+✔ DB exception is not exposed as HTML or mistaken for CLOSED (0.606691ms)
+✔ PDF topics survive save/load and appended attachment page refs (424.738751ms)
+✔ URL settings require apiManage and commit audit with before/after actor (2.381845ms)
+✔ audit failure rolls settings change back (0.741583ms)
+✔ opdvisit takes priority, no Patient Log IO for found rows (3.135847ms)
+✔ only missing VNs fall back, all requested HN/VN pairs are retained (1.815264ms)
+✔ connection failures do not trigger fallback or become NOT_FOUND (2.52258ms)
+✔ Patient Log error propagates instead of erasing status (0.302941ms)
+✔ missing both is distinct from missing identifier and HN mismatch (4.169947ms)
+✔ batch stays bounded at 500 VNs per query, not one query per patient (5.272486ms)
+✔ cancelled and charge-close facts stay attached only to actual source (0.659491ms)
+✔ all screen routes are wired to shared reader (17.630972ms)
+✔ real Patient Log SQL matches HN+VN and orders by latest timestamp/id (7.245084ms)
+✔ clinical consumer accepts Patient Log fallback without claiming finance closed (7.367779ms)
+Checkup is saved, but audit logging needs follow-up: Error: LOG FAILED
+    at Object.saveConfirmedCheckupV76416 (evalmachine.<anonymous>:45:27)
+    at async TestContext.<anonymous> (/workspace/work/release62/single-confirmation-v76417.test.js:43:15)
+    at async Test.run (node:internal/test_runner/test:1389:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+✔ one confirmation persists all packages and both timestamps before enabling HIS Order (6.882533ms)
+✔ failed database save never modifies patient confirmation (4.878215ms)
+✔ audit failure is distinguishable from saved confirmation (3.571557ms)
+✔ no first confirmation without receiveCreate permission (1.857782ms)
+✔ existing confirmation does not allow duplicate confirmation (1.818525ms)
+✔ changed selections save as an edit while retaining original confirmed timestamps (1.752369ms)
+✔ no edits after HIS order until cancelled (1.201176ms)
+✔ legacy records with no stored price are not falsely marked as changed (0.810945ms)
+✔ A4 footer does not contain the old confirmation call to action (7.246328ms)
+✔ OrderHIS remains gated by persisted visitedAt, HN, VN, and an active order guard (5.326516ms)
+✔ A4 status buttons keep receiveFinalize for HIS Order, receiveEdit for changed selections (1.369729ms)
+✔ legacy checkupConfirmedAt prevents an initial duplicate and permits a permission-checked repeat edit (2.370846ms)
+✔ a newly confirmed patient first appears in pending, not TODAY cases (20.943345ms)
+✔ HIS OpenVisit alone does not advance a patient (0.186518ms)
+✔ only successfully ordered patients move to TODAY cases (1.690372ms)
+✔ canceling HIS Order moves the case back to pending (0.299484ms)
+✔ older cancellation does not override a newer successful order (0.308561ms)
+✔ unconfirmed records do not appear in either Worklist panel (0.192019ms)
+✔ status and company filters are honored (0.624448ms)
+✔ existingKeys prevent duplicate true visits and fallback rows (0.211072ms)
+✔ Order on a later date moves the record onto its order date, not confirmation date (0.729217ms)
+✔ frontend partitions by explicit backend workflow_stage, not confirmed flag (0.803966ms)
+✔ API uses a successful order as the gate, not a nonempty VN (7.774617ms)
+✔ new PDF workflow saves existing company/circular through one company-scoped API (14.411352ms)
+✔ no extra PDF parsing and save for an empty attachments list (3.62953ms)
+✔ Thai text wrapping runs at close to linear glyph measuring cost (7.521344ms)
+✔ company-scoped PDF API commits company/circular once without patient table writes (6.073906ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1653.551757
+
+Browser component verification (Chromium, actual CSS and PDF.js):
+PASS opening new form makes no DB write; A4 updates from actual shared renderer without customer QR
+PASS create workspace fits 1920x910
+PASS create workspace fits 1366x650
+PASS create workspace fits 390x844
+PASS cancel warns for unsaved customer and keeps values when declined
+PASS one save only; detail opens after server acknowledgement with selected company
+PASS failed save retains fields and form; retry reuses key and saves one customer
+PASS existing-customer edit still uses previous form mode
+PASS prominent status button keeps refresh action; technical strings hidden; stale warning retained
+
+Limits: No live HIS, Windows installation, DNS/HTTPS setup, physical printer or production database tested. Historical release-specific version assertion tests were not used as current-version acceptance tests. No claim that every historical test was run.
+
+Performance preservation against uploaded v7.64.61:
+UNCHANGED server.js let stateResponseBuild=null;
+UNCHANGED server.js app.get('/api/state',
+UNCHANGED assets/app.js async function runAutoRefresh(
+PRESERVED server.js app.use(compression({threshold:1024}))
+PRESERVED server.js max-age=31536000, immutable
+PRESERVED server.js max-age=3600
+PRESERVED assets/app.js 20000+Math.floor(Math.random()*5000)
+PRESERVED assets/app.js document.hidden
+PRESERVED assets/app.js visibilitychange
+Modified base files: assets/app.js, assets/checkup-summary-template.js, assets/clinical-lifecycle.css, assets/clinical-lifecycle.js, assets/flow-v76384.js, tools/production-installer-gui.ps1, tools/production-installer-worker.ps1, app.html, clinical-lifecycle.js, EXTRACT-FIRST.txt, package-lock.json, package.json, release-v76460.test.js, server.js, SOURCE-MANIFEST-SHA256.txt, SOURCE-SHA256.txt, UPDATE-MANIFEST.example.json, VERSION.txt
+All 600 base paths retained.

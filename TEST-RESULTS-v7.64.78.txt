@@ -1,0 +1,9 @@
+v7.64.87 verification
+PASS TypeScript build and 44 release tests (38 baseline/content and 6 services/appointments).
+PASS real PostgreSQL 77 -> 78 upgrade, repair-admin, password hash/age/policy, company/year, notes, circular and configuration preserved; existing login works.
+PASS actual running server/Chromium: customer setup loads both draft/published articles, separate fictional shop opens, published article opens and navigates to eligible package without purchasing; public login shows knowledge and verification requirement.
+PASS actual PostgreSQL settings API: unauthenticated staff request rejected, HTTPS validation, stale revision conflict, saved content audit, draft excluded from public endpoint, persisted content after restart.
+PASS focused browser checks: article editor/save, search, escaped content, source links, eligible code links, mobile; independent login/shop ads, disabled defaults, login/logout visibility, safe links, unsaved branding; shop cart/search/categories/language.
+PASS PowerShell backup streaming/data guards and update helper repair core; 22 PowerShell syntax and UTF-8 BOM checks.
+Packaging verification follows in SHA256 sidecar and SOURCE manifests.
+LIMIT: native Windows GUI/UAC/VBS/Robocopy/Task Scheduler installation and physical printing have not been executed on Windows in this Linux test environment.

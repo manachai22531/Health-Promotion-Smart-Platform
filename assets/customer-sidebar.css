@@ -1,0 +1,47 @@
+/* Approved mockup 3: independent scroll areas, true collapsible left controls. */
+html body #customerListOverlay .hc-sidebar-workspace{display:flex!important;gap:12px!important;flex:1 1 0!important;min-height:0!important;min-width:0!important;height:100%!important}
+html body #customerListOverlay .hc-search-sidebar{display:flex!important;flex-direction:column!important;width:280px!important;flex:0 0 280px!important;min-height:0!important;border:1px solid var(--border,#d5e5ed)!important;border-radius:12px;background:#fff;overflow:hidden}
+html body #customerListOverlay .hc-sidebar-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border,#d5e5ed);flex:0 0 auto;min-height:48px}
+html body #customerListOverlay .hc-sidebar-heading strong{font-size:13px;white-space:nowrap;color:var(--primary,#087b8b)}
+html body #customerListOverlay #customerSidebarToggle{min-width:30px!important;min-height:30px!important;padding:3px 8px!important;font-size:21px!important;line-height:1!important}
+html body #customerListOverlay .hc-sidebar-content{padding:12px;overflow:auto;min-height:0;flex:1 1 0}
+html body #customerListOverlay .hc-sidebar-content h3{font-size:12px;margin:0 0 10px;color:#27566d}
+html body #customerListOverlay .hc-sidebar-search{margin-bottom:18px}
+html body #customerListOverlay .hc-sidebar-search .customer-list-search{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;max-width:none!important;margin:0 0 10px!important;height:36px!important;padding:0 8px!important;border:1px solid #cddfe9!important;border-radius:8px!important;background:#fff!important}
+html body #customerListOverlay .hc-sidebar-search .customer-list-search input{width:100%!important;min-width:0!important;height:32px!important;font-size:11px!important;padding:4px!important;background:transparent!important}
+html body #customerListOverlay .hc-sidebar-search .customer-list-search button{padding:3px!important;min-width:22px!important;height:26px!important;min-height:0!important;background:transparent!important}
+html body #customerListOverlay .hc-sidebar-search .hc97-filters{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;width:100%!important;height:auto!important}
+html body #customerListOverlay .hc-sidebar-search .hc97-filters select{width:100%!important;min-width:0!important;max-width:100%!important;height:33px!important;font-size:10px!important;padding:4px!important}
+html body #customerListOverlay .hc-sidebar-booking{padding:12px;margin-bottom:18px;background:#eff8f7;border:1px solid #cfe6e1;border-radius:9px}
+html body #customerListOverlay .hc-sidebar-booking .customer-booking-tools{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;width:100%!important;min-width:0!important;padding:0!important;margin:0!important;gap:10px!important;background:transparent!important;border:0!important;height:auto!important;max-height:none!important}
+html body #customerListOverlay .hc-sidebar-booking .customer-booking-target{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;width:100%!important;min-width:0!important;margin:0!important;order:0}
+html body #customerListOverlay .hc-sidebar-booking .customer-booking-target span{font-size:10px!important;white-space:normal!important}
+html body #customerListOverlay .hc-sidebar-booking select{width:100%!important;min-width:0!important;max-width:100%!important;height:34px!important;font-size:11px!important;padding:5px!important}
+html body #customerListOverlay .hc-sidebar-booking .customer-booking-action-stack{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;width:100%!important;order:1}
+html body #customerListOverlay .hc-sidebar-booking .customer-booking-action-stack button{width:100%!important;min-width:0!important;font-size:10px!important;padding:6px!important;min-height:31px!important;white-space:normal!important}
+html body #customerListOverlay #addSelectedToBooking{grid-column:1/-1!important}
+html body #customerListOverlay .hc-sidebar-content>.hc-booking-filter-wide{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;min-width:0!important;padding:0!important;border:0!important;background:transparent!important;gap:8px!important}
+html body #customerListOverlay .hc-sidebar-content .customer-booking-filter-label{font-size:12px!important;font-weight:700;line-height:1.4!important}
+html body #customerListOverlay .hc-sidebar-content #customerBookingSummary{display:flex!important;flex-direction:column!important;gap:6px!important;overflow:visible!important;height:auto!important;min-height:0!important;max-height:none!important;width:100%!important;margin:0!important;padding:0!important}
+html body #customerListOverlay .hc-sidebar-content #customerBookingSummary .customer-booking-filter-chip{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;width:100%!important;max-width:none!important;min-height:36px!important;height:auto!important;flex:none!important;margin:0!important;padding:8px 10px!important;white-space:normal!important;border-radius:7px!important}
+html body #customerListOverlay .hc-sidebar-content #customerBookingSummary .customer-booking-filter-chip b{min-width:0!important;max-width:none!important;white-space:normal!important;overflow-wrap:anywhere!important;text-overflow:clip!important;font-size:11px!important;text-align:left!important;line-height:1.5!important}
+html body #customerListOverlay .hc-sidebar-content #customerBookingSummary .customer-booking-filter-chip i{flex:none!important;font-size:11px!important;white-space:nowrap!important}
+html body #customerListOverlay .hc-sidebar-hint{margin:15px 0 0;padding-top:10px;border-top:1px solid #e1ebf0;font-size:10px;line-height:1.8;color:#7890a2}
+html body #customerListOverlay .hc-sidebar-main{display:flex!important;flex-direction:column!important;gap:6px!important;flex:1 1 0!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+html body #customerListOverlay .hc-sidebar-main>.customer-list-tools{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;padding:10px!important;border:1px solid var(--border,#d5e5ed)!important;border-radius:10px!important;background:white!important;width:100%!important;min-width:0!important}
+html body #customerListOverlay .hc-sidebar-main .hc97-actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;width:100%!important;min-width:0!important;height:auto!important;padding:0!important;gap:6px!important}
+html body #customerListOverlay .hc-sidebar-main .hc97-actions>*{flex:0 0 auto!important;width:auto!important;min-width:0!important;margin:0!important}
+html body #customerListOverlay .hc-sidebar-main .hc97-selection{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important;min-width:0!important;font-size:10px!important}
+html body #customerListOverlay .hc-sidebar-main .customer-selection-head,html body #customerListOverlay .hc-sidebar-main .customer-bulk-toolbar{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important;margin:0!important;padding:0!important;min-width:0!important;min-height:0!important;width:auto!important;height:auto!important}
+html body #customerListOverlay .hc-sidebar-main .customer-list-meta{white-space:normal!important;max-width:none!important;width:auto!important;font-size:10px!important}
+html body #customerListOverlay .hc-sidebar-main #deleteSelectedCustomers{width:auto!important;min-width:0!important;max-width:none!important}
+html body #customerListOverlay .hc-sidebar-main .unified-customer-table-wrap{width:100%!important;flex:1 1 0!important;min-width:0!important;min-height:0!important;overflow:auto!important}
+html body #customerListOverlay .hc-sidebar-main .customer-list-pagination{margin:0!important;background:white!important;border:1px solid var(--border,#d5e5ed)!important;border-radius:8px!important;padding:7px!important}
+html body #customerListOverlay .hc-sidebar-rail{display:none!important}
+html body #customerListOverlay .hc-sidebar-collapsed .hc-search-sidebar{width:56px!important;flex-basis:56px!important}
+html body #customerListOverlay .hc-sidebar-collapsed .hc-sidebar-heading{padding:9px!important;justify-content:center!important}
+html body #customerListOverlay .hc-sidebar-collapsed .hc-sidebar-heading strong,html body #customerListOverlay .hc-sidebar-collapsed .hc-sidebar-content{display:none!important}
+html body #customerListOverlay .hc-sidebar-collapsed .hc-sidebar-rail{display:flex!important;align-items:center;flex-direction:column;gap:14px;padding:14px 0}
+html body #customerListOverlay .hc-sidebar-rail button{min-width:32px!important;padding:6px!important}
+html body #customerListOverlay .hc-sidebar-rail span{writing-mode:vertical-rl;font-size:10px;color:#7890a2}
+@media(max-width:800px){html body #customerListOverlay .hc-search-sidebar{width:240px!important;flex-basis:240px!important}html body #customerListOverlay .hc-sidebar-workspace{gap:6px!important}html body #customerListOverlay .hc-sidebar-heading{padding:8px!important}html body #customerListOverlay .hc-sidebar-content{padding:9px!important}}

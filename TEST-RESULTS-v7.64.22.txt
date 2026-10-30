@@ -1,0 +1,12 @@
+HealthCheck v7.64.22 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: assets/app.js
+PASS  JavaScript syntax: server.js
+PASS  v7.64.22 Global Golden Sparkle regression: 3/3
+PASS  v7.64.21 functional carry-forward checks: 6/6
+INFO  v7.64.21 version-only assertion: expected failure (7.64.21 -> 7.64.22)
+
+Historical npm test:release suite: 34/52 passed.
+The 18 failures are legacy v7.63.x version/identity/layout assertions that reject later release identifiers or newer UI structure. They are retained as historical evidence and are not represented as passing.
+
+Packaging verification is recorded in the external release checksum and manifest delivered beside the ZIP.

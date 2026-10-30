@@ -1,0 +1,9 @@
+HealthCheck v7.64.92
+
+PASS: npm run build
+PASS: npm run test:release (109 + 8 = 117 tests)
+PASS: Chromium visual geometry checks at 1920px, 1366px and 1024px: Excel input, sheet selector and template button all 44px high with equal top/bottom bounds.
+PASS: 430px mobile layout stacks controls without page-width overflow.
+
+Changes are scoped to Patient Demographic upload controls. No matching, patient-selection or HIS API behavior changed.
+Windows GUI/UAC/Robocopy installer execution not performed.

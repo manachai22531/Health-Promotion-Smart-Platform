@@ -1,0 +1,6 @@
+npm run build: PASS
+npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
+Chromium browser regressions: 4 passed, 0 failed, 0 skipped
+Workspace regression uses real app template/functions/styles and synthetic records: CSV copy with commas/sequence and masked identity, actual horizontal scroll with HN fixed and sequence moving, toolbar height and unclipped buttons, annual active/upcoming/expired/unset statuses, full-screen editor with visible save footer and no horizontal form overflow at 1920/1366/430px
+Retained regressions: staff customer view opens native popup with modal-name conflict reproduced and blocks writes; HISGender XLSX roundtrip; one clear icon per custom-clear search field
+Windows GUI/UAC and real hospital HIS: NOT RUN

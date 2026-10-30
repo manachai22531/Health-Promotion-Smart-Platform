@@ -1,0 +1,6 @@
+v7.64.87 validation — 2026-10-27
+PASS npm ci; npm run build; npm run test:release (77 tests).
+PASS Chromium with actual package renderer and production CSS: 35 items, collapsed initially, mouse/keyboard toggling, independent package panels, edited station/type preserved through collapse, permission-based read-only controls, zero-item state, mobile header layout.
+PASS A4 DOM unchanged when toggling; QR and shared PDF source files identical to v7.64.82 except release version references.
+PASS PostgreSQL upgrade v7.64.82 to v7.64.87 and repair-admin, saved credentials/policies/company/year/notes/selection metadata/knowledge/settings preserved; server restart, login, API and browser checks.
+Windows GUI/UAC/VBS/Task Scheduler, physical printer and phone camera were not exercised on physical Windows hardware.

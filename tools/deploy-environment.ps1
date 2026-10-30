@@ -3,6 +3,7 @@ $ErrorActionPreference='Stop'
 $sourceRoot=Split-Path -Parent $PSScriptRoot
 $targetRoot='D:\HealthCheck\Production'
 $displayName='PRODUCTION'
+. (Join-Path $PSScriptRoot 'source-backup.ps1')
 
 function Test-IsAdministrator {
   $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
@@ -54,9 +55,11 @@ function Start-ExistingServerIfPossible {
   try {
     $run=Join-Path $Root 'tools\\run.ps1'
     if(Test-Path -LiteralPath $run){
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $run *> $null
+      Write-Host 'Attempting to restart the existing Production app after deployment/backup failure...'
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $run
+      if($LASTEXITCODE -ne 0){Write-Warning "Existing app restart returned exit code $LASTEXITCODE. See Production\logs\launcher.log"}
     }
-  } catch {}
+  } catch {Write-Warning ("Could not restart existing Production: "+$_.Exception.Message)}
 }
 
 function Invoke-RobocopySafe {
@@ -74,47 +77,40 @@ function Invoke-RobocopySafe {
   if($code -gt 7){throw "Robocopy failed with exit code $code while copying $Source"}
 }
 
-# Stop the exact environment BEFORE source backup.  v7.62.57 backed up while
-# node.exe was still running, which could leave a file handle open and abort
-# Compress-Archive/Copy-Item with "The process cannot access the file".
+# Scan only backup content and check capacity BEFORE stopping the existing app.
+$backupRoot='D:\HealthCheck\Backups'
+$hasExisting=(Test-Path -LiteralPath $targetRoot) -and (Get-ChildItem -LiteralPath $targetRoot -Force -ErrorAction Stop | Select-Object -First 1)
+$payloadPlan=Get-SourceBackupPlan -Root $sourceRoot
+if($hasExisting){
+  Write-Host 'Inspecting Source backup size and free space before stopping Production...'
+  $backupPlan=Get-SourceBackupPlan -Root $targetRoot
+  Assert-SourceBackupSpace -Plan $backupPlan -Destination $backupRoot -PayloadBytes $payloadPlan.Bytes
+}
+
+Write-Host "Stopping the existing Production server before backup..."
+. (Join-Path $PSScriptRoot 'assert-no-downgrade.ps1')
+Assert-NoApplicationDowngrade -SourceRoot $sourceRoot -TargetRoot $targetRoot
 Stop-TargetServer -Root $targetRoot
 
-# Back up the exact target environment before copying any application file.
-# Logs, node_modules and generated backup folders are intentionally excluded.
-if((Test-Path -LiteralPath $targetRoot) -and (Get-ChildItem -LiteralPath $targetRoot -Force -ErrorAction SilentlyContinue | Select-Object -First 1)){
-  $backupRoot='D:\\HealthCheck\\Backups'
-  New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
-  $stamp=Get-Date -Format 'yyyyMMdd-HHmmss'
-  $prefix='PRODUCTION'
-  $backupVersion='unknown'
+if($hasExisting){
   try {
+    New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+    $stamp=(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[Guid]::NewGuid().ToString('N').Substring(0,8)
+    $backupVersion='unknown'
     $pkgPath=Join-Path $sourceRoot 'package.json'
     if(Test-Path -LiteralPath $pkgPath){$pkg=Get-Content -LiteralPath $pkgPath -Raw|ConvertFrom-Json;if($pkg.version){$backupVersion=([string]$pkg.version).TrimStart('v')}}
-  } catch {}
-  $sourceBackup=Join-Path $backupRoot ("$prefix-source-before-v$backupVersion-$stamp.zip")
-  $tempBackup=Join-Path $env:TEMP ("HealthCheck-$prefix-$stamp")
-  Remove-Item -LiteralPath $tempBackup -Recurse -Force -ErrorAction SilentlyContinue
-  New-Item -ItemType Directory -Force -Path $tempBackup | Out-Null
-  try {
-    Invoke-RobocopySafe -Source $targetRoot -Destination $tempBackup -ExcludeDirs @(
-      (Join-Path $targetRoot 'node_modules'),
-      (Join-Path $targetRoot 'logs'),
-      (Join-Path $targetRoot 'backups'),
-      (Join-Path $targetRoot 'tmp')
-    )
-    Compress-Archive -Path (Join-Path $tempBackup '*') -DestinationPath $sourceBackup -CompressionLevel Fastest -Force
-    if(-not(Test-Path -LiteralPath $sourceBackup) -or (Get-Item -LiteralPath $sourceBackup).Length -lt 1024){
-      throw 'Source backup ZIP was not created correctly.'
-    }
+    $sourceBackup=Join-Path $backupRoot ("PRODUCTION-source-before-v$backupVersion-$stamp.zip")
+    # Rescan after shutdown so the snapshot includes final writes, then recheck.
+    $backupPlan=Get-SourceBackupPlan -Root $targetRoot
+    Assert-SourceBackupSpace -Plan $backupPlan -Destination $backupRoot -PayloadBytes $payloadPlan.Bytes
+    Write-Host "Streaming Source backup directly to $sourceBackup (no temporary source copy)..."
+    Write-SourceBackupZip -Plan $backupPlan -Destination $sourceBackup
   } catch {
-    # If backup fails, restore the previous service instead of leaving the
-    # selected environment offline.
+    Write-Host ("Source backup failed: "+$_.Exception.Message)
     Start-ExistingServerIfPossible -Root $targetRoot
     throw
-  } finally {
-    Remove-Item -LiteralPath $tempBackup -Recurse -Force -ErrorAction SilentlyContinue
   }
-  Write-Host "สำรอง Source $prefix ก่อนอัปเดตแล้ว: $sourceBackup" -ForegroundColor Green
+  Write-Host "สำรอง Source PRODUCTION ก่อนอัปเดตแล้ว: $sourceBackup" -ForegroundColor Green
 }
 
 New-Item -ItemType Directory -Force -Path $targetRoot | Out-Null
@@ -142,6 +138,7 @@ if(Test-Path -LiteralPath $targetEnv){
 # the live GUI installer's own logs/status files and is resilient to transient
 # file handles. Existing .env/API keys/database connection files are preserved.
 try {
+  Write-Host "Deploying application files to $targetRoot ..."
   Invoke-RobocopySafe -Source $sourceRoot -Destination $targetRoot -ExcludeDirs @(
     (Join-Path $sourceRoot '.git'),
     (Join-Path $sourceRoot 'release'),
@@ -162,6 +159,7 @@ try {
 
 $installer=Join-Path $targetRoot 'tools\install.ps1'
 if(-not(Test-Path -LiteralPath $installer)){throw 'คัดลอกไฟล์ติดตั้งไม่ครบ'}
+Write-Host "Starting database/dependency installation. Existing settings are preserved."
 & $installer
 if(-not $?){throw "$displayName core installer did not complete successfully."}
 Write-Host "$displayName ติดตั้งสำเร็จที่ $targetRoot" -ForegroundColor Green

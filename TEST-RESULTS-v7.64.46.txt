@@ -1,0 +1,12 @@
+HealthCheck v7.64.46 targeted release validation
+PASS actual hidden-source Chromium regression: captured PDF request retains medical examination text and patient identity while HTML is clipped outside the visible workspace.
+PASS actual A4 serializer with visibility:hidden: primary rows and all selected supplementary groups retained; sample 20 medical rows plus three extra groups, totals and signatures fits one A4; 100 rows paginate.
+PASS contract self-pay: no payer selector in actual package renderer; draft emits cash; billing excludes contract and self-pay includes it exactly once; A4 selected groups label self-pay. Server canonicalizes legacy billing input to cash and still rejects selection changes after active Order.
+PASS actual PDF: QR encodes exact HN; image embedded; HN text appears once in identity and is absent under QR; timestamp lower right; unset type/station blank; merged repeated cells and multipage fragments retained.
+PASS 25 actual-handler workflow/EXP integration checks using PostgreSQL-engine PGlite; 33 confirmation/workflow/EXP unit regressions; TypeScript typecheck and changed JavaScript syntax.
+PASS Chromium customer shop: search, category/language/cart persistence, identity-confirmed checkout, quote payload, acknowledgement, logout isolation, locked order controls and desktop/mobile bounds.
+PASS production server smoke v7.64.46; assets served; anonymous protected reads rejected. Bootstrap skipped in smoke.
+PASS ZIP CRC, complete source hashes, new runtime assets included, unchanged migration bytes and consistent version stamps.
+
+Limits: controlled browser/API/HIS fixtures and embedded PostgreSQL were used. Windows installer execution, live HIS and production upgrade were not performed. The full historical test suite is not claimed as passing; a known legacy HTML attribute-order assertion predates these changes. Long reports intentionally continue onto extra pages.
+The example update manifest URL must be replaced with a hosted ZIP URL for automatic download; Drive ZIP supports manual upload through Application Update.

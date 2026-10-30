@@ -1,0 +1,36 @@
+HealthCheck v7.64.71 validation — 2026-10-22
+PASS TypeScript build and current release suite: 28 tests.
+PASS real fresh PostgreSQL boot and protected initial admin.
+PASS real PostgreSQL upgrade v7.64.70 -> v7.64.71, including repair-admin:
+  preserves company/year, circular, custom credentials, password age, Role policy,
+  extra configuration; existing login still works.
+PASS public production readiness /api/health + /api/version with production/version/DB
+  validation; anonymous protected /api/system/health remains 401.
+PASS unified Worklist API: five stages, unique rows, project/search filters,
+  unconfirmed rows do not create a Visit or confirmation; transition remains one row.
+PASS actual Chromium Worklist: one full-width nine-column table, stage tabs,
+  disabled pending selection, select-all limited to ordered HN/VN rows,
+  1920/1360/780 widths; detail button does not auto-confirm.
+PASS real DB/browser login audit filters, pagination, Bangkok date boundaries,
+  permissions and no credential leakage in new authentication events.
+PASS circular subsection PATCH, negative medical choices, custom service text,
+  XLSX template/import/save, typed PDF attach/list/merge/reload/delete,
+  invalid input rejection and authorization.
+PASS security regression: role-specific password age and idle policies,
+  polling does not extend activity; trusted mouse input and cross-tab activity;
+  password expiry/change, logout after sleep, unauthorized policy tampering denied.
+PASS selected package panel responsive fill and subsidiary master Payor/Plan lookup
+  browser checks with row isolation and stale response protection.
+PASS bundled bootstrap repair core using PowerShell on Linux: atomic replacement,
+  original backup, hash rejection, idempotency, active-update guard, preserved .env.
+
+Package verification requires ZIP CRC, complete source hash coverage, PowerShell
+syntax and payload integrity/corruption/traversal checks before publishing.
+Download-back from the published Git branch must match the external SHA256.
+
+Limits: full Windows installer/Update Center deployment, WPF/VBS/UAC, Robocopy and
+Task Scheduler were not executed here. PowerShell core tests used 7.5.4 on Linux.
+No user's Production database or external HIS was used. Source backup compression
+speed is unchanged; heartbeat means the worker remains alive, not backup completion.
+Historical test/report files are retained as history; only the current release suite
+and the integration/browser/core checks listed above were run for this release.

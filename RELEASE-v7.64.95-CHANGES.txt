@@ -1,0 +1,10 @@
+v7.64.95 — ช่องค้นหาเหลือปุ่มล้างเดียว
+
+ตรวจช่องค้นหาใน app template และซอร์ส dynamic controls พบปุ่มล้างซ้ำในค้นหาบริษัทและค้นหารายชื่อลูกค้า: ปุ่ม custom และ native search cancel ของ browser แสดงพร้อมกัน
+ซ่อน native clear เฉพาะช่องที่มีปุ่ม custom อยู่แล้ว ไม่ลบปุ่มยกเลิกใน dialog หรือคำสั่งยกเลิกทางคลินิก
+คง native clear สำหรับช่องค้นหาอื่น และเพิ่มกฎรองรับช่องที่มี custom clear adjacent แบบเดียวกัน
+แก้ closing tag ของ input ที่ไม่ถูกต้องใน wrapper ของสองช่อง
+คงการล้างคำค้น การกรองและ pagination reset และ focus กลับช่องเดิม
+รวม staff customer-view navigation fix และ HISGender hotfix เดิม
+
+ติดตั้ง: สำรองข้อมูล แตก ZIP ทั้งหมด เปิด INSTALL-REPAIR.bat อนุญาต Administrator รอ health check แล้ว Ctrl+F5 ตรวจ v7.64.95

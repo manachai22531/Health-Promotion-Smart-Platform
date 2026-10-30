@@ -1,0 +1,11 @@
+v7.64.87 verification
+PASS TypeScript build and 53 release tests.
+PASS isolated PostgreSQL/API: project Mobile/Inhouse mapping, missing type, company restrictions, mismatched filter/booking/reschedule denial, matching bookings and failed-reschedule rollback.
+PASS staff calendar snapshot counts, bounded range, overnight 48-slot schedule and next-day boundary, changed display scale preserves old slot IDs/durations, shared hospital quota survives company filter, cancellation restores capacity with history visible.
+PASS real full server/PostgreSQL/Chromium: 3 staff tabs, overnight schedule creation, project-only customer booking then visible staff slot details, Day/Week/Month navigation, month-to-day drilldown, observer calendar access with create hidden, unauthenticated rejection, responsive mobile, navigation away/back; original imported view retained.
+PASS previous customer profile dialog save/cancel/Escape/context/logout, card navigation without redundant button, note save/clear, contract count/two columns, package payment colors across themes and mobile regressions.
+PASS actual 79->80 upgrade/repair-admin: company/year/circular/notes/credentials/password age/roles/configuration preserved and existing login succeeds. Calendar display setting retained.
+PASS existing article/ads/configuration validation, revision conflict, audit, public draft filtering, browser preview/package navigation and restart persistence.
+PASS 22 PowerShell syntax and UTF-8 BOM checks, source backup guards and updater repair core.
+Packaging CRC and payload hashes are verified separately, including GitHub download-back.
+LIMIT: native Windows GUI/UAC/VBS/Robocopy/Task Scheduler and physical printing not executed in Linux.

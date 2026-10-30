@@ -1,0 +1,5 @@
+'use strict';const {test}=require('node:test'),assert=require('node:assert/strict'),{normalize,personal}=require('./customer-profile-save');
+const input={title:' Mr ',firstName:' First ',lastName:' Last ',phone:' 081 ',email:' a@example.org '};
+test('personal edit accepts only normalized personal fields',()=>{assert.deepEqual(normalize({...input,id:'forged',hn:'forged',visitedAt:'forged'}),{title:'Mr',firstName:'First',lastName:'Last',phone:'081',email:'a@example.org'})});
+test('invalid or oversized edits are rejected without silent truncation',()=>{for(const patch of [{firstName:''},{lastName:' '},{phone:{}},{email:'not-email'},{title:'a'.repeat(31)},{firstName:'a'.repeat(101)}])assert.throws(()=>normalize({...input,...patch}))});
+test('clearing contacts and Unicode names are preserved',()=>{const result=normalize({...input,firstName:'ชื่อไทย',phone:'',email:''});assert.equal(result.firstName,'ชื่อไทย');assert.equal(result.phone,'');assert.equal(result.email,'');assert.deepEqual(personal({title:'นาย',first:'ทดสอบ',last:'ระบบ'}),{title:'นาย',firstName:'ทดสอบ',lastName:'ระบบ',phone:'',email:''})});

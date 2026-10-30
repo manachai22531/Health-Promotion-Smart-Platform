@@ -1,0 +1,11 @@
+HealthCheck v7.64.51 targeted validation — 16 October 2026 (Bangkok)
+PASS real shared workspace serialization: header HN/VN/company/year, patient address and Payor/Payor Plan/Payor Office taken from the saved record; payer band follows package identity and precedes checkup format. Long address has no horizontal cell overflow.
+PASS actual browser PDF retains address, all payer values, company, HN and last clinical row; sample 20 clinical rows fits one A4 with new header. Native pagination remains available for larger content.
+PASS sensitive ID remains masked for restricted Role in both saved and live draft HTML; changing Payor updates only draft preview until save.
+PASS direct-print path and Ctrl+P use saved HTML after fonts/images load without PDF POST or viewer; separate explicit PDF preview, cached snapshot, delayed-response guard, action layout and all five HIS buttons remain functional. Automated print call was intercepted; physical printer output was not executed.
+PASS no-op-save/dirty-close regression, saved VN QR beside costs and immutable saved VN PDF request when form VN is unsaved.
+PASS 33 confirmation/workflow/EXP unit checks; TypeScript typecheck; JavaScript syntax; production runtime version/assets and anonymous protected endpoint rejection.
+PASS ZIP CRC, complete source hashes, migration byte identity, consistent versions and unchanged dependencies after stripping release version identity.
+
+Limits: controlled Chromium/API fixtures and actual browser-generated PDFs were used. Windows installer execution, physical printer, live HIS and production upgrade were not performed. Full historical test suite is not claimed as passing. Long reports paginate rather than shrink or hide data. Existing patient/settings partial-success behavior remains. Earlier npm EPERM root cause is not claimed fixed.
+Explicit PDF generation requires installed Edge/Chrome. Example manifest URL must be replaced with a hosted ZIP URL for automatic download; Drive ZIP supports manual Application Update upload.

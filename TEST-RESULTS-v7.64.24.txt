@@ -1,0 +1,9 @@
+HealthCheck v7.64.24 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript syntax: assets/app.js, server.js, tools/app-update-helper.js
+PASS  PowerShell syntax: production installer GUI and worker
+PASS  Targeted installer/updater/Sparkle regression: 5/5
+PASS  PowerShell and .NET process working directories normalized to Windows Temp
+PASS  Runtime files no longer depend on inherited profile TEMP alias
+PASS  v7.64.23 Updater Helper EPERM fix retained
+PASS  v7.64.22 Global Golden Sparkle contract retained

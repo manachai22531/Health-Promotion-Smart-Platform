@@ -74,6 +74,7 @@ async function ensureRelationalSchema(client) {
   )`);
   await client.query('CREATE UNIQUE INDEX IF NOT EXISTS company_customers_pair_conflict_idx ON company_customers(company_year_id,customer_id)');
   await client.query('CREATE INDEX IF NOT EXISTS company_customers_record_idx ON company_customers(legacy_record_key)');
+  await client.query('CREATE INDEX IF NOT EXISTS company_customers_customer_lookup_idx ON company_customers(customer_id)');
   await client.query(`CREATE TABLE IF NOT EXISTS contract_packages (
     id TEXT PRIMARY KEY, package_code TEXT NOT NULL DEFAULT '', package_name TEXT NOT NULL DEFAULT '',
     price NUMERIC(14,2), usage_condition TEXT NOT NULL DEFAULT '', source_data JSONB NOT NULL DEFAULT '{}'::jsonb,

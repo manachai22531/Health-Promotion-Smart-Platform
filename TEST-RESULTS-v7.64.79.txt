@@ -1,0 +1,11 @@
+v7.64.87 validation
+PASS TypeScript build and release test suite (including EXP level/rules and customer content validation).
+PASS running-server Chromium + real PostgreSQL: card click detail access with redundant button absent; inside note save/clear; compact empty headings, contract two-column layout/counts and payment colors across themes; mobile overflow checks.
+PASS appointment two tabs, no HIS display labels, actual schedule creation and database capacity, observer cannot see Create Schedule tab.
+PASS customer contact header and modal: save/cancel/Escape, phone/email persisted to relational record, context switching, logout clears form, mobile layout.
+PASS EXP database: own-user/latest active award, revoked and previous-day exclusions, grouped today counts/EXP and empty state; browser history and signed revocations, responsive short-screen bounds, focus/Escape/outside handling, logout reset and role visibility.
+PASS actual PostgreSQL v7.64.78 -> v7.64.87 upgrade with repair-admin: credentials/password-age/roles/company/year/notes/circular/config retained; login succeeds.
+PASS actual server/DB content setting persistence, audit, authorization, invalid HTTPS validation, revision conflict, public draft filtering and restart; customer setup/login/shop demo navigation retained.
+PASS 22 PowerShell syntax/BOM checks; streaming source backup guards and updater repair core.
+ZIP CRC and SHA256 payload integrity are verified separately during packaging and GitHub download-back.
+LIMIT: native Windows GUI/UAC/VBS/Robocopy/Task Scheduler and physical printing not exercised in Linux.

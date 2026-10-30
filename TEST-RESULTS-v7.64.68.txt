@@ -1,0 +1,44 @@
+HealthCheck v7.64.68 — Validation report (2026-10-22)
+
+Environment: Linux, Node.js 24.19.0, PostgreSQL 17, Chromium,
+PowerShell 7.5.4 (official archive verified against upstream SHA256).
+
+PASSED
+- Frozen npm ci and npm run build.
+- Current npm run test:release: 15 tests, 15 passed, 0 failed.
+  Includes password/session policy, PDF rendering/text overflow/A4, package-version
+  consistency, fresh database ordering, installer prerequisites/readiness/integrity,
+  and independent circular memo field allowlists.
+- Actual PostgreSQL + HTTP: empty-database startup, new admin first-login change,
+  idle cutoff (including Remember), polling cannot extend idle, activity renewal,
+  per-role policies, policy changes affecting open sessions, password expiry/change,
+  one-use password-change tokens, authorization and state snapshot protection.
+- Actual PostgreSQL: subsections 02/03/04 save independently and preserve other
+  memo fields and the PDF subject.
+- Actual Chromium: login/reload, policy editor saves to PostgreSQL, trusted input
+  renews activity, multiple tabs share activity, suspended tab expires, expired
+  password dialog/change/re-login works.
+- Company form browser flow: new company/year, same code across years, duplicates,
+  empty name, persistence failure/retry, saves 02/03/04 and UI order 00/01.
+- Appearance panel: 6 viewport sizes at UI zoom 100/110/125%, save/close/Escape.
+- Pointer effect: zoom 80/100/110/125%, scrolled page and DPR 1/2; starts within
+  1 CSS pixel of the pointer in the selected pixel-level fixtures.
+- Upgrade: a real v7.64.67 server/database, installer repair-admin step, then
+  v7.64.68 server. Company/year, circular content, custom password hash and date,
+  role policy, and configuration fixture preserved; old custom login succeeds.
+- PowerShell parser: 19 scripts passed on PowerShell 7.5.4.
+- Actual PowerShell payload verifier: valid manifest accepted, corrupted content
+  and traversal paths rejected.
+- ZIP CRC, SHA256 source manifests and final archive checksum verified.
+
+LIMITS / NOT RUN
+- Windows WPF GUI, UAC elevation, winget, Windows services, Robocopy, and the full
+  Windows installer were not executed on a Windows machine.
+- No live hospital/HIS, physical scanner or production database was contacted.
+- Legacy historical suites keep obsolete version assertions; they are retained
+  as test:release:legacy, not counted as passing current-release validation.
+- The existing password hashing and account-recovery design is retained.
+
+Installer health uses unauthenticated /api/version + database-backed /api/health;
+/api/system/health remains protected. Existing .env/API connection files are
+excluded from deployment replacement. Source/database backup failures stop upgrade.

@@ -1,0 +1,10 @@
+v7.64.87 validation — 2026-10-28
+PASS npm ci, TypeScript build, release suite: 102 tests (94 + 8).
+PASS real PostgreSQL upgrade v7.64.86 -> v7.64.87, repair-admin, existing login, credentials/role policy, company/year, circulars, personal notes, pending selections, package knowledge and display settings preserved.
+PASS full server + PostgreSQL + local mocked HIS: selected project membership creation, invalid company/payor rejected before membership/HIS call, repeated OpenVisit does not duplicate membership or Visit.
+PASS operation monitor full server + PostgreSQL: blocked duplicate, wrong HN remains unresolved, exact acknowledged VN/Location confirmed via GET_VISIT and persisted without new OpenVisit, booking/visit preserved, safe stale PREPARED release, dispatched UNKNOWN not made retryable, existing VN suppresses retry, support audit reference, unauthenticated access rejected.
+PASS authenticated Chromium: actual monitor assets and API, status dialog, unknown has no retry, mobile no horizontal overflow, no page errors.
+PASS isolated Chromium: close/reopen, safe retry returns to confirmation, support reference, no HIS command from status checks.
+PASS PowerShell syntax and UTF-8 BOM verification. ZIP CRC and per-file SHA256 verification performed at packaging.
+QR generation and link/session lifetime unchanged apart from release version references.
+No live hospital HIS or Google provider was contacted during new feature validation. Windows GUI/UAC/VBS/Task Scheduler and physical printer were not exercised in Linux.

@@ -1,0 +1,10 @@
+HealthCheck v7.64.47 targeted release validation — 16 October 2026 (Bangkok)
+PASS shared renderer escapes user text, restricts font/QR URLs, blanks unset clinical labels and merges consecutive matching type/station cells.
+PASS actual Chromium PDF: 20 clinical rows plus supplementary groups, signatures and QR fit one A4; 100 rows paginate; HTML/PDF column positions match within 1.5 pt with embedded fonts.
+PASS browser workspace: initial HTML and live draft edits generate no PDF requests; explicit PDF uses immutable saved model; cache reused and invalidated after save; draft warning and close guard; partial saves retain pending changes; late PDF response cannot reopen closed workspace.
+PASS 25 actual-handler integration checks with embedded PostgreSQL PGlite; 33 unit regressions; TypeScript typecheck; changed JavaScript syntax checks.
+PASS customer shop browser checks; scoped visibility metadata update and rollback; production server smoke and anonymous protected endpoint rejection.
+PASS ZIP CRC, complete source SHA256 hashes, new template/runtime dependency inclusion, unchanged migrations and version stamps.
+
+Limits: controlled browser/API/HIS fixtures and embedded PostgreSQL were used. Windows installer execution, live HIS and production upgrade were not performed. Full historical suite is not claimed as passing. Long reports intentionally paginate. PDF creation requires installed Edge/Chrome on the server; no browser is bundled or automatically downloaded. HTML and PDF share template/fonts, but screen zoom and printer settings can affect physical output.
+The example manifest download URL must be replaced with a hosted ZIP URL for automatic download. The Drive ZIP supports manual upload in Application Update.

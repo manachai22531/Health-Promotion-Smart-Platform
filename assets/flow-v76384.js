@@ -4,7 +4,7 @@
   detail=function(key){
     const result=baseDetail(key),record=state.records.find(item=>item.key===key);
     if(record&&!record.visitedAt&&!record.checkupConfirmedAt){
-      document.querySelectorAll('#billingPicker input[type="checkbox"],#cashPicker input[type="checkbox"]').forEach(box=>{box.checked=true});
+      // Extra services are not selected automatically; Worklist records actual choices.
       updateSelectedTotal();
     }
     const button=$('#receiveCheckup');
@@ -23,34 +23,83 @@
     record.acceptedBillingItems=pendingCheckup.acceptedBillingItems;record.acceptedCashItems=pendingCheckup.acceptedCashItems;record.cashAccepted=record.acceptedCashItems.length>0;record.selectedPackages=pendingCheckup.selectedPackages;record.checkupConfirmedAt=createdAt;record.visitedAt=createdAt;record.customerPendingSelection=null;
     button.disabled=true;button.textContent='กำลังยืนยัน…';
     try{
-      await persistRecordNow(record);const after=auditSnapshot(record),auditResponse=await fetch('/api/checkup-logs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recordKey:record.key,userId:currentUser.id,action:'CREATE',details:{before,after,changes:auditChanges(before,after),acceptedBillingItems:record.acceptedBillingItems,acceptedCashItems:record.acceptedCashItems,selectedPackages:record.selectedPackages,visitedAt:record.visitedAt,confirmedFromDetail:true}})}),audit=await auditResponse.json().catch(()=>({}));if(!auditResponse.ok)throw new Error(audit.error||'บันทึก Log ไม่สำเร็จ');pendingCheckup=savedCheckupDraft(record);detail(record.key);alert('ยืนยันการตรวจเรียบร้อยแล้ว · สามารถกด “เปิดสรุปรายการตรวจ” ได้');
+      await persistRecordNow(record);renderTodayRegistrations();const after=auditSnapshot(record),auditResponse=await fetch('/api/checkup-logs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recordKey:record.key,userId:currentUser.id,action:'CREATE',details:{before,after,changes:auditChanges(before,after),acceptedBillingItems:record.acceptedBillingItems,acceptedCashItems:record.acceptedCashItems,selectedPackages:record.selectedPackages,visitedAt:record.visitedAt,confirmedFromDetail:true}})}),audit=await auditResponse.json().catch(()=>({}));if(!auditResponse.ok)throw new Error(audit.error||'บันทึก Log ไม่สำเร็จ');pendingCheckup=savedCheckupDraft(record);detail(record.key);await loadWorklist();alert('ยืนยันการตรวจแล้ว · สถานะอัปเดตในตาราง Worklist เดิม พร้อมเปิด Visit และสั่ง OrderHIS');
     }catch(error){Object.assign(record,before);alert(error.message||String(error))}finally{button.disabled=false;button.textContent=record.checkupConfirmedAt||record.visitedAt?'เปิดสรุปรายการตรวจ':'ยืนยันการตรวจ'}
   };
 
-  const pendingConfirmationCard=(x,index)=>{
-    const record=state.records.find(item=>String(item.key)===String(x.record_key))||{};
-    return `<article class="worklist-pending-card"><strong>${index+1}. ${esc(x.patient_name||'-')}</strong><span>HN ${esc(x.hn||'-')}</span><small>${esc(x.company_name||'-')} · ${esc(x.project_name||x.project_code||'-')}</small><button class="button primary mini" type="button" data-worklist-confirm-record="${esc(record.key||x.record_key||'')}">ยืนยันรายการตรวจ</button></article>`;
-  };
+  let worklistRecordIndex=new Map();
+  const worklistVisitErrors=new Map();let worklistVisitBusy=false;
+  function worklistVisitStatusHtml(x){const error=worklistVisitErrors.get(String(x.record_key||'')),his=x.his_visit_status;const text=his?.rawStatus?his.rawStatus:error?'รับสถานะไม่สำเร็จ':his?'ไม่พบ Visit ที่ตรงกัน':'ยังไม่ได้รับ';const checked=his?.checkedAt&&Number.isFinite(Date.parse(his.checkedAt))?new Date(his.checkedAt).toLocaleString('th-TH',{timeZone:'Asia/Bangkok'}):'';return `<span class="worklist-his-visit-status" title="${esc([his?.source,error||his?.lastAttemptError||his?.message||'สถานะ Visit จาก HIS แยกจากสถานะการตรวจภายในระบบ'].filter(Boolean).join(' · '))}">${esc(text)}</span>${checked?`<small>รับล่าสุด ${esc(checked)}</small>`:''}`}
+  const arrivalTime=x=>{const r=worklistRecordIndex.get(String(x.record_key))||{},time=Date.parse(x.confirmed_at||r.checkupConfirmedAt||r.visitedAt||x.checkin_at||'');return Number.isFinite(time)?time:Infinity};
+  const stageLabels={NOT_CONFIRMED:'รอยืนยัน',WAITING_VISIT:'ยืนยันแล้ว / รอเปิด Visit',WAITING_ORDER:'รอสั่ง Order',ORDERED:'ส่งตรวจแล้ว',COMPLETE:'เสร็จสิ้น'};
+  let boardItems=[],boardStage='ALL',worklistLoadSequence=0;
   const todayWorklistRow=(x,index)=>{
-    const record=state.records.find(item=>String(item.key)===String(x.record_key))||{},summary=worklistEmrGroupSummary(record),checked=worklistSelectedKeys.has(String(x.record_key||'')),queueStatus=x.visit_status==='COMPLETE'||Number(x.station_progress||0)>=100?'COMPLETE':x.visit_status==='IN_SERVICE'?'IN_SERVICE':'WAITING',packages=[x.main_package||x.package_code,x.billing_packages,x.cash_packages].filter(Boolean).join(' · ')||'-',station=String(x.current_station||'').trim()||'ยังไม่เข้าสถานี',time=x.checkin_at?new Date(x.checkin_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
-    return `<tr><td><input type="checkbox" data-worklist-select="${esc(x.record_key||'')}" ${checked?'checked':''}></td><td>${index+1}</td><td>${esc(x.hn||'-')}</td><td>${esc(x.vn||'-')}</td><td><strong>${esc(x.patient_name||'-')}</strong><small>${v76257RecordHasEmr(record)?'รับ EMR แล้ว':'ยังไม่ได้รับ EMR'}</small></td><td>${esc(x.company_name||'-')}</td><td>${esc(x.project_name||x.project_code||'-')}</td><td>${esc(packages)}</td><td>${summary.done}/${summary.total}</td><td>${esc(station)}</td><td><span class="workflow-status ${queueStatus.toLowerCase()}">${esc(operationStatusLabel(queueStatus))}</span></td><td>${esc(time)}</td><td>${esc(x.registered_by||'-')}</td></tr>`;
+    const record=worklistRecordIndex.get(String(x.record_key))||{},stage=HealthCheckWorklistBoard.stage(x),eligible=HealthCheckWorklistBoard.bulkEligible(x),summary=worklistEmrGroupSummary(record),checked=eligible&&worklistSelectedKeys.has(String(x.record_key)),packages=Array.isArray(x.ordered_packages)?x.ordered_packages:[],hasEmr=v76257RecordHasEmr(record);
+    const timeValue=x.checkin_at||x.confirmed_at,time=timeValue?new Date(timeValue).toLocaleTimeString('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit'}):'—';
+    const actionLabel=stage==='NOT_CONFIRMED'?'ยืนยันการตรวจ':stage==='WAITING_VISIT'?'เปิด Visit':stage==='WAITING_ORDER'?'สั่ง Order':'ดูรายละเอียด';
+    const actionAllowed=stage==='NOT_CONFIRMED'||stage==='WAITING_VISIT'?can('receiveCreate'):stage==='WAITING_ORDER'?can('receiveFinalize'):true;
+    const emr=eligible?(hasEmr?`<span>รับ EMR แล้ว · ${summary.done}/${summary.total}</span><button class="button secondary mini" type="button" data-worklist-forward-emr="${esc(x.record_key)}" data-worklist-payload="${esc(v76257WorklistPayload(x))}" ${can('emrAssign')?'':'disabled'}>ส่ง EMR</button>`:`<span>รอผล / ยังไม่รับ EMR</span><button class="button secondary mini" type="button" data-worklist-emr="${esc(x.record_key)}" data-worklist-vn="${esc(x.vn||'')}">รับ EMR</button>`):'—';
+    return `<tr data-worklist-record="${esc(x.record_key)}" data-worklist-row-stage="${stage}"><td><input type="checkbox" ${eligible?`data-worklist-select="${esc(x.record_key)}" ${checked?'checked':''}`:'disabled'} aria-label="เลือก ${esc(x.patient_name||'รายการ')}"/></td><td><strong>${index+1}. ${esc(x.patient_name||'-')}</strong><small>HN ${esc(x.hn||'—')}</small></td><td><strong>${esc(x.company_name||'—')}</strong><small>${esc(x.project_name||x.project_code||'—')}</small></td><td><span class="worklist-stage-badge ${stage.toLowerCase()}">${stageLabels[stage]}</span></td><td><strong>${esc(stage==='NOT_CONFIRMED'?'—':x.vn||'ยังไม่เปิด Visit')}</strong>${eligible?`<div data-worklist-visit-status="${esc(x.record_key)}">${worklistVisitStatusHtml(x)}</div>`:''}</td><td class="worklist-ordered-packages">${x.workflow_stage==='ORDERED'?(packages.map(value=>`<div>${worklistPackageHtml(value)}</div>`).join('')||'ส่ง Order แล้ว · ไม่พบรายละเอียดรายการเดิม'):'ยังไม่ส่ง Order'}</td><td><div class="worklist-action-stack">${emr}</div><small>${eligible?esc(x.current_station||'ยังไม่เข้าสถานี'):''}</small></td><td>${esc(time)}<small>${esc(x.registered_by||'')}</small></td><td><button class="button ${stage==='NOT_CONFIRMED'?'primary':'secondary'} mini" type="button" data-worklist-confirm-record="${esc(x.record_key)}" ${actionAllowed?'':'disabled'} title="เปิดข้อมูลเพื่อตรวจสอบและดำเนินการ">${actionLabel}</button></td></tr>`;
   };
-
+  function renderUnifiedWorklist(){
+    const counts={ALL:boardItems.length,NOT_CONFIRMED:0,WAITING_VISIT:0,WAITING_ORDER:0,ORDERED:0,COMPLETE:0};
+    boardItems.forEach(x=>counts[HealthCheckWorklistBoard.stage(x)]++);
+    document.querySelectorAll('[data-worklist-count]').forEach(el=>el.textContent=counts[el.dataset.worklistCount].toLocaleString('th-TH'));
+    document.querySelectorAll('[data-worklist-stage]').forEach(el=>{const active=el.dataset.worklistStage===boardStage;el.classList.toggle('active',active);el.setAttribute('aria-pressed',String(active))});
+    const visible=boardItems.filter(x=>boardStage==='ALL'||HealthCheckWorklistBoard.stage(x)===boardStage);
+    worklistLatestItems=visible.filter(HealthCheckWorklistBoard.bulkEligible);
+    const eligible=new Set(worklistLatestItems.map(x=>String(x.record_key)));
+    worklistSelectedKeys=new Set([...worklistSelectedKeys].filter(key=>eligible.has(key)));
+    $('#worklistConfirmedCount').textContent=visible.length.toLocaleString('th-TH');
+    $('#worklistRows').innerHTML=visible.map(todayWorklistRow).join('')||'<tr><td colspan="9" class="workflow-empty-row">ไม่พบรายการตามวันที่และสถานะที่เลือก</td></tr>';
+    v76257UpdateWorklistSelection();
+  }
+  $('#worklistStageTabs')?.addEventListener('click',event=>{const button=event.target.closest('[data-worklist-stage]');if(!button)return;boardStage=button.dataset.worklistStage;renderUnifiedWorklist()});
   loadWorklist=async function(){
-    const pendingBody=$('#worklistPendingRows'),todayBody=$('#worklistRows');
+    const sequence=++worklistLoadSequence;
     try{
-      const params=new URLSearchParams({date:$('#worklistDate').value||workflowDateValue(),q:$('#worklistQuery').value||'',companyId:$('#worklistCompany').value||'',projectId:$('#worklistProject').value||'',status:$('#worklistStatus').value||''}),result=await workflowFetch('/api/checkup-worklist?'+params.toString()),items=result.items||[];
-      worklistLatestItems=items;worklistSelectedKeys=new Set([...worklistSelectedKeys].filter(key=>items.some(x=>String(x.record_key||'')===key)));
-      const isConfirmed=x=>{const r=state.records.find(item=>String(item.key)===String(x.record_key));return Boolean(r?.checkupConfirmedAt||r?.visitedAt)},pending=items.filter(x=>!isConfirmed(x)),confirmed=items.filter(isConfirmed);
-      const sentEmr=items.filter(x=>v76257RecordHasEmr(state.records.find(item=>String(item.key)===String(x.record_key))||{}));
-      $('#worklistTotal').textContent=items.length.toLocaleString('th-TH');$('#worklistNotArrived').textContent=confirmed.length.toLocaleString('th-TH');$('#worklistCheckedIn').textContent=sentEmr.length.toLocaleString('th-TH');$('#worklistComplete').textContent=items.filter(x=>x.visit_status==='COMPLETE').length.toLocaleString('th-TH');
-      $('#worklistPendingCount').textContent=pending.length.toLocaleString('th-TH');$('#worklistConfirmedCount').textContent=items.length.toLocaleString('th-TH');
-      pendingBody.innerHTML=pending.map(pendingConfirmationCard).join('')||'<div class="workflow-empty-row">ไม่มีรายการรอยืนยันการตรวจ</div>';
-      todayBody.innerHTML=items.map(todayWorklistRow).join('')||'<tr><td colspan="13" class="workflow-empty-row">ไม่พบรายการใน Worklist วันที่เลือก</td></tr>';
-      v76257UpdateWorklistSelection();
-    }catch(error){pendingBody.innerHTML=`<div class="workflow-empty-row">${esc(error.message)}</div>`;todayBody.innerHTML='<tr><td colspan="13" class="workflow-empty-row">โหลดข้อมูลไม่สำเร็จ</td></tr>'}
+      const params=new URLSearchParams({date:$('#worklistDate').value||workflowDateValue(),q:$('#worklistQuery').value||'',companyId:$('#worklistCompany').value||'',projectId:$('#worklistProject').value||'',status:$('#worklistStatus').value||''}),result=await workflowFetch('/api/checkup-worklist?'+params.toString());
+      if(sequence!==worklistLoadSequence)return;
+      worklistRecordIndex=new Map(state.records.map(r=>[String(r.key||r.id||''),r]));
+      boardItems=(result.items||[]).sort((a,b)=>arrivalTime(a)-arrivalTime(b)||String(a.record_key||'').localeCompare(String(b.record_key||'')));
+      renderUnifiedWorklist();
+    }catch(error){if(sequence!==worklistLoadSequence)return;boardItems=[];worklistLatestItems=[];worklistSelectedKeys.clear();renderUnifiedWorklist();$('#worklistRows').innerHTML=`<tr><td colspan="9" class="workflow-empty-row">${esc(error.message||'โหลดข้อมูลไม่สำเร็จ')}</td></tr>`;}
   };
-  $('#worklistPendingRows')?.addEventListener('click',event=>{const button=event.target.closest('[data-worklist-confirm-record]');if(button?.dataset.worklistConfirmRecord)detail(button.dataset.worklistConfirmRecord)});
+  for(const id of ['refreshWorklist','runWorklist'])if($('#'+id))$('#'+id).onclick=()=>loadWorklist();
+  for(const id of ['worklistDate','worklistCompany','worklistProject','worklistStatus'])if($('#'+id))$('#'+id).onchange=()=>loadWorklist();
+  if($('#worklistQuery'))$('#worklistQuery').onkeydown=event=>{if(event.key==='Enter')loadWorklist()};
+  const visitStatusButton=$('#worklistBulkVisitStatus');
+  if(visitStatusButton)visitStatusButton.onclick=async()=>{
+    if(worklistVisitBusy||!guard('worklistView'))return;
+    const targets=[...new Map(worklistLatestItems.filter(x=>worklistSelectedKeys.has(String(x.record_key||''))).map(x=>[String(x.record_key),{...x}])).values()];
+    if(!targets.length)return alert('กรุณาเลือกรายการที่ต้องการรับ VisitStatus');
+    worklistVisitBusy=true;visitStatusButton.disabled=true;const label=visitStatusButton.textContent;let ok=0,failed=0,skipped=0;beginProcessing('กำลังรับ VisitStatus จาก HIS',targets.length);
+    try{for(let i=0;i<targets.length;i++){const x=targets[i],key=String(x.record_key);setProcessingProgress(i,targets.length,`รับ VisitStatus · HN ${x.hn||'-'} · VN ${x.vn||'-'}`);
+      if(!x.hn||!x.vn){skipped++;worklistVisitErrors.set(key,'ต้องมี HN และ VN ก่อนรับ VisitStatus');setProcessingProgress(i+1,targets.length);continue}
+      try{const data=await workflowFetch('/api/clinical/cases/'+encodeURIComponent(key)+'/status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});if(data.revision!=null)state._revision=Number(data.revision);if(!data.his?.matched||data.his.hn!==x.hn||data.his.vn!==x.vn)throw Error(data.his?.message||'HN/VN จาก HIS ไม่ตรงกับรายการที่เลือก');worklistVisitErrors.delete(key);ok++}catch(error){failed++;worklistVisitErrors.set(key,error.message||String(error))}finally{setProcessingProgress(i+1,targets.length)}
+    }await loadWorklist();alert(`รับ VisitStatus สำเร็จ ${ok} · ไม่สำเร็จ ${failed} · ข้าม ${skipped}`)}finally{worklistVisitBusy=false;visitStatusButton.textContent=label;endProcessing();v76257UpdateWorklistSelection()}
+  };
+  // The summary must not silently do nothing when the user clicks a confirmed record.
+  const previousOpenSummary=$('#receiveCheckup')?.onclick;
+  if($('#receiveCheckup'))$('#receiveCheckup').onclick=async function(event){
+    const record=state.records.find(item=>String(item.key)===String(activeRecordKey));
+    if(!record)return alert('ไม่พบผู้รับบริการ กรุณาเปิดรายการใหม่');
+    if(!(record.checkupConfirmedAt||record.visitedAt))return previousOpenSummary?.call(this,event);
+    if(!canOpenCheckupSummary(record))return alert('ไม่มีสิทธิ์เปิดสรุปรายการตรวจ กรุณาตรวจสอบ Role ของบัญชี');
+    if(this.disabled)return;
+    this.disabled=true;
+    try{
+      pendingCheckup=savedCheckupDraft(record);
+      // The A4 overlay opens before fetching slow HIS package details.
+      await showA4Summary(pendingCheckup);
+      if(!$('#summaryOverlay')?.classList.contains('open'))open('summaryOverlay');
+      syncCheckupWorkflowButtons(record);
+    }catch(error){
+      console.error('เปิดสรุปรายการตรวจไม่สำเร็จ',error);
+      alert(`เปิดสรุปรายการตรวจไม่สำเร็จ: ${error.message||String(error)}`);
+    }finally{this.disabled=false}
+  };
+  $('#worklistRows')?.addEventListener('click',event=>{const button=event.target.closest('[data-worklist-confirm-record]');if(button&&!button.disabled&&button.dataset.worklistConfirmRecord)detail(button.dataset.worklistConfirmRecord)});
   let preparedMultiCustomerImport=null;
   const multiCustomerCompanyYear=value=>{
     const text=String(value||'').trim(),match=text.match(/^(.*)\s*\/\s*([^/]+)$/);
@@ -78,7 +127,7 @@
     if(!file||prepared.signature!==importFileSignature(file))return status.textContent='ไฟล์มีการเปลี่ยนแปลง กรุณาเลือกไฟล์ใหม่';
     if(!confirm(`ยืนยันนำเข้า ${matched.toLocaleString('th-TH')} รายชื่อ ไปยัง ${prepared.groups.length.toLocaleString('th-TH')} บริษัท/ปี?`))return;
     button.disabled=true;beginProcessing('กำลังนำเข้าหลายรายชื่อ',prepared.groups.length);
-    let imported=0,added=0,updated=0;
+    let imported=0,added=0,updated=0;const sourceFileWarnings=[];
     try{
       const backup=await fetch('/api/state/import-backups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({expectedRevision:Number(state._revision),reason:'MULTI_CUSTOMER_IMPORT',performedBy:currentUser?.displayName||currentUser?.username||'ผู้ดูแลระบบ',companies:prepared.groups.map(item=>({name:item.company.name,year:item.company.year,code:item.company.code,customerCount:item.records.length}))})});
       if(!backup.ok){const result=await backup.json().catch(()=>({}));throw new Error(result.error||'สำรองข้อมูลก่อนนำเข้าไม่สำเร็จ')}
@@ -86,9 +135,9 @@
         const item=prepared.groups[index],merge=mergeCustomerImport(item.company.id,item.records);setProcessingProgress(index,prepared.groups.length,`กำลังนำเข้า ${item.company.name} / ${item.company.year}`);
         const response=await fetch('/api/customer-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:item.company.id,records:item.records,_revision:Number(state._revision||0),updatedBy:currentUser?.displayName||currentUser?.username||'system'})}),result=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(`${item.company.name} / ${item.company.year}: ${result.error||'นำเข้าไม่สำเร็จ'}`);
-        state.records=merge.records;state._revision=Number(result.revision||state._revision||0);item.company.updatedAt=result.updatedAt||new Date().toISOString();imported+=item.records.length;added+=Number(result.added||0);updated+=Number(result.updated||0);setProcessingProgress(index+1,prepared.groups.length,`นำเข้าแล้ว ${(index+1).toLocaleString('th-TH')} / ${prepared.groups.length.toLocaleString('th-TH')} บริษัท/ปี`);
+        state.records=merge.records;state._revision=Number(result.revision||state._revision||0);try{await storeCompanyImportFile(item.company.id,file,item.records.length)}catch(error){sourceFileWarnings.push(`${item.company.name}: ${error.message}`)}item.company.updatedAt=result.updatedAt||new Date().toISOString();imported+=item.records.length;added+=Number(result.added||0);updated+=Number(result.updated||0);setProcessingProgress(index+1,prepared.groups.length,`นำเข้าแล้ว ${(index+1).toLocaleString('th-TH')} / ${prepared.groups.length.toLocaleString('th-TH')} บริษัท/ปี`);
       }
-      renderAll();status.style.color='#237a45';status.textContent=`นำเข้าสำเร็จ ${imported.toLocaleString('th-TH')} รายชื่อ · เพิ่มใหม่ ${added.toLocaleString('th-TH')} · อัปเดตเดิม ${updated.toLocaleString('th-TH')}${prepared.unmatched.length?` · ข้ามรายการจับคู่ไม่ได้ ${prepared.unmatched.length.toLocaleString('th-TH')}`:''}`;preparedMultiCustomerImport=null;setTimeout(()=>close('multiCustomerImportOverlay'),1200);
+      renderAll();status.style.color='#237a45';status.textContent=`นำเข้าสำเร็จ ${imported.toLocaleString('th-TH')} รายชื่อ · เพิ่มใหม่ ${added.toLocaleString('th-TH')} · อัปเดตเดิม ${updated.toLocaleString('th-TH')}${prepared.unmatched.length?` · ข้ามรายการจับคู่ไม่ได้ ${prepared.unmatched.length.toLocaleString('th-TH')}`:''}`;preparedMultiCustomerImport=null;if(sourceFileWarnings.length){status.style.color='#9a5b00';status.textContent+=' · ข้อมูลนำเข้าแล้ว แต่เก็บไฟล์ต้นฉบับไม่สำเร็จ: '+sourceFileWarnings.join(' / ')}else setTimeout(()=>close('multiCustomerImportOverlay'),1200);
     }catch(error){status.style.color='#a53737';status.textContent=`นำเข้าแล้ว ${imported.toLocaleString('th-TH')} รายชื่อ ก่อนหยุด: ${error.message||String(error)}`}
     finally{endProcessing();button.disabled=false}
   });
@@ -124,7 +173,7 @@
       const rows=Array.isArray(result.items)?result.items:[];
       if(splitSearchLegacy)splitSearchLegacy.value=activeRaw.join(' ');
       searchV76225(rows);
-      const shown=rows.length,total=Number(result.total||shown);$('#resultMeta').textContent=total?`พบ ${total.toLocaleString('th-TH')} รายการ${total>shown?` · แสดง ${shown.toLocaleString('th-TH')} รายการแรก`:''} · ค้นหาจาก PostgreSQL`:'ไม่พบข้อมูล';
+      const shown=rows.length,total=Number(result.total||shown);$('#resultMeta').textContent=total?`พบ ${total.toLocaleString('th-TH')} รายการ${total>shown?` · แสดง ${shown.toLocaleString('th-TH')} รายการแรก`:''}`:'ไม่พบข้อมูล';
     }catch(error){if(sequence===serverSearchSequence)$('#resultMeta').textContent=error.message||String(error)}
   };
   splitSearchInputIds.forEach(id=>{$('#'+id)?.addEventListener('input',scheduleCustomerSearch)});

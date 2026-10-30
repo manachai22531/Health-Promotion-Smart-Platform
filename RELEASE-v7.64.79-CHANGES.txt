@@ -1,0 +1,12 @@
+v7.64.87 Production Windows Installer
+
+All functionality through v7.64.78 is retained. New changes:
+- Removed redundant Open Details button below customer names; clicking the card opens details as before.
+- Personal EXP panel: latest active awarded work medal, today activity counts/EXP by type, expandable own award/revocation history. Bangkok day boundaries; revoked work excluded from active summary. No new award rules.
+- Customer contact phone/email now sit beside the name. Edit Personal Details opens the existing fields in a dialog. Old inline personal editor removed. Existing API authorization/locks preserved; save/cancel/Escape and context/logout clearing supported.
+- Appointment page now has two large tabs: Appointments and Create Schedule. Removed HIS from the appointment page title, navigation and display labels. Existing calendar integration and schedule capacity controls remain. Create Schedule visible only to authorized users.
+- Previous customer preview, promotion banners and health knowledge/eligible package links retained. Demo preview includes the new contact header and edit dialog with fictional data.
+
+Extract the entire ZIP, run INSTALL-REPAIR.vbs, allow UAC, wait for Complete SUCCESS, then press Ctrl+F5 and verify v7.64.87.
+Schema remains 0218; configuration, credentials and existing data are preserved and backed up.
+Native Windows GUI/UAC/VBS/Robocopy/Task Scheduler were not executed in the Linux verification environment.

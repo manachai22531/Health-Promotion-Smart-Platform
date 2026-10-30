@@ -1,0 +1,42 @@
+HealthCheck v7.64.32 PRODUCTION — Test Report
+Date: 2026-10-14 (Asia/Bangkok)
+Base: user-supplied v7.64.30 plus v7.64.31 cursor fix
+
+RESULT: PASS (current feature/release checks)
+
+PASS JavaScript syntax: server, application, appearance settings and EXP module/widget
+PASS TypeScript typecheck and build
+PASS 18 behavioral checks using real PostgreSQL engine via PGlite and actual server handlers:
+  Initial credential required; local account creation; mandatory first password change;
+  session issuance after change; password/token replay rejected; edit preserves password;
+  individual reset revokes sessions/tokens and preserves disabled status; role permission gates;
+  authenticated confirmation and +10 EXP commit together; duplicate, historical,
+  anonymous, revision-conflict and transaction-rollback cases award no EXP;
+  one reward per case across users; per-user EXP reads; Bangkok daily counters;
+  all 100 level boundaries and 10 shield ranks.
+PASS Chromium component/handler checks at 1920x1080, 1366x768 and 390x844:
+  Login submission opens mandatory password dialog above login; hit testing, focus trap,
+  inert login and Escape prevention; create/edit/reset form actions;
+  compact footer fits viewport; hide/reopen; independent per-user preference;
+  EXP reward, level-up and level-100 display; hidden on login and print.
+PASS Cursor size browser regression: 12 style/size combinations, SVG dimensions,
+  preview sizes, saved preference and reset.
+PASS Related Node regressions: first-login/level checks 7; admin baseline behavior 4;
+  appearance 5; user/search tabs 3; confirmation flow 11; updater behavior 3.
+PASS Runtime smoke: actual server startup, release identity, widget/cursor asset routes,
+  unauthenticated EXP read rejection. Database bootstrap skipped in this smoke test.
+PASS Installer metadata and deployment scripts: source matches uploaded installer
+  logic byte-for-byte except current release labels. Launcher/path checks 2/2.
+
+Compatibility notes:
+  Historical tests containing old release-number assertions are excluded.
+  Historical v7.63.98 WPF callback assertion fails on BOTH the untouched supplied
+  v7.64.30 installer and this release; confirmed as a baseline mismatch.
+  Legacy npm smoke script asserts v7.61.58; current release runtime smoke was used.
+
+Limits:
+  Windows installer execution and live HIS integration were not exercised on this
+  Linux workspace. Database behavior used PGlite PostgreSQL; browser requests used
+  controlled fixtures, not the user's production data.
+  Update manifest downloadUrl remains a server-URL template; Google Drive upload
+  is for manual installation, not an automatic-updater hosting configuration.

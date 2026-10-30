@@ -1,0 +1,41 @@
+HealthCheck v7.64.73 validation — 2026-10-23 Asia/Bangkok
+PASS TypeScript build and current Node release suite: 28 tests.
+PASS fresh PostgreSQL startup and initial admin password-change protection.
+PASS real PostgreSQL v7.64.72 -> v7.64.73 including repair-admin: preserved
+ company/year, circular, credentials, password age, Role policy and extra config;
+ existing login works. Public readiness checks exact version/production/DB;
+ anonymous protected /api/system/health still returns 401.
+PASS actual Chromium + PostgreSQL accepted UI:
+ EMR nine-column full-width table at 1920/1360/780/390; escaped patient content;
+ date/status/doctor/search/empty filters; open book/back; failed HIS receive
+ restores controls without inadvertently opening a book (mocked HIS endpoint).
+ Worklist five stages, unique records, read-only unconfirmed projection, safe
+ bulk eligibility/select-all, stage filters, open for review without auto-confirm;
+ removed marked KPI row and board heading; state transition remains one row.
+ Customer search removed marked headings/hint/database-source label and rail
+ header; company lookup opens/focuses/closes and fits at 1920/1360/1100/780/390;
+ search results render with a compact toolbar.
+PASS circular section saves and medical/service choices with independent fields;
+ real XLSX template/import/save, invalid input rejection, typed PDF attachment
+ upload/list/merge/reload/delete and authorization.
+PASS login history permission, filtering, pagination, Bangkok boundaries,
+ honest legacy status and no password/hash/token leakage in new events.
+PASS security: default/per-role idle deadline, polling cannot renew, trusted
+ activity and cross-tab activity, password age/change, tampering protection,
+ idle logout after sleep, browser login/reload and policy save.
+PASS PowerShell source-backup.test.ps1 core: real streaming ZIP byte round-trip
+ including hidden .env/Thai files/user uploads; cache exclusions; failure cleanup;
+ old ZIP not overwritten; actual deploy preflight block with simulated low disk
+ does not invoke server stop; linked data rejected explicitly.
+PASS updater bootstrap repair: atomic replacement, verified original backup,
+ hash rejection, idempotency, active-job guard, preserved .env and quoted paths.
+Package checks before publication: ZIP CRC, full hash coverage, PowerShell
+ syntax and payload integrity/corruption/path-traversal rejection. Published
+ artifact is downloaded back from Git and verified against external SHA256.
+
+Limits: Windows GUI/UAC/VBS/Robocopy/Task Scheduler/full deployment were not
+ executed here. Core PowerShell ran on Linux 7.5.4 using 5.1-compatible APIs.
+ Tests use isolated disposable DBs, not the user's Production database.
+ Source capacity estimate includes payload + 1 GiB, not an exact DB dump or npm
+ space guarantee. Backup compression still depends on source size and disk speed.
+ Historical test/report files are retained as history, not an all-tests-pass claim.

@@ -1,0 +1,7 @@
+HealthCheck v7.64.26 PRODUCTION validation — 2026-10-13
+
+PASS  JavaScript, SVG XML and PowerShell syntax
+PASS  Targeted theme/icon/installer/updater/Sparkle regression: 9/9
+PASS  Appearance trigger references dedicated person-and-palette SVG
+PASS  Premium and Warm themes recolor headings, labels, secondary text, links, KPIs and table headers
+PASS  Current theme remains available and print/PDF isolation is retained

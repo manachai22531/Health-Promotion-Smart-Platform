@@ -1,0 +1,15 @@
+HealthCheck v7.64.56 verification
+PASS Chromium Booking form: company/year auto-import, employee/family groups, package code/group editing, removal and canonical payer edits in save payload.
+PASS reopening saved Booking retains package removals and changes without importing source again; a delayed source response never overwrites manual edits.
+PASS read-only Booking disables import/edit/remove controls.
+PASS real PostgreSQL-compatible PGlite SQL with actual experience-workflows create/update route: snapshot and payer deletions persist independently; before/after audit includes changes and actor.
+PASS server rejects mismatched company/year snapshots, unknown HIS package codes and invalid payer-plan-office relationships without changing saved Booking. Forbidden write tested with permission middleware fixture.
+PASS migration 0215 idempotence and test-database rollback/reapply. Existing migrations preserved byte-for-byte in installer package.
+PASS actual customer workspace: Location shows code plus name, saved record retains canonical code, HTML patient cell and saved PDF model show Location name without prefix.
+PASS actual server-generated PDF text includes Corporate Health Checkup and has no Location: label.
+PASS save/confirmation processing overlay blocks duplicate actions through write and summary refresh; success/error unlock; initial/repeat confirmation and orange styling retained.
+PASS direct Print A4/Ctrl+P without preview, explicit PDF preview and desktop/narrow action controls.
+PASS runtime startup v7.64.56, new static module and anonymous access denial including booking-defaults endpoint (database bootstrap skipped in smoke test).
+PASS 34 selected unit/workflow tests and npm run typecheck.
+PASS dependency manifests unchanged aside from version; ZIP CRC and source SHA256 inventories checked.
+LIMITS: controlled browser/API fixtures and in-memory PostgreSQL-compatible test DB. Windows installer execution, live HIS, production database upgrade and physical printer testing not performed.
