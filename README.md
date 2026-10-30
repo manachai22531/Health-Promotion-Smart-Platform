@@ -1,5 +1,7 @@
 # ตัวติดตั้ง v7.64.92 — Patient Demographic HISGender Hotfix
 
+แผนรุ่นถัดไป: พัฒนา 7.64.x ใน installers/* ถึง 7.64.99 แล้วรวมซอร์สพร้อม hotfix เข้า main ในรอบ 7.65.00 ดู [Release policy](RELEASE-POLICY.md)
+
 แก้ Export Excel คอลัมน์ HISGender ว่าง แม้หน้าต่าง HIS แสดง FEMALE โดยใช้ gender_label และ fallback gender ให้ตรงกันทั้งหน้าเว็บและสองชีต Excel
 
 [ดาวน์โหลดตัวติดตั้ง Windows พร้อม hotfix](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.92-hisgender-hotfix/HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER-HISGENDER-FIX.zip)
