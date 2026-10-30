@@ -1,0 +1,12 @@
+v7.64.94 — แก้ปุ่มเปิดหน้าลูกค้ากดไม่ไป
+
+สาเหตุ: ฟังก์ชัน open(id) ของ modal ใน assets/app.js ทับ window.open ทำให้ปุ่มใน v7.64.93 ไม่เปิดแท็บ
+แก้: ใช้ลิงก์ <a target="_blank" rel="noopener noreferrer"> ให้ browser เปิดแท็บโดยตรง ไม่เรียก window.open
+คงการตรวจสิทธิ์ search + customerSensitiveView ฝั่ง API และไม่ใส่ href เมื่อผู้ใช้ไม่มีสิทธิ์
+คงหน้าเจ้าหน้าที่อ่านอย่างเดียว แถบแสดงตลอด จำนวน 0/รอตรวจ/รับแล้ว และ HISGender hotfix
+
+การทดสอบ: Chromium คลิกลิงก์จริงแล้วตรวจ popup URL ภายใต้ window.open ที่ถูกแทนด้วยฟังก์ชัน modal; เปิดข้อมูลจริงผ่าน renderer พร้อมตรวจห้ามส่งรายการ; build และ release suite ผ่าน
+การทดสอบ v7.64.93 เดิม mock window.open จึงไม่ตรวจพบปัญหาชื่อฟังก์ชันซ้ำ รอบนี้ตรวจแท็บจริง
+ยังไม่ได้ทดสอบ Windows GUI/UAC หรือ HIS โรงพยาบาลจริง
+
+ติดตั้ง: สำรองข้อมูล แตก ZIP ทั้งหมด เปิด INSTALL-REPAIR.bat อนุญาต Administrator รอ health check แล้ว Ctrl+F5 ตรวจ v7.64.94

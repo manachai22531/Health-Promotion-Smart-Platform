@@ -1,23 +1,17 @@
-# ตัวติดตั้ง Production v7.64.93
+# ตัวติดตั้ง Production v7.64.94
 
-แถบข้อมูลแพ็กเกจลูกค้าแสดงตลอด พร้อมปุ่มเปิดข้อมูลจริงแบบลูกค้าสำหรับเจ้าหน้าที่ (อ่านอย่างเดียว) และจำนวนรายการที่ลูกค้าเลือก รวม HISGender Excel hotfix
+แก้ปุ่มเปิดหน้าลูกค้ากดไม่ไปจาก v7.64.93 โดยใช้ลิงก์เปิดแท็บจริงแทน window.open ที่ชนกับฟังก์ชัน modal ในแอป
 
-[ดาวน์โหลดตัวติดตั้ง v7.64.93](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.93/HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง v7.64.94](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.94/HealthCheck-v7.64.94-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-[ดาวน์โหลด checksum SHA256](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.64.93/HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip.sha256)
+สำรองข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat → อนุญาต Administrator → รอ health check ผ่าน → Ctrl+F5 ตรวจ v7.64.94
 
-สำรองข้อมูลตามขั้นตอนเดิม → แตก ZIP ทั้งหมด → INSTALL-REPAIR.bat → อนุญาต Administrator → รอ health check ผ่าน → เปิดเว็บ Ctrl+F5 ตรวจ v7.64.93
+คงข้อมูลจริงแบบอ่านอย่างเดียวตามสิทธิ์เจ้าหน้าที่ แถบแสดงตลอด และรวม HISGender Excel hotfix
 
-แถบแสดงแม้ยังไม่ยืนยันการตรวจหรือไม่มีรายการ (0) พนักงานที่มีสิทธิ์ค้นหาและดูข้อมูลส่วนบุคคลเปิดหน้าลูกค้าของรายนั้นได้ ไม่สร้าง session ลูกค้า ไม่ส่งรายการแทนลูกค้า
+ทดสอบ build, release tests 118 รายการ และ Chromium คลิกเปิดแท็บจริงผ่าน รวมกรณี window.open ถูกฟังก์ชัน modal ทับ ไม่ได้ทดสอบ Windows GUI/UAC จริง
 
-QR ลูกค้ายังคงต้องยืนยันการตรวจและตั้งค่า URL ที่มือถือเข้าถึงได้ ตามเงื่อนไขเดิม
+SHA256: 664be1b62e5449798be2a5a59b7d20a72c68e2f0b6493d314e60dbc85c1bb767
 
-ฐานซอร์ส: installers/v7.64.92 commit 003692ab76b2c843e32cb73777bc6422aba704ea พร้อม HISGender hotfix ไม่ใช้ main
+ฐานซอร์ส installers/v7.64.93 ไม่ใช้ main ซอร์สเต็มอยู่ใน ZIP และ patch อยู่ใน source-changes-v7.64.94/
 
-ทดสอบ build, release tests 118 รายการ และ Chromium regression 2 รายการผ่าน ตรวจ startup/ฐานข้อมูลและปฏิเสธ anonymous preview ผ่าน ยังไม่ได้ทดสอบ GUI/UAC บน Windows จริงหรือ HIS โรงพยาบาลจริง
-
-SHA256: 7b02ce0754f2e00e4f845122419e426b490db21fc4a53be2625ed33cce8cde44
-
-ซอร์สที่แก้และ patch: source-changes-v7.64.93/ ส่วนซอร์สเต็มอยู่ใน ZIP
-
-[นโยบายรวมซอร์สพร้อม hotfix กลับ main ในรอบ 7.65.00](RELEASE-POLICY.md)
+[นโยบายรวมซอร์สกลับ main ในรอบ 7.65.00](RELEASE-POLICY.md)

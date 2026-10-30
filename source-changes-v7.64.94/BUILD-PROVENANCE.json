@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.94",
+  "base_release": "v7.64.93",
+  "base_archive": "HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "7b02ce0754f2e00e4f845122419e426b490db21fc4a53be2625ed33cce8cde44",
+  "changes": "Fix staff customer-view navigation: use a native target=_blank anchor rather than window.open, which is shadowed by the app modal open function. Preserve permission checks, read-only preview and HISGender hotfix.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.93",
+  "base_github_commit": "147bdee",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}

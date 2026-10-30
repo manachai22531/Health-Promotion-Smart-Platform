@@ -1,0 +1,355 @@
+--- a/assets/customer-selection-review.js
++++ b/assets/customer-selection-review.js
+@@ -4,12 +4,12 @@
+ const count=p=>['billingIds','cashIds','contractIds'].reduce((n,k)=>n+new Set((p?.[k]||[]).map(String)).size,0);
+ const acceptedPatch=r=>({acceptedBillingItems:r.acceptedBillingItems||[],acceptedCashItems:r.acceptedCashItems||[],selectedPackages:r.selectedPackages||[],customerPendingSelection:r.customerPendingSelection||null,customerSelectionReview:r.customerSelectionReview||null,cashAccepted:Boolean(r.cashAccepted)});
+ async function request(key,options){const response=await fetch('/api/customer-selections/'+encodeURIComponent(key)+'/review',{cache:'no-store',...options}),data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'ติดต่อระบบไม่สำเร็จ กรุณาโหลดข้อมูลล่าสุด');return data}
+-function decorate(){document.querySelectorAll('#resultRows .customer-pending-outside').forEach(el=>el.remove());for(const card of document.querySelectorAll('#resultRows .customer-compact-card')){const r=recordOf(card.dataset.key),head=card.querySelector('.cc-package-panel>h3');if(!r||!head)continue;let strip=head.nextElementSibling;if(!strip?.classList.contains('csr-access-strip')){head.querySelector('[data-selection-alert]')?.remove();strip=document.createElement('div');strip.className='csr-access-strip';strip.innerHTML='<div class="csr-access-title"><strong>ข้อมูลแพ็กเกจสำหรับลูกค้า</strong><small data-access-status></small></div><div class="csr-access-actions"><button type="button" class="button primary" data-customer-view>↗ เปิดหน้าลูกค้า</button><button type="button" class="button csr-alert" data-selection-alert><span>รายการที่ลูกค้าเลือก</span><b>0</b></button></div>';head.after(strip)}const pending=r.customerPendingSelection,receipt=r.customerSelectionReview,n=pending?count(pending):(receipt?.items||[]).length,confirmed=Boolean(r.checkupConfirmedAt||r.visitedAt),status=confirmed?'ยืนยันการตรวจแล้ว · เปิดดูมุมมองลูกค้าได้':'ยังไม่ยืนยันการตรวจ · เจ้าหน้าที่เปิดดูข้อมูลได้',alert=strip.querySelector('[data-selection-alert]'),view=strip.querySelector('[data-customer-view]');const signature=JSON.stringify([n,Boolean(pending),Boolean(receipt),status,can('customerSensitiveView')]);if(strip.dataset.state===signature)continue;strip.dataset.state=signature;strip.querySelector('[data-access-status]').textContent=status;view.dataset.customerView=String(r.key);view.disabled=!can('customerSensitiveView');view.title=view.disabled?'ต้องมีสิทธิ์ดูข้อมูลส่วนบุคคลลูกค้า':'เปิดหน้าข้อมูลลูกค้าแบบอ่านอย่างเดียว';alert.dataset.selectionAlert=String(r.key);alert.classList.toggle('csr-reviewed',!pending&&Boolean(receipt));alert.querySelector('span').textContent=!pending&&receipt?'รับรายการลูกค้าแล้ว':'รายการที่ลูกค้าเลือก';alert.querySelector('b').textContent=String(n);alert.setAttribute('aria-label','ดูรายการลูกค้า '+n+' รายการ')}}
++function decorate(){document.querySelectorAll('#resultRows .customer-pending-outside').forEach(el=>el.remove());for(const card of document.querySelectorAll('#resultRows .customer-compact-card')){const r=recordOf(card.dataset.key),head=card.querySelector('.cc-package-panel>h3');if(!r||!head)continue;let strip=head.nextElementSibling;if(!strip?.classList.contains('csr-access-strip')){head.querySelector('[data-selection-alert]')?.remove();strip=document.createElement('div');strip.className='csr-access-strip';strip.innerHTML='<div class="csr-access-title"><strong>ข้อมูลแพ็กเกจสำหรับลูกค้า</strong><small data-access-status></small></div><div class="csr-access-actions"><a class="button primary" data-customer-view target="_blank" rel="noopener noreferrer">↗ เปิดหน้าลูกค้า</a><button type="button" class="button csr-alert" data-selection-alert><span>รายการที่ลูกค้าเลือก</span><b>0</b></button></div>';head.after(strip)}const pending=r.customerPendingSelection,receipt=r.customerSelectionReview,n=pending?count(pending):(receipt?.items||[]).length,confirmed=Boolean(r.checkupConfirmedAt||r.visitedAt),status=confirmed?'ยืนยันการตรวจแล้ว · เปิดดูมุมมองลูกค้าได้':'ยังไม่ยืนยันการตรวจ · เจ้าหน้าที่เปิดดูข้อมูลได้',alert=strip.querySelector('[data-selection-alert]'),view=strip.querySelector('[data-customer-view]');const signature=JSON.stringify([n,Boolean(pending),Boolean(receipt),status,can('customerSensitiveView')]);if(strip.dataset.state===signature)continue;strip.dataset.state=signature;strip.querySelector('[data-access-status]').textContent=status;view.dataset.customerView=String(r.key);const allowed=can('customerSensitiveView');view.setAttribute('aria-disabled',String(!allowed));if(allowed)view.href='/customer?staffPreview='+encodeURIComponent(r.key);else view.removeAttribute('href');view.title=!allowed?'ต้องมีสิทธิ์ดูข้อมูลส่วนบุคคลลูกค้า':'เปิดหน้าข้อมูลลูกค้าแบบอ่านอย่างเดียว';alert.dataset.selectionAlert=String(r.key);alert.classList.toggle('csr-reviewed',!pending&&Boolean(receipt));alert.querySelector('span').textContent=!pending&&receipt?'รับรายการลูกค้าแล้ว':'รายการที่ลูกค้าเลือก';alert.querySelector('b').textContent=String(n);alert.setAttribute('aria-label','ดูรายการลูกค้า '+n+' รายการ')}}
+ 
+ customerPendingPanelHtml=()=>'';new MutationObserver(decorate).observe(document.getElementById('resultRows'),{childList:true,subtree:true});decorate();
+ function totals(rows){return {billing:rows.filter(r=>r.type==='billing').reduce((s,r)=>s+Number(r.price||0),0),self:rows.filter(r=>r.type!=='billing').reduce((s,r)=>s+Number(r.price||0),0)}}
+ async function popup(key){const ticket=++popupGeneration,actor=currentUser;const dialog=document.createElement('dialog');dialog.className='csr-dialog';dialog.setAttribute('aria-label','รายการที่ลูกค้าเลือก');dialog.innerHTML='<header><h2>รายการที่ลูกค้าเลือกด้วยตนเอง</h2><button type="button" class="button secondary" data-close>ปิด</button></header><div class="csr-dialog-body" role="status">กำลังโหลดรายการ…</div>';document.body.append(dialog);dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.onclose=()=>{popupGeneration++;dialog.remove()};dialog.showModal();try{const data=await request(key);if(!dialog.open||ticket!==popupGeneration||currentUser!==actor)return;const pending=Boolean(data.pending),rows=pending?data.rows:data.reviewed?.items||[],total=totals(rows),note=data.pending?.note||data.reviewed?.note||'',body=dialog.querySelector('.csr-dialog-body');body.removeAttribute('role');body.innerHTML=`<p>${pending?'ส่งเมื่อ '+esc(date(data.pending.submittedAt)):data.reviewed?'รับรายการแล้วเมื่อ '+esc(date(data.reviewed.reviewedAt)):'ยังไม่มีรายการที่ลูกค้าเลือก'}</p><div class="csr-groups">${Object.entries(labels).map(([type,label])=>{const items=rows.filter(x=>x.type===type);return `<section class="csr-group csr-${type}"><h3>${label}<small>${items.length} รายการ</small></h3>${items.map(item=>`<article><b>${esc(item.code)}</b><span>${esc(item.name)}</span><strong>${item.available===false?'ไม่พร้อมให้เลือก':moneyText(item.price)}</strong></article>`).join('')||'<p>ไม่มีรายการ</p>'}<footer>ยอดย่อย <b>${moneyText(items.reduce((s,x)=>s+Number(x.price||0),0))}</b></footer></section>`}).join('')}</div><p class="csr-note"><b>หมายเหตุจากลูกค้า:</b> ${esc(note||'ไม่มีหมายเหตุ')}</p><div class="csr-dialog-footer"><div>วางบิล <b>${moneyText(total.billing)}</b> · ชำระเอง <b>${moneyText(total.self)}</b> · รวม <b>${moneyText(total.billing+total.self)}</b></div><button type="button" class="button primary" data-review>${pending?'ตรวจสอบและรับรายการ':'ดูรายการที่รับแล้ว'}</button></div>`;body.querySelector('[data-review]').hidden=!data.pending&&!data.reviewed;body.querySelector('[data-review]').onclick=()=>{dialog.close();openEditor(key)}}catch(e){if(dialog.open)dialog.querySelector('.csr-dialog-body').textContent=e.message}}
+-document.getElementById('resultRows').addEventListener('click',event=>{const view=event.target.closest('[data-customer-view]');if(view){event.preventDefault();event.stopImmediatePropagation();if(can('customerSensitiveView'))window.open('/customer?staffPreview='+encodeURIComponent(view.dataset.customerView),'_blank','noopener,noreferrer');return}const b=event.target.closest('[data-selection-alert]');if(!b)return;event.preventDefault();event.stopImmediatePropagation();popup(b.dataset.selectionAlert)},true);
++document.getElementById('resultRows').addEventListener('click',event=>{const view=event.target.closest('[data-customer-view]');if(view){event.stopImmediatePropagation();if(!can('customerSensitiveView'))event.preventDefault();return}const b=event.target.closest('[data-selection-alert]');if(!b)return;event.preventDefault();event.stopImmediatePropagation();popup(b.dataset.selectionAlert)},true);
+ const previousDetail=detail;detail=function(key){const result=previousDetail(key);loadEditor(key);return result};
+ function openEditor(key){if(!recordOf(key))return;detail(key);loadEditor(key,true)}
+ acceptCustomerSelection=openEditor;
+--- a/assets/customer-selection-review.css
++++ b/assets/customer-selection-review.css
+@@ -3,3 +3,5 @@
+ .csr-access-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;margin:8px 0;border:1px solid #83ced6;border-radius:10px;background:linear-gradient(100deg,#eefbfc,#f8fdff);box-shadow:0 2px 5px #087c8b12}.csr-access-title strong,.csr-access-title small{display:block}.csr-access-title strong{color:#124c6b;font-size:14px}.csr-access-title small{color:#487b87;font-size:11px;margin-top:4px}.csr-access-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.csr-access-strip .csr-alert{display:inline-flex;align-items:center;gap:7px;background:#fff3ce!important;color:#835b00!important;border:1px solid #dfb54e!important}.csr-staff-preview-banner{position:sticky;top:0;z-index:9999;padding:12px 20px;background:#e4f6ed;color:#155e51;text-align:center;border-bottom:1px solid #8bcbbb;font:14px Tahoma,sans-serif}.csr-preview-loading{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:#f5fbfd;color:#174e68;font:16px Tahoma,sans-serif}.csr-staff-preview #customerProfileForm,.csr-staff-preview #customerSelectionForm .customer-selection-footer,.csr-staff-preview #csCheckout,.csr-staff-preview #customerLogout,.csr-staff-preview #closeCustomerPortal{display:none!important}@media(max-width:900px){.csr-access-strip{align-items:stretch;flex-direction:column}.csr-access-actions>*{flex:1;min-height:42px}}.csr-access-strip button:disabled{opacity:.55;cursor:not-allowed}
+ 
+ .csr-staff-preview #customerEditProfile,.csr-staff-preview #customerSelfLogout{display:none!important}.csr-staff-preview #customerPortalScreen{padding-top:48px}
++
++.csr-access-actions a[data-customer-view]{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer}.csr-access-actions a[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+--- a/tools/customer-staff-preview-browser.test.cjs
++++ b/tools/customer-staff-preview-browser.test.cjs
+@@ -12,7 +12,7 @@
+  await page.evaluate(()=>{window.state={records:[{key:'case-A'}]};window.currentUser={id:'staff'};window.can=()=>true;window.money=n=>String(n);window.esc=s=>String(s??'');window.detail=()=>{};window.customerPendingPanelHtml=()=>'';window.acceptCustomerSelection=()=>{};window.open=(...args)=>{window.opened=args}});
+  await page.addScriptTag({content:fs.readFileSync(path.join(root,'assets/customer-selection-review.js'),'utf8')});
+  assert.equal(await page.locator('.csr-access-strip').count(),1);assert.equal(await page.locator('[data-selection-alert] b').innerText(),'0');
+- await page.locator('[data-customer-view]').click();assert.deepEqual(await page.evaluate(()=>opened),['/customer?staffPreview=case-A','_blank','noopener,noreferrer']);
++ const popupEvent=page.waitForEvent('popup');await page.locator('[data-customer-view]').click();const popup=await popupEvent;await popup.waitForURL('**/customer?staffPreview=case-A');assert.equal(await page.evaluate(()=>window.opened),undefined,'Native link must bypass the application modal open()');await popup.close();
+  await page.route('**/api/customer-selections/**',route=>route.fulfill({json:{rows:[],pending:null,reviewed:null}}));await page.locator('[data-selection-alert]').click();await page.getByText('ยังไม่มีรายการที่ลูกค้าเลือก',{exact:true}).waitFor();await page.locator('.csr-dialog [data-close]').click();
+  await page.evaluate(()=>{state.records[0].customerPendingSelection={billingIds:['one','one'],cashIds:['two']};state.records[0].checkupConfirmedAt=new Date().toISOString();document.querySelector('.cc-package-panel h3').append(document.createElement('span'))});
+  await page.waitForFunction(()=>document.querySelector('[data-selection-alert] b').textContent==='2');assert.equal(await page.locator('.csr-access-strip').count(),1);
+--- a/BUILD-PROVENANCE.json
++++ b/BUILD-PROVENANCE.json
+@@ -1,12 +1,12 @@
+ {
+-  "release": "v7.64.93",
+-  "base_release": "v7.64.92",
+-  "base_archive": "HealthCheck-v7.64.92-PRODUCTION-WINDOWS-INSTALLER.zip",
+-  "base_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+-  "changes": "Always-visible customer package action strip with zero/pending/reviewed counts; authenticated read-only real customer profile preview; includes HISGender Excel hotfix.",
++  "release": "v7.64.94",
++  "base_release": "v7.64.93",
++  "base_archive": "HealthCheck-v7.64.93-PRODUCTION-WINDOWS-INSTALLER.zip",
++  "base_sha256": "7b02ce0754f2e00e4f845122419e426b490db21fc4a53be2625ed33cce8cde44",
++  "changes": "Fix staff customer-view navigation: use a native target=_blank anchor rather than window.open, which is shadowed by the app modal open function. Preserve permission checks, read-only preview and HISGender hotfix.",
+   "windows_installation_executed": false,
+-  "base_github_branch": "installers/v7.64.92",
+-  "base_github_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
++  "base_github_branch": "installers/v7.64.93",
++  "base_github_commit": "147bdee",
+   "hotfix": "patient-demographic-hisgender",
+   "source_branch": "installers/v7.64.92",
+   "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+--- /dev/null
++++ b/RELEASE-v7.64.94-CHANGES.txt
+@@ -0,0 +1,12 @@
++v7.64.94 — แก้ปุ่มเปิดหน้าลูกค้ากดไม่ไป
++
++สาเหตุ: ฟังก์ชัน open(id) ของ modal ใน assets/app.js ทับ window.open ทำให้ปุ่มใน v7.64.93 ไม่เปิดแท็บ
++แก้: ใช้ลิงก์ <a target="_blank" rel="noopener noreferrer"> ให้ browser เปิดแท็บโดยตรง ไม่เรียก window.open
++คงการตรวจสิทธิ์ search + customerSensitiveView ฝั่ง API และไม่ใส่ href เมื่อผู้ใช้ไม่มีสิทธิ์
++คงหน้าเจ้าหน้าที่อ่านอย่างเดียว แถบแสดงตลอด จำนวน 0/รอตรวจ/รับแล้ว และ HISGender hotfix
++
++การทดสอบ: Chromium คลิกลิงก์จริงแล้วตรวจ popup URL ภายใต้ window.open ที่ถูกแทนด้วยฟังก์ชัน modal; เปิดข้อมูลจริงผ่าน renderer พร้อมตรวจห้ามส่งรายการ; build และ release suite ผ่าน
++การทดสอบ v7.64.93 เดิม mock window.open จึงไม่ตรวจพบปัญหาชื่อฟังก์ชันซ้ำ รอบนี้ตรวจแท็บจริง
++ยังไม่ได้ทดสอบ Windows GUI/UAC หรือ HIS โรงพยาบาลจริง
++
++ติดตั้ง: สำรองข้อมูล แตก ZIP ทั้งหมด เปิด INSTALL-REPAIR.bat อนุญาต Administrator รอ health check แล้ว Ctrl+F5 ตรวจ v7.64.94
+--- /dev/null
++++ b/TEST-RESULTS-v7.64.94.txt
+@@ -0,0 +1,4 @@
++npm run build: PASS
++npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
++node --test tools/customer-staff-preview-browser.test.cjs: PASS — actual popup URL verified with shadowed window.open, zero/pending/reviewed action strip, read-only customer renderer, blocked writes
++Windows GUI/UAC and real hospital HIS: NOT RUN
+--- /dev/null
++++ b/release-v76494.test.js
+@@ -0,0 +1,35 @@
++'use strict';
++const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
++const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
++test('v7.64.94 runtime, lockfile and installer identify the same release',()=>{
++ const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
++ assert.equal(pkg.version,'7.64.94');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
++ assert.equal(read('VERSION.txt').trim(),'v7.64.94');assert.match(read('server.js'),/const RELEASE_NAME = 'v7\.64\.94-production'/);
++ for(const file of ['tools/production-installer-gui.ps1','tools/production-installer-worker.ps1'])assert.match(read(file),/v7\.64\.94/);
++ assert.match(read('app.html'),/assets\/auth-session\.js\?v=7\.64\.94/);
++});
++test('fresh startup creates company tables before circular foreign keys',()=>{
++ const server=read('server.js'),start=server.indexOf('async function ensureDatabase()');
++ const create=server.indexOf('await ensureRelationalSchema(pool)',start),reference=server.indexOf('REFERENCES company_years(id)',start);
++ assert(create>start&&create<reference);
++});
++test('installer checks public database readiness, integrity and complete runtime prerequisites',()=>{
++ const worker=read('tools/production-installer-worker.ps1'),install=read('tools/install.ps1');
++ assert.match(worker,/http:\/\/127\.0\.0\.1:3000\/api\/health/);assert.doesNotMatch(worker,/http:\/\/127\.0\.0\.1:3000\/api\/system\/health/);
++ assert.match(worker,/Test-PayloadIntegrity -Root \$sourceRoot/);assert.match(worker,/Get-FileHash -LiteralPath \$file -Algorithm SHA256/);
++ for(const dependency of ['compression','pdf-lib','fontkit','pg','dotenv','playwright-core'])assert(install.includes(dependency),dependency);
++ assert.match(install,/Database backup failed\. Installation stopped to protect existing data/);
++ assert.match(read('tools/deploy-environment.ps1'),/Existing .env\/API keys\/database connection files are preserved/);
++});
++test('memo subsections have separate PATCH field allowlists',()=>{
++ const server=read('server.js');
++ assert.match(server,/'subsidiaries':\['additionalCompanies'\]/);
++ assert.match(server,/'coordinators':\['coordinator','coordinators'\]/);
++ assert.match(server,/'employees':\['employeeCount'\]/);
++});
++test('archive contains the new security runtime and keeps startup read-only',()=>{
++ for(const file of ['security-policy.js','assets/auth-session.js','assets/auth-session.css','tools/start-production-installer.vbs','INSTALL-REPAIR.bat'])assert(read(file).length>0,file);
++ const html=read('app.html');assert(html.indexOf('assets/auth-session.js')<html.indexOf('assets/app.js'));
++ assert.match(read('server.js'),/req\.path\.startsWith\('\/api\/auth\/'\)/);
++ assert.match(read('assets/auth-session.js'),/if\(!event\.isTrusted/);
++});
+--- a/app.html
++++ b/app.html
+@@ -7,9 +7,9 @@
+ <title>Health Check Up Smart Search</title>
+ <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
+ <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
+-<link href="assets/style.css?v=7.64.93-customer-setup" rel="stylesheet"/>
+-<link href="assets/global-ui-density.css?v=7.64.93-users-exp" rel="stylesheet"/>
+-<link href="assets/appearance-settings.css?v=7.64.93-panel-viewport-fix" rel="stylesheet"/>
++<link href="assets/style.css?v=7.64.94-customer-setup" rel="stylesheet"/>
++<link href="assets/global-ui-density.css?v=7.64.94-users-exp" rel="stylesheet"/>
++<link href="assets/appearance-settings.css?v=7.64.94-panel-viewport-fix" rel="stylesheet"/>
+ <script>/* Restore visual density before first paint; default = Compact. */
+ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
+   document.documentElement.setAttribute('data-hc-density', /^(normal|compact|dense)$/.test(hcDensityValue || '') ? hcDensityValue : 'compact');
+@@ -18,24 +18,24 @@
+   document.documentElement.setAttribute('data-hc-effects', localStorage.getItem('healthcheck.appearance.effects.v1') === 'off' ? 'off' : 'on');
+ } catch (_) { document.documentElement.setAttribute('data-hc-density', 'compact'); }
+ </script>
+-<link href="assets/user-experience.css?v=7.64.7.64.93-header-shield-only" rel="stylesheet"/>
+-<link rel="stylesheet" href="assets/role-experience.css?v=7.64.93-role-exp"/>
+-<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.93-remove-open-button"/>
+-<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.93-global-dismiss"/>
+-<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.93-single-busy"/>
+-<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.93"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.93"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.93-knowledge"/>
+-<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.93-confirmed-only-1">
+-<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.93">
+-<link rel="stylesheet" href="assets/auth-session.css?v=7.64.93-role-security"/>
+-<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.93-mobile-compact">
+-<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.93-search-align-1">
+-<link rel="stylesheet" href="assets/customer-services.css?v=7.64.93"/>
+-<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.93"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.93"/>
+-<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.93-note-detail"/>
+-<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.93"/>
+-<script src="/assets/theme-sync.js?v=7.64.93"></script>
+-<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.93"/>
+-<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.93"></head>
++<link href="assets/user-experience.css?v=7.64.7.64.94-header-shield-only" rel="stylesheet"/>
++<link rel="stylesheet" href="assets/role-experience.css?v=7.64.94-role-exp"/>
++<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.94-remove-open-button"/>
++<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.94-global-dismiss"/>
++<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.94-single-busy"/>
++<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.94"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.94"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.94-knowledge"/>
++<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.94-confirmed-only-1">
++<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.94">
++<link rel="stylesheet" href="assets/auth-session.css?v=7.64.94-role-security"/>
++<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.94-mobile-compact">
++<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.94-search-align-1">
++<link rel="stylesheet" href="assets/customer-services.css?v=7.64.94"/>
++<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.94"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.94"/>
++<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.94-note-detail"/>
++<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.94"/>
++<script src="/assets/theme-sync.js?v=7.64.94"></script>
++<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.94"/>
++<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.94"></head>
+ <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
+ <div class="app-version-corner">Version <b data-app-version="">-</b></div>
+ <header class="topbar">
+@@ -143,7 +143,7 @@
+ <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/guide-lightbulb-3d.svg"/></i>
+ <span class="nav-popover" role="tooltip"><strong>คู่มือ</strong><small>เปิดคู่มือการใช้งานของหน้าปัจจุบัน</small></span>
+ </button>
+-<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.93"/></button>
++<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.94"/></button>
+ <section class="hc-appearance-panel" hidden id="hcAppearancePanel" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์"><header><div><small>PERSONAL APPEARANCE</small><strong>ปรับแต่งหน้าตาและเอฟเฟกต์</strong></div><button id="hcAppearanceClose" type="button" aria-label="ปิด">×</button></header>
+ <div class="hc-appearance-body">
+ <div class="hc-theme-options" role="radiogroup" aria-label="เลือกธีม"><button type="button" data-hc-theme-choice="current"><span class="hc-theme-preview current"></span><b>ค่าเริ่มต้น</b><small>ฟ้า–เขียวแบบเดิม</small></button><button type="button" data-hc-theme-choice="premium"><span class="hc-theme-preview premium"></span><b>พรีเมียม</b><small>กรมท่า มรกต และทอง</small></button><button type="button" data-hc-theme-choice="warm"><span class="hc-theme-preview warm"></span><b>อบอุ่นสายตา</b><small>ครีม เซจ และเทอร์ราคอตตา</small></button></div>
+@@ -2518,51 +2518,51 @@
+ <div aria-hidden="true" hidden="" id="pdfFormSetupOverlay"><input id="pdfSetupX" type="number"/><input id="pdfSetupY" type="number"/><input id="pdfSetupSize" type="number"/><input id="pdfSetupTemplate" type="file"/><select id="pdfSetupForm"></select><select id="pdfSetupField"></select><div id="pdfSetupFieldList"></div><span id="pdfSetupStatus"></span><button id="openPdfFormSetup"></button><button id="savePdfSetupField"></button><button id="uploadPdfSetupTemplate"></button></div>
+ <script src="assets/vendor/xlsx.full.min.js"></script>
+ <aside id="hcExpBar" hidden role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="hcExpPanelTitle"><header class="hc-exp-panel-head"><h2 id="hcExpPanelTitle">เลเวลและประสบการณ์ของฉัน</h2><button id="hcExpHide" type="button" aria-label="ปิดข้อมูลเลเวล">×</button></header><div class="hc-exp-panel-body"><div class="hc-exp-summary"><span id="hcExpShield" class="hc-exp-shield"></span><span class="hc-exp-identity"><strong id="hcExpName"></strong><small id="hcExpRole">ผู้ใช้งาน</small><b id="hcExpTier"></b></span><button id="hcExpLatest" type="button" aria-label="ดูเหรียญผลงานล่าสุดและประวัติ EXP"><span aria-hidden="true">★</span><small id="hcExpLatestName">ยังไม่มีเหรียญ</small></button></div><div class="hc-exp-meter"><div class="hc-exp-meter-head"><strong>ความคืบหน้าเลเวล</strong><span id="hcExpNumbers">กำลังโหลด EXP…</span></div><div id="hcExpProgress" role="progressbar" aria-label="EXP สู่เลเวลถัดไป" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hcExpFill"></span></div><small id="hcExpRemaining"></small></div><div class="hc-exp-total"><small>EXP สะสมทั้งหมด</small><strong id="hcExpTotal">—</strong></div><div class="hc-exp-achievement"><span class="hc-exp-coin" aria-hidden="true">★</span><span><strong><span id="hcExpRuleTitle">กติกาการสะสม</span> <b id="hcExpRuleValue"></b></strong><small id="hcExpToday"></small></span></div><footer class="hc-exp-panel-footer"><span class="hc-exp-max">สูงสุด LV. 100</span><button id="hcExpRefresh" type="button">↻ อัปเดต EXP</button></footer><section class="hc-exp-work"><h3>ผลงานวันนี้</h3><div id="hcExpWorkToday"></div><button id="hcExpHistoryToggle" type="button" aria-expanded="false" aria-controls="hcExpHistory">ดูประวัติ EXP</button><div id="hcExpHistory" hidden><p id="hcExpHistoryStatus" role="status"></p><ol id="hcExpHistoryList"></ol></div></section></div></aside><div id="hcExpToast" role="status" aria-live="polite" hidden></div>
+-<script src="assets/user-experience.js?v=7.64.7.64.93-header-shield-only"></script>
+-<script src="assets/package-knowledge-model.js?v=7.64.93"></script>
+-<script src="assets/package-categories.js?v=7.64.93"></script>
+-<script src="assets/auth-session.js?v=7.64.93-role-security"></script>
+-<script src="assets/company-matrix-import.js?v=7.64.93-matrix-files-1"></script>
+-<script src="assets/customer-display-model.js?v=7.64.93-knowledge"></script>
++<script src="assets/user-experience.js?v=7.64.7.64.94-header-shield-only"></script>
++<script src="assets/package-knowledge-model.js?v=7.64.94"></script>
++<script src="assets/package-categories.js?v=7.64.94"></script>
++<script src="assets/auth-session.js?v=7.64.94-role-security"></script>
++<script src="assets/company-matrix-import.js?v=7.64.94-matrix-files-1"></script>
++<script src="assets/customer-display-model.js?v=7.64.94-knowledge"></script>
+ <div class="overlay" id="searchTodayDrawer" hidden aria-hidden="true"><section class="modal search-today-modal" role="dialog" aria-modal="true" aria-labelledby="searchTodayTitle"><header><h2 id="searchTodayTitle">ยืนยันแล้ววันนี้</h2><button id="searchTodayClose" type="button" class="modal-close" data-close="searchTodayDrawer" aria-label="ปิดรายชื่อยืนยัน">×</button></header><div class="search-today-body"></div></section></div>
+ <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
+-<script src="assets/emr-book-model.js?v=7.64.93"></script>
+-<script src="assets/personal-note-model.js?v=7.64.93-note-import"></script>
+-<script src="assets/customer-profile-presentation.js?v=7.64.93"></script><script src="assets/app.js?v=7.64.93-customer-summary-note-detail-customer-setup"></script>
+-<script src="assets/customer-search-one-row.js?v=7.64.93-compact-search"></script>
++<script src="assets/emr-book-model.js?v=7.64.94"></script>
++<script src="assets/personal-note-model.js?v=7.64.94-note-import"></script>
++<script src="assets/customer-profile-presentation.js?v=7.64.94"></script><script src="assets/app.js?v=7.64.94-customer-summary-note-detail-customer-setup"></script>
++<script src="assets/customer-search-one-row.js?v=7.64.94-compact-search"></script>
+ <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
+-<script src="assets/worklist-board.js?v=7.64.93"></script>
+-<script src="assets/flow-v76384.js?v=7.64.93-search-compact-no-auto-select"></script>
+-<script src="assets/global-ui-density.js?v=7.64.93-users-exp"></script>
+-<script src="assets/appearance-settings.js?v=7.64.93-panel-viewport-fix"></script>
+-<script src="assets/role-experience.js?v=7.64.93-role-exp"></script>
+-<script src="assets/coverage-names.js?v=7.64.93"></script>
+-<script src="assets/customer-compact.js?v=7.64.93-coverage-rows-remove-open-button"></script>
+-<script src="assets/checkup-summary-template.js?v=7.64.93-print-parity-qr"></script>
+-<script src="assets/booking-defaults.js?v=7.64.93"></script>
+-<script src="assets/checkup-unified.js?v=7.64.93-print-parity-direct-card-print"></script>
+-<script src="assets/customer-save-all.js?v=7.64.93-note-detail"></script>
+-<script src="assets/package-knowledge-editor.js?v=7.64.93"></script>
+-<script src="assets/customer-shop.js?v=7.64.93-knowledge"></script>
+-<script src="assets/global-dismiss-buttons.js?v=7.64.93-global-dismiss"></script>
+-<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.93">
+-<script src="assets/his-operation-monitor.js?v=7.64.93" defer></script>
+-<script src="assets/clinical-lifecycle.js?v=7.64.93-confirmed-only-1"></script>
+-<script src="assets/customer-access.js?v=7.64.93"></script>
+-<script src="assets/customer-url-settings.js?v=7.64.93"></script>
+-<script src="assets/pdf-topic-navigation.js?v=7.64.93"></script>
+-<script src="assets/customer-create-workspace.js?v=7.64.93"></script>
+-<script src="assets/customer-field-copy.js?v=7.64.93-coverage-code"></script>
+-<script src="assets/order-excel-core.js?v=7.64.93"></script>
+-<script src="assets/order-excel-ui.js?v=7.64.93"></script>
+-<script src="assets/cursor-customization.js?v=7.64.93-cursor"></script>
+-<script src="assets/cursor-star-trail.js?v=7.64.93-pointer-position-fix"></script>
+-<script src="assets/customer-knowledge.js?v=7.64.93"></script><script src="assets/customer-display-settings.js?v=7.64.93-mobile-compact"></script>
+-<script src="assets/emr-book-actions.js?v=7.64.93"></script>
+-<script src="assets/search-today-drawer.js?v=7.64.93"></script>
+-<script src="assets/customer-services.js?v=7.64.93-project-type"></script>
+-<script src="assets/customer-profile-header.js?v=7.64.93-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.93"></script><script src="assets/id-card-camera-model.js?v=7.64.93"></script><script src="assets/customer-id-camera.js?v=7.64.93"></script><script src="assets/appointment-schedules.js?v=7.64.93"></script>
+-<script src="assets/personal-notes.js?v=7.64.93-note-detail"></script>
+-<script src="assets/customer-selection-review.js?v=7.64.93"></script>
+-<script src="assets/personal-book-report.js?v=7.64.93"></script><script src="assets/personal-book-workspace.js?v=7.64.93"></script><script src="assets/customer-staff-preview.js?v=7.64.93"></script></body>
++<script src="assets/worklist-board.js?v=7.64.94"></script>
++<script src="assets/flow-v76384.js?v=7.64.94-search-compact-no-auto-select"></script>
++<script src="assets/global-ui-density.js?v=7.64.94-users-exp"></script>
++<script src="assets/appearance-settings.js?v=7.64.94-panel-viewport-fix"></script>
++<script src="assets/role-experience.js?v=7.64.94-role-exp"></script>
++<script src="assets/coverage-names.js?v=7.64.94"></script>
++<script src="assets/customer-compact.js?v=7.64.94-coverage-rows-remove-open-button"></script>
++<script src="assets/checkup-summary-template.js?v=7.64.94-print-parity-qr"></script>
++<script src="assets/booking-defaults.js?v=7.64.94"></script>
++<script src="assets/checkup-unified.js?v=7.64.94-print-parity-direct-card-print"></script>
++<script src="assets/customer-save-all.js?v=7.64.94-note-detail"></script>
++<script src="assets/package-knowledge-editor.js?v=7.64.94"></script>
++<script src="assets/customer-shop.js?v=7.64.94-knowledge"></script>
++<script src="assets/global-dismiss-buttons.js?v=7.64.94-global-dismiss"></script>
++<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.94">
++<script src="assets/his-operation-monitor.js?v=7.64.94" defer></script>
++<script src="assets/clinical-lifecycle.js?v=7.64.94-confirmed-only-1"></script>
++<script src="assets/customer-access.js?v=7.64.94"></script>
++<script src="assets/customer-url-settings.js?v=7.64.94"></script>
++<script src="assets/pdf-topic-navigation.js?v=7.64.94"></script>
++<script src="assets/customer-create-workspace.js?v=7.64.94"></script>
++<script src="assets/customer-field-copy.js?v=7.64.94-coverage-code"></script>
++<script src="assets/order-excel-core.js?v=7.64.94"></script>
++<script src="assets/order-excel-ui.js?v=7.64.94"></script>
++<script src="assets/cursor-customization.js?v=7.64.94-cursor"></script>
++<script src="assets/cursor-star-trail.js?v=7.64.94-pointer-position-fix"></script>
++<script src="assets/customer-knowledge.js?v=7.64.94"></script><script src="assets/customer-display-settings.js?v=7.64.94-mobile-compact"></script>
++<script src="assets/emr-book-actions.js?v=7.64.94"></script>
++<script src="assets/search-today-drawer.js?v=7.64.94"></script>
++<script src="assets/customer-services.js?v=7.64.94-project-type"></script>
++<script src="assets/customer-profile-header.js?v=7.64.94-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.94"></script><script src="assets/id-card-camera-model.js?v=7.64.94"></script><script src="assets/customer-id-camera.js?v=7.64.94"></script><script src="assets/appointment-schedules.js?v=7.64.94"></script>
++<script src="assets/personal-notes.js?v=7.64.94-note-detail"></script>
++<script src="assets/customer-selection-review.js?v=7.64.94"></script>
++<script src="assets/personal-book-report.js?v=7.64.94"></script><script src="assets/personal-book-workspace.js?v=7.64.94"></script><script src="assets/customer-staff-preview.js?v=7.64.94"></script></body>
+ </html>
+--- a/server.js
++++ b/server.js
+@@ -28,7 +28,7 @@
+ const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
+ const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
+ const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
+-const RELEASE_NAME = 'v7.64.93-production';
++const RELEASE_NAME = 'v7.64.94-production';
+ const { registerDataCenter } = require('./datacenter');
+ const SCHEMA_VERSION = '0218';
+ const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.93",
++  "version": "7.64.94",
+   "private": true,
+   "scripts": {
+     "start": "node server.js",
+@@ -9,7 +9,7 @@
+     "typecheck": "tsc -p tsconfig.json --noEmit",
+     "test": "npm run typecheck && node --check server.js && node --check relational-store.js && node --test *.test.js",
+     "smoke": "node tools/smoke-test.js",
+-    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76493.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
++    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76494.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
+     "test:release:legacy": "node --check server.js && node --check assets/app.js && node --check assets/flow-v76384.js && node --check relational-store.js && node --check tools/app-update-helper.js && node --test release-candidate-v76344-update-helper-survival.test.js release-candidate-v76380-mapped-his-user-sync-filter.test.js release-candidate-v76381-admin-password-baseline.test.js release-candidate-v76382-first-login-password.test.js release-candidate-v76383-first-login-overlay.test.js release-candidate-v76384-checkup-flow.test.js release-candidate-v76385-multi-customer-import.test.js release-candidate-v76386-today-flow.test.js release-candidate-v76387-split-search.test.js release-candidate-v76388-auto-age.test.js release-candidate-v76389-no-finalize-button.test.js release-candidate-v76390-detail-confirm-flow.test.js release-candidate-v76391-worklist-layout.test.js release-candidate-v76392-release-integration.test.js release-candidate-v76394-annual-circular-sections.test.js release-candidate-v76395-fullpage-primary-documents.test.js release-candidate-v76396-programs-docs-tab.test.js release-candidate-v76397-unified-company-pdf.test.js release-candidate-v76398-installer-path.test.js"
+   },
+   "dependencies": {
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.93",
++  "version": "7.64.94",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "health-check-smart-search-postgresql",
+-      "version": "7.64.93",
++      "version": "7.64.94",
+       "dependencies": {
+         "@pdf-lib/fontkit": "^1.1.1",
+         "bwip-js": "^4.5.1",
+--- a/VERSION.txt
++++ b/VERSION.txt
+@@ -1 +1 @@
+-v7.64.93
++v7.64.94
+--- a/tools/production-installer-gui.ps1
++++ b/tools/production-installer-gui.ps1
+@@ -1,7 +1,7 @@
+ ﻿$ErrorActionPreference='Stop'
+ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.93 PRODUCTION'
++$version='v7.64.94 PRODUCTION'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){
+--- a/tools/production-installer-worker.ps1
++++ b/tools/production-installer-worker.ps1
+@@ -5,7 +5,7 @@
+ )
+ $ErrorActionPreference='Stop'
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.93'
++$version='v7.64.94'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){
