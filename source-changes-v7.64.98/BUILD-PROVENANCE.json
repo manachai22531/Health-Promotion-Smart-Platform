@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.98",
+  "base_release": "v7.64.97",
+  "base_archive": "HealthCheck-v7.64.97-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "42a7d76d0eec08b0ab1e4a034f99203d57fbbef3bd777f386887f31247876b20",
+  "changes": "Consolidate all approved work: compact company/year Booking overview with inline period; fix toolbar compression and action button overlap with 100-row regression; six semantic patient-region backgrounds; retain full-screen editor, row CSV copy, sticky columns, staff preview, summary print label and HISGender fixes.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.97",
+  "base_github_commit": "2f5ad98",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}
