@@ -1,0 +1,364 @@
+--- a/assets/app.js
++++ b/assets/app.js
+@@ -1182,7 +1182,7 @@
+ function personPrimaryPackagesHtml(record){const items=(record.primaryPackages?.length?record.primaryPackages:[{code:record.code,name:record.packageName}]).filter(item=>item.code||item.name);return items.length?items.map((item,index)=>`<span class="person-package-code-field"><small>Package Code${items.length>1?` · ชุดที่ ${index+1}`:''}</small><b>${esc(item.code||'-')}</b></span><span class="person-package-name-field"><small>Package Name${items.length>1?` · ชุดที่ ${index+1}`:''}</small><b>${esc(item.name||'-')}</b></span>`).join(''):'<span class="person-package-code-field"><small>Package Code</small><b>-</b></span><span class="person-package-name-field"><small>Package Name</small><b>-</b></span>'}
+ function personCustomerExtraHtml(r){const fields=[['Address',r.address],['Payor',r.payor],['PayorAgreement',r.payorAgreement],['PayorOffice',r.payorOffice],['LocationCode',r.locationCode],['Nationality',r.nationality],['MaritalStatus',r.maritalStatus],['PositionName',r.positionName],['EmployeeCode',r.employeeCode],['DepartmentName',r.departmentName]];return `<span class="person-customer-extra-grid">${fields.map(([label,value],index)=>`<span class="${index===0?'person-customer-address':''}"><small>${esc(label)}</small><b>${esc(value??'-')}</b></span>`).join('')}</span>`}
+ function enhanceHisCardActions(records=[]){records.forEach(r=>{const card=document.querySelector(`.person-card[data-key="${CSS.escape(String(r.key))}"]`);if(!card)return;const field=card.querySelector('.person-hn-vn-field'),hn=formatHn(r.hn)||'-',vn=String(r.hisLastVisitUID||'').trim()||'-';if(field)field.innerHTML=`<small>HN / VN</small><span class="person-hn-vn-actions"><button class="his-copy-value" type="button" data-copy-value="${esc(hn)}" title="คัดลอก HN">${esc(hn)}</button><span>/</span><button class="his-copy-value" type="button" data-copy-value="${esc(vn)}" title="คัดลอก VN">${esc(vn)}</button><button class="card-cancel-visit" type="button" data-card-cancel-visit="${esc(r.key)}" ${vn==='-'?'disabled':''} title="${vn==='-'?'ยังไม่มี VisitUID/VN':'ยกเลิก Visit ที่ HIS'}">CancelVisit</button></span>`;const tools=card.querySelector('.post-checkup-tools'),oldHn=tools?.querySelector('.saved-hn');if(oldHn)oldHn.outerHTML=`<button class="card-cancel-order" type="button" data-card-cancel-order="${esc(r.key)}" ${r.orderHisAt?'':'disabled'} title="${r.orderHisAt?'ยกเลิก Order ที่ส่งไป HIS':'ยังไม่เคยส่ง OrderHIS'}">Cancel Order</button>`;const period=card.querySelector('.company-checkup-period'),booking=card.querySelector('.person-booking-membership');if(period&&booking){const selected=(r.selectedPackages||[]).filter(item=>{const value=typeof item==='string'?{name:item}:item||{};return value.code||value.name}),selectedBox=document.createElement('section');selectedBox.className='person-selected-contract-packages';selectedBox.innerHTML=`<small>แพ็กเกจตรวจเพิ่มคู่สัญญาที่เลือก</small><div>${selected.length?selected.map(raw=>{const item=typeof raw==='string'?{name:raw}:raw||{};return `<span><b>${esc(item.code||'')}</b>${item.code&&item.name?' · ':''}${esc(item.name||'')}</span>`}).join(''):'<em>ไม่ได้เลือกแพ็กเกจ</em>'}</div>`;booking.parentNode.insertBefore(selectedBox,booking)}})}
+-function ensureInitialCardActionButtons(records=[]){records.forEach(r=>{const card=document.querySelector(`.person-card[data-key="${CSS.escape(String(r.key))}"]`);if(!card||card.querySelector('.post-checkup-tools'))return;const tools=document.createElement('span'),visitActive=Boolean(String(r.hisLastVisitUID||'').trim()),orderActive=Boolean(r.orderHisAt&&(!r.cancelOrderAt||Date.parse(r.orderHisAt)>Date.parse(r.cancelOrderAt))),hasLabSticker=labStickerItems(r).length>0;tools.className='post-checkup-tools';tools.innerHTML=`<button class="card-his-action card-open-visit" type="button" data-card-open-visit="${esc(r.key)}" ${visitActive||!can('receiveCreate')?'disabled':''}>OpenVisit</button><button class="card-his-action card-order-his" type="button" data-card-order-his="${esc(r.key)}" ${orderActive||!can('receiveFinalize')?'disabled':''}>OrderHIS</button><button class="card-cancel-order" type="button" data-card-cancel-order="${esc(r.key)}" ${r.orderHisAt?'':'disabled'}>Cancel Order</button><button class="card-his-action card-charge-close" type="button" data-card-charge-close="${esc(r.key)}" ${visitActive?'':'disabled'}>ChargeClose</button><button class="button secondary lab-sticker-button" type="button" data-print-lab-stickers="${esc(r.key)}" ${hasLabSticker?'':'disabled'}>พิมพ์ Sticker LAB</button><button class="button secondary" type="button" data-print-saved-hn="${esc(r.key)}" ${r.hn&&can('summaryPrint')?'':'disabled'}>พิมพ์สติกเกอร์ HN</button><button class="button secondary" type="button" data-print-saved-a4="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์ A4</button><button class="button secondary patient-route-print" type="button" data-print-checkup-guide="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์ใบนำทาง</button><button class="button secondary patient-other-doc-print" type="button" data-print-other-docs="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์เอกสาร</button>`;card.append(tools)})}
++function ensureInitialCardActionButtons(records=[]){records.forEach(r=>{const card=document.querySelector(`.person-card[data-key="${CSS.escape(String(r.key))}"]`);if(!card||card.querySelector('.post-checkup-tools'))return;const tools=document.createElement('span'),visitActive=Boolean(String(r.hisLastVisitUID||'').trim()),orderActive=Boolean(r.orderHisAt&&(!r.cancelOrderAt||Date.parse(r.orderHisAt)>Date.parse(r.cancelOrderAt))),hasLabSticker=labStickerItems(r).length>0;tools.className='post-checkup-tools';tools.innerHTML=`<button class="card-his-action card-open-visit" type="button" data-card-open-visit="${esc(r.key)}" ${visitActive||!can('receiveCreate')?'disabled':''}>OpenVisit</button><button class="card-his-action card-order-his" type="button" data-card-order-his="${esc(r.key)}" ${orderActive||!can('receiveFinalize')?'disabled':''}>OrderHIS</button><button class="card-cancel-order" type="button" data-card-cancel-order="${esc(r.key)}" ${r.orderHisAt?'':'disabled'}>Cancel Order</button><button class="card-his-action card-charge-close" type="button" data-card-charge-close="${esc(r.key)}" ${visitActive?'':'disabled'}>ChargeClose</button><button class="button secondary lab-sticker-button" type="button" data-print-lab-stickers="${esc(r.key)}" ${hasLabSticker?'':'disabled'}>พิมพ์ Sticker LAB</button><button class="button secondary" type="button" data-print-saved-hn="${esc(r.key)}" ${r.hn&&can('summaryPrint')?'':'disabled'}>พิมพ์สติกเกอร์ HN</button><button class="button secondary" type="button" data-print-saved-a4="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์สรุปรายการตรวจ</button><button class="button secondary patient-route-print" type="button" data-print-checkup-guide="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์ใบนำทาง</button><button class="button secondary patient-other-doc-print" type="button" data-print-other-docs="${esc(r.key)}" ${can('summaryPrint')?'':'disabled'}>พิมพ์เอกสาร</button>`;card.append(tools)})}
+ function search(recordsOverride=null){
+   clearTimeout(customerSearchTimer);customerSearchTimer=null;
+   const personQ=norm($('#search').value),packageQ=norm($('#packageFilter').value),records=Array.isArray(recordsOverride)?recordsOverride:filteredRecords();renderSummary();
+@@ -1201,7 +1201,7 @@
+   $('#resultRows').innerHTML=matches.map(r=>{
+     const co=company(r.companyId),billing=(co&&co.billingPackages)||[],cash=(co&&co.cashPackages)||[],vn=String(r.hisLastVisitUID||'').trim(),selectedBilling=selectedExtraKeys(r.acceptedBillingItems),selectedCash=selectedExtraKeys(r.acceptedCashItems);
+     const list=(items,kind)=>items.length?items.map(item=>{const selected=kind==='billing'?selectedBilling:selectedCash,key=norm(item.code||item.name||''),mark=r.visitedAt?`<i class="extra-choice-mark ${selected.has(key)?'chosen':'not-chosen'}" title="${selected.has(key)?'เลือกแล้ว':'ไม่ได้เลือก'}">${selected.has(key)?'✓':'×'}</i>`:'';return `<span><b>${esc(item.name)}</b>${Number(item.price||0)>0?` <em>${money(item.price)}</em>`:''}${mark}</span>`}).join(''):`<span class="no-extra">ไม่มีรายการ</span>`;
+-    return `<div class="person-result-group"><article class="person-card" tabindex="0" role="button" data-key="${esc(r.key)}"><span class="person-card-head"><span><strong>${esc([r.title,r.first,r.last].filter(Boolean).join(' '))}</strong><small>${esc(co&&co.name||'-')}</small></span><span class="person-year-badge"><small>ปีบริษัท</small><strong>${esc(co&&co.year||'-')}</strong></span><span class="person-id-passport"><small>ID / Passport</small><strong>${esc(can('customerSensitiveView')?(r.id||'-'):visibleCustomerId(r.id))}</strong></span><span class="person-badge">${r.sex==='M'?'ชาย':r.sex==='F'?'หญิง':esc(r.sex||'-')} · ${customerTemplateAge(r)?esc(customerTemplateAge(r))+' ปี':'-'}</span></span><span class="person-card-grid"><span class="person-english-field"><small>ชื่อ English</small><b>${esc([r.prefixEN,r.firstNameEN,r.lastNameEN].filter(Boolean).join(' ')||'-')}</b></span><span class="person-birth-field"><small>วันเกิด</small><b>${esc(r.birth||'-')}</b></span><span class="person-hn-vn-field"><small>HN / VN</small><b>${esc(formatHn(r.hn)||'-')} / ${esc(vn||'-')}</b></span>${personCustomerExtraHtml(r)}<span class="person-package-code-field"><small>Package Code</small><b>${esc(r.code||'-')}</b></span><span class="person-package-name-field"><small>Package Name</small><b>${esc(r.packageName||'-')}</b></span></span><div class="person-extras-title">สิทธิพิเศษการตรวจเพิ่มเติม</div><span class="person-extras"><span><small>วางบิล</small>${list(billing,'billing')}</span><span><small>ชำระเอง</small>${list(cash,'cash')}</span></span><div class="person-company-due-booking-grid">${companyCheckupPeriodHtml(co)}<section class="person-booking-membership"><small>Booking / โครงการที่อยู่</small><div class="person-booking-main"><div data-booking-membership="${esc(r.key)}">${bookingMembershipHtml(r.key)}</div></div></section></div>${companyServiceInfoHtml(co)}${r.visitedAt?`<span class="card-visit-log"><span class="tag active card-status">มาตรวจแล้ว</span>${personalLog(r.key)}</span>${can('summaryPrint')?`<span class="post-checkup-tools"><button class="saved-hn" type="button" data-copy-hn="${esc(formatHn(r.hn))}" title="คลิกเพื่อคัดลอก HN">HN: ${esc(formatHn(r.hn)||'ยังไม่มี HN')}</button>${recordPriceSummaryHtml(r)}<button class="button secondary" type="button" data-print-saved-hn="${esc(r.key)}" ${r.hn?'':'disabled'}>พิมพ์สติกเกอร์ HN</button><button class="button secondary" type="button" data-print-saved-a4="${esc(r.key)}">พิมพ์ A4</button><button class="button secondary patient-route-print" type="button" data-print-checkup-guide="${esc(r.key)}">พิมพ์ใบนำทาง</button><button class="button secondary patient-other-doc-print" type="button" data-print-other-docs="${esc(r.key)}">พิมพ์เอกสาร</button></span>`:''}`:''}</article>${customerPendingPanelHtml(r,co)}</div>`;
++    return `<div class="person-result-group"><article class="person-card" tabindex="0" role="button" data-key="${esc(r.key)}"><span class="person-card-head"><span><strong>${esc([r.title,r.first,r.last].filter(Boolean).join(' '))}</strong><small>${esc(co&&co.name||'-')}</small></span><span class="person-year-badge"><small>ปีบริษัท</small><strong>${esc(co&&co.year||'-')}</strong></span><span class="person-id-passport"><small>ID / Passport</small><strong>${esc(can('customerSensitiveView')?(r.id||'-'):visibleCustomerId(r.id))}</strong></span><span class="person-badge">${r.sex==='M'?'ชาย':r.sex==='F'?'หญิง':esc(r.sex||'-')} · ${customerTemplateAge(r)?esc(customerTemplateAge(r))+' ปี':'-'}</span></span><span class="person-card-grid"><span class="person-english-field"><small>ชื่อ English</small><b>${esc([r.prefixEN,r.firstNameEN,r.lastNameEN].filter(Boolean).join(' ')||'-')}</b></span><span class="person-birth-field"><small>วันเกิด</small><b>${esc(r.birth||'-')}</b></span><span class="person-hn-vn-field"><small>HN / VN</small><b>${esc(formatHn(r.hn)||'-')} / ${esc(vn||'-')}</b></span>${personCustomerExtraHtml(r)}<span class="person-package-code-field"><small>Package Code</small><b>${esc(r.code||'-')}</b></span><span class="person-package-name-field"><small>Package Name</small><b>${esc(r.packageName||'-')}</b></span></span><div class="person-extras-title">สิทธิพิเศษการตรวจเพิ่มเติม</div><span class="person-extras"><span><small>วางบิล</small>${list(billing,'billing')}</span><span><small>ชำระเอง</small>${list(cash,'cash')}</span></span><div class="person-company-due-booking-grid">${companyCheckupPeriodHtml(co)}<section class="person-booking-membership"><small>Booking / โครงการที่อยู่</small><div class="person-booking-main"><div data-booking-membership="${esc(r.key)}">${bookingMembershipHtml(r.key)}</div></div></section></div>${companyServiceInfoHtml(co)}${r.visitedAt?`<span class="card-visit-log"><span class="tag active card-status">มาตรวจแล้ว</span>${personalLog(r.key)}</span>${can('summaryPrint')?`<span class="post-checkup-tools"><button class="saved-hn" type="button" data-copy-hn="${esc(formatHn(r.hn))}" title="คลิกเพื่อคัดลอก HN">HN: ${esc(formatHn(r.hn)||'ยังไม่มี HN')}</button>${recordPriceSummaryHtml(r)}<button class="button secondary" type="button" data-print-saved-hn="${esc(r.key)}" ${r.hn?'':'disabled'}>พิมพ์สติกเกอร์ HN</button><button class="button secondary" type="button" data-print-saved-a4="${esc(r.key)}">พิมพ์สรุปรายการตรวจ</button><button class="button secondary patient-route-print" type="button" data-print-checkup-guide="${esc(r.key)}">พิมพ์ใบนำทาง</button><button class="button secondary patient-other-doc-print" type="button" data-print-other-docs="${esc(r.key)}">พิมพ์เอกสาร</button></span>`:''}`:''}</article>${customerPendingPanelHtml(r,co)}</div>`;
+   }).join('');enhanceHisCardActions(matches);ensureInitialCardActionButtons(matches);
+   $('#resultRows').querySelectorAll('.person-card').forEach((card,index)=>{const record=matches[index],contact=document.createElement('span');contact.className='person-contact';const phone=document.createElement('span'),email=document.createElement('span');phone.innerHTML='<small>เบอร์โทร</small><b></b>';email.innerHTML='<small>อีเมล</small><b></b>';phone.querySelector('b').textContent=record.phone||'-';email.querySelector('b').textContent=record.email||'-';contact.append(phone,email);card.querySelector('.person-card-head').insertBefore(contact,card.querySelector('.person-badge'));const codeField=card.querySelector('.person-package-code-field'),nameField=card.querySelector('.person-package-name-field');if(codeField&&nameField){codeField.insertAdjacentHTML('beforebegin',personPrimaryPackagesHtml(record));codeField.remove();nameField.remove()}});
+   $('#resultMeta').textContent=`พบ ${totalMatches.toLocaleString('th-TH')} รายการ${totalMatches>matches.length?` · แสดง ${matches.length.toLocaleString('th-TH')} รายการแรก กรุณาพิมพ์เพิ่มเพื่อเจาะจง`:''} · เรียงจากรายการที่ตรงกับเงื่อนไขมากที่สุด`;$('#resultRows').hidden=false;$('#emptyState').hidden=true;loadRecordBookingMemberships(matches);
+--- a/assets/checkup-unified.js
++++ b/assets/checkup-unified.js
+@@ -47,7 +47,7 @@
+   const closeButton=editorActions.querySelector('[data-close="detailOverlay"]');if(closeButton)actions.append(closeButton);
+   // All print actions remain visible beside the PDF preview actions.
+   const editSelections=document.getElementById('confirmCheckup');if(editSelections)editorActions.append(editSelections);document.getElementById('backToDetail').hidden=true;
+-  const restoredLabels={saveCustomerDetail:'บันทึกข้อมูลส่วนบุคคล',saveCustomerPackages:'บันทึกแพ็กเกจหลัก',saveCustomerSupplements:'บันทึกแพ็กเกจเสริม',saveCustomerPackageSettings:'บันทึกประเภท / สถานี',printSummary:'พิมพ์ A4',printSummaryNavigation:'พิมพ์ใบนำทาง',printSummaryOtherDocuments:'พิมพ์เอกสาร',printHnSticker:'พิมพ์สติกเกอร์ HN',printLabStickerSummary:'พิมพ์ Sticker LAB'};
++  const restoredLabels={saveCustomerDetail:'บันทึกข้อมูลส่วนบุคคล',saveCustomerPackages:'บันทึกแพ็กเกจหลัก',saveCustomerSupplements:'บันทึกแพ็กเกจเสริม',saveCustomerPackageSettings:'บันทึกประเภท / สถานี',printSummary:'พิมพ์สรุปรายการตรวจ',printSummaryNavigation:'พิมพ์ใบนำทาง',printSummaryOtherDocuments:'พิมพ์เอกสาร',printHnSticker:'พิมพ์สติกเกอร์ HN',printLabStickerSummary:'พิมพ์ Sticker LAB'};
+   for(const [id,label] of Object.entries(restoredLabels)){const button=document.getElementById(id);if(button){button.textContent=label;button.title=label}}
+   const printActions=document.createElement('div'),hisActions=document.createElement('div');printActions.className='cf-print-actions';hisActions.className='cf-his-actions';bar.append(printActions);editorActions.append(hisActions);
+   for(const id of ['printSummary','printSummaryNavigation','printSummaryOtherDocuments','printHnSticker','printLabStickerSummary']){const button=document.getElementById(id);if(button)printActions.append(button)}
+@@ -166,7 +166,7 @@
+     if(printing||building||transaction.active||!guard('summaryPrint'))return;
+     const found=state.records.find(r=>String(r.key)===String(key));if(!found)return;
+     if(detailOverlay.classList.contains('open'))return;
+-    const record=copy(found),actor=currentUser,label=button.textContent,wasDisabled=button.disabled;let processingShown=true;printing=true;button.disabled=true;button.textContent='กำลังเตรียมพิมพ์…';beginProcessing('กำลังเตรียมพิมพ์ A4');
++    const record=copy(found),actor=currentUser,label=button.textContent,wasDisabled=button.disabled;let processingShown=true;printing=true;button.disabled=true;button.textContent='กำลังเตรียมพิมพ์…';beginProcessing('กำลังเตรียมพิมพ์สรุปรายการตรวจ');
+     try{
+       const model=await(buildChain=buildChain.catch(()=>{}).then(async()=>{
+         const previousDraft=pendingCheckup,previousHtml=summary.innerHTML,previousClass=summary.className,previousStyle=summary.getAttribute('style');
+--- a/app.html
++++ b/app.html
+@@ -7,9 +7,9 @@
+ <title>Health Check Up Smart Search</title>
+ <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
+ <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
+-<link href="assets/style.css?v=7.64.95-customer-setup" rel="stylesheet"/>
+-<link href="assets/global-ui-density.css?v=7.64.95-users-exp" rel="stylesheet"/>
+-<link href="assets/appearance-settings.css?v=7.64.95-panel-viewport-fix" rel="stylesheet"/>
++<link href="assets/style.css?v=7.64.96-customer-setup" rel="stylesheet"/>
++<link href="assets/global-ui-density.css?v=7.64.96-users-exp" rel="stylesheet"/>
++<link href="assets/appearance-settings.css?v=7.64.96-panel-viewport-fix" rel="stylesheet"/>
+ <script>/* Restore visual density before first paint; default = Compact. */
+ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
+   document.documentElement.setAttribute('data-hc-density', /^(normal|compact|dense)$/.test(hcDensityValue || '') ? hcDensityValue : 'compact');
+@@ -18,24 +18,24 @@
+   document.documentElement.setAttribute('data-hc-effects', localStorage.getItem('healthcheck.appearance.effects.v1') === 'off' ? 'off' : 'on');
+ } catch (_) { document.documentElement.setAttribute('data-hc-density', 'compact'); }
+ </script>
+-<link href="assets/user-experience.css?v=7.64.7.64.95-header-shield-only" rel="stylesheet"/>
+-<link rel="stylesheet" href="assets/role-experience.css?v=7.64.95-role-exp"/>
+-<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.95-remove-open-button"/>
+-<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.95-global-dismiss"/>
+-<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.95-single-busy"/>
+-<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.95"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.95"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.95-knowledge"/>
+-<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.95-confirmed-only-1">
+-<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.95">
+-<link rel="stylesheet" href="assets/auth-session.css?v=7.64.95-role-security"/>
+-<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.95-mobile-compact">
+-<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.95-search-align-1">
+-<link rel="stylesheet" href="assets/customer-services.css?v=7.64.95"/>
+-<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.95"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.95"/>
+-<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.95-note-detail"/>
+-<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.95"/>
+-<script src="/assets/theme-sync.js?v=7.64.95"></script>
+-<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.95"/>
+-<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.95"></head>
++<link href="assets/user-experience.css?v=7.64.7.64.96-header-shield-only" rel="stylesheet"/>
++<link rel="stylesheet" href="assets/role-experience.css?v=7.64.96-role-exp"/>
++<link rel="stylesheet" href="assets/customer-compact.css?v=7.64.96-remove-open-button"/>
++<link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.64.96-global-dismiss"/>
++<link rel="stylesheet" href="assets/checkup-unified.css?v=7.64.96-single-busy"/>
++<link rel="stylesheet" href="assets/customer-id-camera.css?v=7.64.96"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.64.96"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.64.96-knowledge"/>
++<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.64.96-confirmed-only-1">
++<link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.64.96">
++<link rel="stylesheet" href="assets/auth-session.css?v=7.64.96-role-security"/>
++<link rel="stylesheet" href="assets/customer-display-settings.css?v=7.64.96-mobile-compact">
++<link rel="stylesheet" href="assets/workspace-v74.css?v=7.64.96-search-align-1">
++<link rel="stylesheet" href="assets/customer-services.css?v=7.64.96"/>
++<link rel="stylesheet" href="assets/booking-calendar.css?v=7.64.96"/><link rel="stylesheet" href="assets/appointment-schedules.css?v=7.64.96"/>
++<link rel="stylesheet" href="assets/personal-notes.css?v=7.64.96-note-detail"/>
++<link rel="stylesheet" href="/assets/button-theme.css?v=7.64.96"/>
++<script src="/assets/theme-sync.js?v=7.64.96"></script>
++<link rel="stylesheet" href="assets/customer-selection-review.css?v=7.64.96"/>
++<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.64.96"></head>
+ <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
+ <div class="app-version-corner">Version <b data-app-version="">-</b></div>
+ <header class="topbar">
+@@ -143,7 +143,7 @@
+ <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/guide-lightbulb-3d.svg"/></i>
+ <span class="nav-popover" role="tooltip"><strong>คู่มือ</strong><small>เปิดคู่มือการใช้งานของหน้าปัจจุบัน</small></span>
+ </button>
+-<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.95"/></button>
++<div class="hc-appearance-control"><button aria-controls="hcAppearancePanel" aria-expanded="false" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์" class="hc-appearance-trigger" id="hcAppearanceToggle" title="ปรับแต่งหน้าตาและเอฟเฟกต์" type="button"><img alt="" aria-hidden="true" src="assets/person-palette.svg?v=7.64.96"/></button>
+ <section class="hc-appearance-panel" hidden id="hcAppearancePanel" aria-label="ปรับแต่งหน้าตาและเอฟเฟกต์"><header><div><small>PERSONAL APPEARANCE</small><strong>ปรับแต่งหน้าตาและเอฟเฟกต์</strong></div><button id="hcAppearanceClose" type="button" aria-label="ปิด">×</button></header>
+ <div class="hc-appearance-body">
+ <div class="hc-theme-options" role="radiogroup" aria-label="เลือกธีม"><button type="button" data-hc-theme-choice="current"><span class="hc-theme-preview current"></span><b>ค่าเริ่มต้น</b><small>ฟ้า–เขียวแบบเดิม</small></button><button type="button" data-hc-theme-choice="premium"><span class="hc-theme-preview premium"></span><b>พรีเมียม</b><small>กรมท่า มรกต และทอง</small></button><button type="button" data-hc-theme-choice="warm"><span class="hc-theme-preview warm"></span><b>อบอุ่นสายตา</b><small>ครีม เซจ และเทอร์ราคอตตา</small></button></div>
+@@ -1533,7 +1533,7 @@
+ <button class="button danger" id="cancelOrderSummary" type="button">CancelOrder</button>
+ <button class="button secondary" id="backToDetail" type="button">
+             ย้อนกลับแก้ไข</button><button class="button secondary" id="printSummary" type="button">
+-            พิมพ์ A4</button><button class="button secondary" id="printSummaryNavigation" type="button">
++            พิมพ์สรุปรายการตรวจ</button><button class="button secondary" id="printSummaryNavigation" type="button">
+             พิมพ์ใบนำทาง</button><button class="button secondary" id="printSummaryOtherDocuments" type="button">
+             พิมพ์เอกสาร</button><button class="button secondary" hidden="" id="printHnSticker" type="button">
+             พิมพ์สติกเกอร์ HN</button><button class="button secondary" id="printLabStickerSummary" type="button">
+@@ -2518,51 +2518,51 @@
+ <div aria-hidden="true" hidden="" id="pdfFormSetupOverlay"><input id="pdfSetupX" type="number"/><input id="pdfSetupY" type="number"/><input id="pdfSetupSize" type="number"/><input id="pdfSetupTemplate" type="file"/><select id="pdfSetupForm"></select><select id="pdfSetupField"></select><div id="pdfSetupFieldList"></div><span id="pdfSetupStatus"></span><button id="openPdfFormSetup"></button><button id="savePdfSetupField"></button><button id="uploadPdfSetupTemplate"></button></div>
+ <script src="assets/vendor/xlsx.full.min.js"></script>
+ <aside id="hcExpBar" hidden role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="hcExpPanelTitle"><header class="hc-exp-panel-head"><h2 id="hcExpPanelTitle">เลเวลและประสบการณ์ของฉัน</h2><button id="hcExpHide" type="button" aria-label="ปิดข้อมูลเลเวล">×</button></header><div class="hc-exp-panel-body"><div class="hc-exp-summary"><span id="hcExpShield" class="hc-exp-shield"></span><span class="hc-exp-identity"><strong id="hcExpName"></strong><small id="hcExpRole">ผู้ใช้งาน</small><b id="hcExpTier"></b></span><button id="hcExpLatest" type="button" aria-label="ดูเหรียญผลงานล่าสุดและประวัติ EXP"><span aria-hidden="true">★</span><small id="hcExpLatestName">ยังไม่มีเหรียญ</small></button></div><div class="hc-exp-meter"><div class="hc-exp-meter-head"><strong>ความคืบหน้าเลเวล</strong><span id="hcExpNumbers">กำลังโหลด EXP…</span></div><div id="hcExpProgress" role="progressbar" aria-label="EXP สู่เลเวลถัดไป" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hcExpFill"></span></div><small id="hcExpRemaining"></small></div><div class="hc-exp-total"><small>EXP สะสมทั้งหมด</small><strong id="hcExpTotal">—</strong></div><div class="hc-exp-achievement"><span class="hc-exp-coin" aria-hidden="true">★</span><span><strong><span id="hcExpRuleTitle">กติกาการสะสม</span> <b id="hcExpRuleValue"></b></strong><small id="hcExpToday"></small></span></div><footer class="hc-exp-panel-footer"><span class="hc-exp-max">สูงสุด LV. 100</span><button id="hcExpRefresh" type="button">↻ อัปเดต EXP</button></footer><section class="hc-exp-work"><h3>ผลงานวันนี้</h3><div id="hcExpWorkToday"></div><button id="hcExpHistoryToggle" type="button" aria-expanded="false" aria-controls="hcExpHistory">ดูประวัติ EXP</button><div id="hcExpHistory" hidden><p id="hcExpHistoryStatus" role="status"></p><ol id="hcExpHistoryList"></ol></div></section></div></aside><div id="hcExpToast" role="status" aria-live="polite" hidden></div>
+-<script src="assets/user-experience.js?v=7.64.7.64.95-header-shield-only"></script>
+-<script src="assets/package-knowledge-model.js?v=7.64.95"></script>
+-<script src="assets/package-categories.js?v=7.64.95"></script>
+-<script src="assets/auth-session.js?v=7.64.95-role-security"></script>
+-<script src="assets/company-matrix-import.js?v=7.64.95-matrix-files-1"></script>
+-<script src="assets/customer-display-model.js?v=7.64.95-knowledge"></script>
++<script src="assets/user-experience.js?v=7.64.7.64.96-header-shield-only"></script>
++<script src="assets/package-knowledge-model.js?v=7.64.96"></script>
++<script src="assets/package-categories.js?v=7.64.96"></script>
++<script src="assets/auth-session.js?v=7.64.96-role-security"></script>
++<script src="assets/company-matrix-import.js?v=7.64.96-matrix-files-1"></script>
++<script src="assets/customer-display-model.js?v=7.64.96-knowledge"></script>
+ <div class="overlay" id="searchTodayDrawer" hidden aria-hidden="true"><section class="modal search-today-modal" role="dialog" aria-modal="true" aria-labelledby="searchTodayTitle"><header><h2 id="searchTodayTitle">ยืนยันแล้ววันนี้</h2><button id="searchTodayClose" type="button" class="modal-close" data-close="searchTodayDrawer" aria-label="ปิดรายชื่อยืนยัน">×</button></header><div class="search-today-body"></div></section></div>
+ <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
+-<script src="assets/emr-book-model.js?v=7.64.95"></script>
+-<script src="assets/personal-note-model.js?v=7.64.95-note-import"></script>
+-<script src="assets/customer-profile-presentation.js?v=7.64.95"></script><script src="assets/app.js?v=7.64.95-customer-summary-note-detail-customer-setup"></script>
+-<script src="assets/customer-search-one-row.js?v=7.64.95-compact-search"></script>
++<script src="assets/emr-book-model.js?v=7.64.96"></script>
++<script src="assets/personal-note-model.js?v=7.64.96-note-import"></script>
++<script src="assets/customer-profile-presentation.js?v=7.64.96"></script><script src="assets/app.js?v=7.64.96-customer-summary-note-detail-customer-setup"></script>
++<script src="assets/customer-search-one-row.js?v=7.64.96-compact-search"></script>
+ <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
+-<script src="assets/worklist-board.js?v=7.64.95"></script>
+-<script src="assets/flow-v76384.js?v=7.64.95-search-compact-no-auto-select"></script>
+-<script src="assets/global-ui-density.js?v=7.64.95-users-exp"></script>
+-<script src="assets/appearance-settings.js?v=7.64.95-panel-viewport-fix"></script>
+-<script src="assets/role-experience.js?v=7.64.95-role-exp"></script>
+-<script src="assets/coverage-names.js?v=7.64.95"></script>
+-<script src="assets/customer-compact.js?v=7.64.95-coverage-rows-remove-open-button"></script>
+-<script src="assets/checkup-summary-template.js?v=7.64.95-print-parity-qr"></script>
+-<script src="assets/booking-defaults.js?v=7.64.95"></script>
+-<script src="assets/checkup-unified.js?v=7.64.95-print-parity-direct-card-print"></script>
+-<script src="assets/customer-save-all.js?v=7.64.95-note-detail"></script>
+-<script src="assets/package-knowledge-editor.js?v=7.64.95"></script>
+-<script src="assets/customer-shop.js?v=7.64.95-knowledge"></script>
+-<script src="assets/global-dismiss-buttons.js?v=7.64.95-global-dismiss"></script>
+-<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.95">
+-<script src="assets/his-operation-monitor.js?v=7.64.95" defer></script>
+-<script src="assets/clinical-lifecycle.js?v=7.64.95-confirmed-only-1"></script>
+-<script src="assets/customer-access.js?v=7.64.95"></script>
+-<script src="assets/customer-url-settings.js?v=7.64.95"></script>
+-<script src="assets/pdf-topic-navigation.js?v=7.64.95"></script>
+-<script src="assets/customer-create-workspace.js?v=7.64.95"></script>
+-<script src="assets/customer-field-copy.js?v=7.64.95-coverage-code"></script>
+-<script src="assets/order-excel-core.js?v=7.64.95"></script>
+-<script src="assets/order-excel-ui.js?v=7.64.95"></script>
+-<script src="assets/cursor-customization.js?v=7.64.95-cursor"></script>
+-<script src="assets/cursor-star-trail.js?v=7.64.95-pointer-position-fix"></script>
+-<script src="assets/customer-knowledge.js?v=7.64.95"></script><script src="assets/customer-display-settings.js?v=7.64.95-mobile-compact"></script>
+-<script src="assets/emr-book-actions.js?v=7.64.95"></script>
+-<script src="assets/search-today-drawer.js?v=7.64.95"></script>
+-<script src="assets/customer-services.js?v=7.64.95-project-type"></script>
+-<script src="assets/customer-profile-header.js?v=7.64.95-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.95"></script><script src="assets/id-card-camera-model.js?v=7.64.95"></script><script src="assets/customer-id-camera.js?v=7.64.95"></script><script src="assets/appointment-schedules.js?v=7.64.95"></script>
+-<script src="assets/personal-notes.js?v=7.64.95-note-detail"></script>
+-<script src="assets/customer-selection-review.js?v=7.64.95"></script>
+-<script src="assets/personal-book-report.js?v=7.64.95"></script><script src="assets/personal-book-workspace.js?v=7.64.95"></script><script src="assets/customer-staff-preview.js?v=7.64.95"></script></body>
++<script src="assets/worklist-board.js?v=7.64.96"></script>
++<script src="assets/flow-v76384.js?v=7.64.96-search-compact-no-auto-select"></script>
++<script src="assets/global-ui-density.js?v=7.64.96-users-exp"></script>
++<script src="assets/appearance-settings.js?v=7.64.96-panel-viewport-fix"></script>
++<script src="assets/role-experience.js?v=7.64.96-role-exp"></script>
++<script src="assets/coverage-names.js?v=7.64.96"></script>
++<script src="assets/customer-compact.js?v=7.64.96-coverage-rows-remove-open-button"></script>
++<script src="assets/checkup-summary-template.js?v=7.64.96-print-parity-qr"></script>
++<script src="assets/booking-defaults.js?v=7.64.96"></script>
++<script src="assets/checkup-unified.js?v=7.64.96-print-parity-direct-card-print"></script>
++<script src="assets/customer-save-all.js?v=7.64.96-note-detail"></script>
++<script src="assets/package-knowledge-editor.js?v=7.64.96"></script>
++<script src="assets/customer-shop.js?v=7.64.96-knowledge"></script>
++<script src="assets/global-dismiss-buttons.js?v=7.64.96-global-dismiss"></script>
++<link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.64.96">
++<script src="assets/his-operation-monitor.js?v=7.64.96" defer></script>
++<script src="assets/clinical-lifecycle.js?v=7.64.96-confirmed-only-1"></script>
++<script src="assets/customer-access.js?v=7.64.96"></script>
++<script src="assets/customer-url-settings.js?v=7.64.96"></script>
++<script src="assets/pdf-topic-navigation.js?v=7.64.96"></script>
++<script src="assets/customer-create-workspace.js?v=7.64.96"></script>
++<script src="assets/customer-field-copy.js?v=7.64.96-coverage-code"></script>
++<script src="assets/order-excel-core.js?v=7.64.96"></script>
++<script src="assets/order-excel-ui.js?v=7.64.96"></script>
++<script src="assets/cursor-customization.js?v=7.64.96-cursor"></script>
++<script src="assets/cursor-star-trail.js?v=7.64.96-pointer-position-fix"></script>
++<script src="assets/customer-knowledge.js?v=7.64.96"></script><script src="assets/customer-display-settings.js?v=7.64.96-mobile-compact"></script>
++<script src="assets/emr-book-actions.js?v=7.64.96"></script>
++<script src="assets/search-today-drawer.js?v=7.64.96"></script>
++<script src="assets/customer-services.js?v=7.64.96-project-type"></script>
++<script src="assets/customer-profile-header.js?v=7.64.96-fast-save"></script><script src="assets/booking-calendar.js?v=7.64.96"></script><script src="assets/id-card-camera-model.js?v=7.64.96"></script><script src="assets/customer-id-camera.js?v=7.64.96"></script><script src="assets/appointment-schedules.js?v=7.64.96"></script>
++<script src="assets/personal-notes.js?v=7.64.96-note-detail"></script>
++<script src="assets/customer-selection-review.js?v=7.64.96"></script>
++<script src="assets/personal-book-report.js?v=7.64.96"></script><script src="assets/personal-book-workspace.js?v=7.64.96"></script><script src="assets/customer-staff-preview.js?v=7.64.96"></script></body>
+ </html>
+--- /dev/null
++++ b/release-v76496.test.js
+@@ -0,0 +1,35 @@
++'use strict';
++const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
++const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
++test('v7.64.96 runtime, lockfile and installer identify the same release',()=>{
++ const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
++ assert.equal(pkg.version,'7.64.96');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
++ assert.equal(read('VERSION.txt').trim(),'v7.64.96');assert.match(read('server.js'),/const RELEASE_NAME = 'v7\.64\.96-production'/);
++ for(const file of ['tools/production-installer-gui.ps1','tools/production-installer-worker.ps1'])assert.match(read(file),/v7\.64\.96/);
++ assert.match(read('app.html'),/assets\/auth-session\.js\?v=7\.64\.96/);
++});
++test('fresh startup creates company tables before circular foreign keys',()=>{
++ const server=read('server.js'),start=server.indexOf('async function ensureDatabase()');
++ const create=server.indexOf('await ensureRelationalSchema(pool)',start),reference=server.indexOf('REFERENCES company_years(id)',start);
++ assert(create>start&&create<reference);
++});
++test('installer checks public database readiness, integrity and complete runtime prerequisites',()=>{
++ const worker=read('tools/production-installer-worker.ps1'),install=read('tools/install.ps1');
++ assert.match(worker,/http:\/\/127\.0\.0\.1:3000\/api\/health/);assert.doesNotMatch(worker,/http:\/\/127\.0\.0\.1:3000\/api\/system\/health/);
++ assert.match(worker,/Test-PayloadIntegrity -Root \$sourceRoot/);assert.match(worker,/Get-FileHash -LiteralPath \$file -Algorithm SHA256/);
++ for(const dependency of ['compression','pdf-lib','fontkit','pg','dotenv','playwright-core'])assert(install.includes(dependency),dependency);
++ assert.match(install,/Database backup failed\. Installation stopped to protect existing data/);
++ assert.match(read('tools/deploy-environment.ps1'),/Existing .env\/API keys\/database connection files are preserved/);
++});
++test('memo subsections have separate PATCH field allowlists',()=>{
++ const server=read('server.js');
++ assert.match(server,/'subsidiaries':\['additionalCompanies'\]/);
++ assert.match(server,/'coordinators':\['coordinator','coordinators'\]/);
++ assert.match(server,/'employees':\['employeeCount'\]/);
++});
++test('archive contains the new security runtime and keeps startup read-only',()=>{
++ for(const file of ['security-policy.js','assets/auth-session.js','assets/auth-session.css','tools/start-production-installer.vbs','INSTALL-REPAIR.bat'])assert(read(file).length>0,file);
++ const html=read('app.html');assert(html.indexOf('assets/auth-session.js')<html.indexOf('assets/app.js'));
++ assert.match(read('server.js'),/req\.path\.startsWith\('\/api\/auth\/'\)/);
++ assert.match(read('assets/auth-session.js'),/if\(!event\.isTrusted/);
++});
+--- a/BUILD-PROVENANCE.json
++++ b/BUILD-PROVENANCE.json
+@@ -1,12 +1,12 @@
+ {
+-  "release": "v7.64.95",
+-  "base_release": "v7.64.94",
+-  "base_archive": "HealthCheck-v7.64.94-PRODUCTION-WINDOWS-INSTALLER.zip",
+-  "base_sha256": "664be1b62e5449798be2a5a59b7d20a72c68e2f0b6493d314e60dbc85c1bb767",
+-  "changes": "Remove duplicate native search cancel icons only where an explicit custom clear button already exists; audit company and customer list search, preserve native clears elsewhere; repair void input markup.",
++  "release": "v7.64.96",
++  "base_release": "v7.64.95",
++  "base_archive": "HealthCheck-v7.64.95-PRODUCTION-WINDOWS-INSTALLER.zip",
++  "base_sha256": "7dd1ed80306128ea164a86be9c321fc6b9d8d732d0cc94ab0598780753d67b39",
++  "changes": "Rename patient summary print buttons from พิมพ์ A4 to พิมพ์สรุปรายการตรวจ on result cards and inner summary, including restored labels and processing message; preserve print handlers and A4 output.",
+   "windows_installation_executed": false,
+-  "base_github_branch": "installers/v7.64.94",
+-  "base_github_commit": "37efaba",
++  "base_github_branch": "installers/v7.64.95",
++  "base_github_commit": "0f91965",
+   "hotfix": "patient-demographic-hisgender",
+   "source_branch": "installers/v7.64.92",
+   "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+--- /dev/null
++++ b/RELEASE-v7.64.96-CHANGES.txt
+@@ -0,0 +1,8 @@
++v7.64.96 — เปลี่ยนชื่อปุ่มพิมพ์สรุปรายการตรวจ
++
++เปลี่ยน พิมพ์ A4 เป็น พิมพ์สรุปรายการตรวจ บนการ์ดผลค้นหาทั้งก่อนและหลังยืนยัน และปุ่มในหน้าสรุปด้านใน
++แก้ restoredLabels ที่คืนชื่อปุ่มหลังโหลด และข้อความกำลังเตรียมพิมพ์ให้ตรงกัน
++คง event handlers, สิทธิ์พิมพ์, เนื้อหาและขนาดเอกสาร A4 เดิม
++รวมตัวแก้จาก v7.64.95 ไม่ใช้ main
++
++ติดตั้ง: สำรองข้อมูล แตก ZIP ทั้งหมด เปิด INSTALL-REPAIR.bat อนุญาต Administrator รอ health check แล้ว Ctrl+F5 ตรวจ v7.64.96
+--- /dev/null
++++ b/TEST-RESULTS-v7.64.96.txt
+@@ -0,0 +1,4 @@
++npm run build: PASS
++npm run test:release: PASS — 118 tests, 0 failed, 0 skipped
++Reviewed both result-card label sites, inner printSummary HTML, restored label and processing message. Print handlers unchanged.
++Windows GUI/UAC: NOT RUN
+--- a/server.js
++++ b/server.js
+@@ -28,7 +28,7 @@
+ const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
+ const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
+ const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
+-const RELEASE_NAME = 'v7.64.95-production';
++const RELEASE_NAME = 'v7.64.96-production';
+ const { registerDataCenter } = require('./datacenter');
+ const SCHEMA_VERSION = '0218';
+ const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
+--- a/VERSION.txt
++++ b/VERSION.txt
+@@ -1 +1 @@
+-v7.64.95
++v7.64.96
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.95",
++  "version": "7.64.96",
+   "private": true,
+   "scripts": {
+     "start": "node server.js",
+@@ -9,7 +9,7 @@
+     "typecheck": "tsc -p tsconfig.json --noEmit",
+     "test": "npm run typecheck && node --check server.js && node --check relational-store.js && node --test *.test.js",
+     "smoke": "node tools/smoke-test.js",
+-    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76495.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
++    "test:release": "node --check server.js && node --check assets/app.js && node --check assets/auth-session.js && node --check assets/cursor-star-trail.js && node --test security-policy.test.js patient-demographic.test.js release-v76466-pdf.test.js release-v76496.test.js circular-medical-options.test.js company-matrix-import.test.js login-history.test.js update-readiness.test.js worklist-board.test.js customer-display-settings.test.js customer-content.test.js customer-profile-save.test.js package-knowledge.test.js pdf-browser.test.js personal-book-gemini.test.js gemini-lab-http.test.js open-visit-booking-scope.test.js his-operation-monitor.test.js checkup-print-parity.test.js customer-qr-readability.test.js customer-selection-review.test.js customer-staff-preview.test.js customer-identity-update.test.js id-card-camera.test.js user-experience.test.js experience-rules.test.js emr-book-actions.test.js && node --check assets/clinical-lifecycle.js && node --test customer-services.test.js appointments-self-service.test.js",
+     "test:release:legacy": "node --check server.js && node --check assets/app.js && node --check assets/flow-v76384.js && node --check relational-store.js && node --check tools/app-update-helper.js && node --test release-candidate-v76344-update-helper-survival.test.js release-candidate-v76380-mapped-his-user-sync-filter.test.js release-candidate-v76381-admin-password-baseline.test.js release-candidate-v76382-first-login-password.test.js release-candidate-v76383-first-login-overlay.test.js release-candidate-v76384-checkup-flow.test.js release-candidate-v76385-multi-customer-import.test.js release-candidate-v76386-today-flow.test.js release-candidate-v76387-split-search.test.js release-candidate-v76388-auto-age.test.js release-candidate-v76389-no-finalize-button.test.js release-candidate-v76390-detail-confirm-flow.test.js release-candidate-v76391-worklist-layout.test.js release-candidate-v76392-release-integration.test.js release-candidate-v76394-annual-circular-sections.test.js release-candidate-v76395-fullpage-primary-documents.test.js release-candidate-v76396-programs-docs-tab.test.js release-candidate-v76397-unified-company-pdf.test.js release-candidate-v76398-installer-path.test.js"
+   },
+   "dependencies": {
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "health-check-smart-search-postgresql",
+-  "version": "7.64.95",
++  "version": "7.64.96",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "health-check-smart-search-postgresql",
+-      "version": "7.64.95",
++      "version": "7.64.96",
+       "dependencies": {
+         "@pdf-lib/fontkit": "^1.1.1",
+         "bwip-js": "^4.5.1",
+--- a/tools/production-installer-gui.ps1
++++ b/tools/production-installer-gui.ps1
+@@ -1,7 +1,7 @@
+ ﻿$ErrorActionPreference='Stop'
+ Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.95 PRODUCTION'
++$version='v7.64.96 PRODUCTION'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){
+--- a/tools/production-installer-worker.ps1
++++ b/tools/production-installer-worker.ps1
+@@ -5,7 +5,7 @@
+ )
+ $ErrorActionPreference='Stop'
+ $sourceRoot=Split-Path -Parent $PSScriptRoot
+-$version='v7.64.95'
++$version='v7.64.96'
+ try {
+   $pkgPath=Join-Path $sourceRoot 'package.json'
+   if(Test-Path -LiteralPath $pkgPath){

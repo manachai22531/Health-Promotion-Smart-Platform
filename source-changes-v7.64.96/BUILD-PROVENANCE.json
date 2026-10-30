@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.96",
+  "base_release": "v7.64.95",
+  "base_archive": "HealthCheck-v7.64.95-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "7dd1ed80306128ea164a86be9c321fc6b9d8d732d0cc94ab0598780753d67b39",
+  "changes": "Rename patient summary print buttons from พิมพ์ A4 to พิมพ์สรุปรายการตรวจ on result cards and inner summary, including restored labels and processing message; preserve print handlers and A4 output.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.95",
+  "base_github_commit": "0f91965",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}
