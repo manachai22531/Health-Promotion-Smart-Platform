@@ -1,0 +1,15 @@
+{
+  "release": "v7.64.97",
+  "base_release": "v7.64.96",
+  "base_archive": "HealthCheck-v7.64.96-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "base_sha256": "cb69ba9d2b6c5c164a829a0b863f59937f2c3dc05668f61cacdef3e3cb0fa07b",
+  "changes": "Implement approved mockups: copy visible row data through Company as CSV including sequence, compact patient toolbar, move actions to frozen left group select/actions/HN/VN with scrolling sequence after VN, full-page customer editor with fixed header/footer, annual company checkup period display. Preserve v7.64.96 fixes.",
+  "windows_installation_executed": false,
+  "base_github_branch": "installers/v7.64.96",
+  "base_github_commit": "83c4eb0",
+  "hotfix": "patient-demographic-hisgender",
+  "source_branch": "installers/v7.64.92",
+  "source_commit": "003692ab76b2c843e32cb73777bc6422aba704ea",
+  "source_archive_sha256": "d3f33fda0dc025374801baa343cd1a2bbe263df8b385524b4f9fa72f7d201301",
+  "hotfix_changes": "Use trimmed HIS gender_label with normalized gender fallback consistently in UI and both Excel worksheets; refresh module cache key."
+}
