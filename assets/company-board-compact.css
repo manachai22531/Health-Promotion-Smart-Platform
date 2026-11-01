@@ -76,3 +76,11 @@ html body #companyView .company-board-year-title{grid-template-columns:58px minm
 html body #companyView .company-board-year-title .company-board-period-inline{min-width:0!important;max-width:100%!important;flex-wrap:wrap!important;white-space:normal!important;font-size:10px!important;gap:3px!important}
 html body #companyView .company-board-period-inline>span:not([aria-hidden]){min-width:0;overflow-wrap:anywhere}
 html body #companyView .company-board-period-inline small{font-size:9px!important;padding:2px 4px!important}
+
+/* Fill the annual column to the company card's bottom, including single-year cards. */
+html body #companyView .company-board-years{align-content:stretch!important;grid-auto-rows:auto!important}
+html body #companyView .company-board-year-row{grid-template-columns:max-content minmax(180px,1fr) 580px!important}
+html body #companyView .company-board-year-title{grid-template-columns:max-content max-content!important}
+html body #companyView .company-board-year-title .company-board-period-inline{flex-wrap:nowrap!important;white-space:nowrap!important;max-width:none!important;gap:5px!important}
+html body #companyView .company-board-period-inline>span:not([aria-hidden]){white-space:nowrap;overflow-wrap:normal}
+@media(max-width:1500px){html body #companyView .company-board-year-row{grid-template-columns:max-content minmax(160px,1fr) 540px!important}}

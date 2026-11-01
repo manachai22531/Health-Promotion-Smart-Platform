@@ -1,0 +1,6 @@
+Health Check Smart Search v7.65.02
+Base: v7.65.01 source 38b984368655234357171b5a75fbb1d2c6ab123b, preserving all prior features.
+- Fill annual-row backgrounds to the full company-card height. Single-year cards no longer leave a white strip below the year area.
+- Place examination-period status immediately after its dates on one line. The year identity column sizes to fit; note and action columns remain separate.
+- Refresh the stylesheet cache key and retain the soft year palettes.
+Install: back up the database, extract the complete ZIP, run INSTALL-REPAIR.bat as Administrator, wait for health checks, Ctrl+F5 and confirm v7.65.02.
