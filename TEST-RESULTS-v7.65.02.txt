@@ -1,0 +1,6 @@
+v7.65.02 validation, Linux, 2026-11-01 Asia/Bangkok
+PASS Chromium company-board regression: single-year backgrounds fill the entire annual column; expired status appears after the date on the same line; note/actions do not overlap; company filters, dates, controls and PDF validation remain functional at desktop/mobile sizes.
+PASS npm run build.
+PASS npm run test:release: 125 tests (117 + 8), no skipped or failed tests.
+Windows GUI/UAC and live HIS were not tested in this Linux environment.
+ZIP integrity, SHA-256 and all source manifest entries are verified during packaging and again after GitHub download.
