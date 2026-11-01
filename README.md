@@ -1,17 +1,20 @@
-# Health Check Smart Search — v7.65.00
+# Health Check Smart Search — v7.65.01
 
-[ดาวน์โหลดตัวติดตั้ง Windows v7.65.00](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.00/HealthCheck-v7.65.00-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง Windows v7.65.01](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.01/HealthCheck-v7.65.01-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-รวมซอร์สแอปพลิเคชันเต็มจาก installer v7.64.99 พร้อม hotfix ทั้งหมดตั้งแต่ v7.64.92 และงานที่ยังไม่ออกตัวติดตั้ง ตาม RELEASE-POLICY.md
+รวมงานที่อนุมัติจากมอคอัพรุ่น 3 และปรับหน้าลูกค้าให้เลือกแพ็กเกจหลักตามสิทธิ์ พร้อมบันทึกแทนลูกค้าจากหน้าค้นหาได้
 
-- มอคอัพแบบ 3 ใช้งานจริง: แถบค้นหาและ Booking ด้านซ้ายหุบ–กางได้ เพื่อขยายตาราง ข้อมูลการค้นหาและรายการที่เลือกยังคงอยู่
-- แก้ไขรายการที่รับจากลูกค้าแล้วได้ โดยคงรายการเดิมของพนักงาน แพ็กเกจหลัก สิทธิ์ และเงื่อนไขทางคลินิก บันทึกแล้วอัปเดต A4
-- รวมงานก่อนหน้า: HISGender Excel, CSV, หัวตารางตรึง, ปุ่มไม่ซ้อน, บริษัท/ปีแบบกระชับ, ระยะเวลาตรวจ, สีพื้น/ขอบตามธีม, หน้าลูกค้า และชื่อปุ่มพิมพ์
+- หน้าบริษัท: ปี/ช่วงตรวจด้านซ้าย สถานะและปุ่มแก้ไขใต้ปี หมายเหตุเด่นตรงกลาง ปุ่มและสถิติด้านขวา สีพื้นอ่อนแยกปี
+- หน้ารายชื่อลูกค้า: กลุ่มเลือกทั้งหมดอยู่ต้นแถบคำสั่งบรรทัดเดียว พร้อม sidebar ค้นหา/Booking หุบ–กางได้
+- หน้าลูกค้า: เลือกแพ็กเกจหลักเมื่อยังไม่มี โดยอิงโปรแกรมพนักงานในเอกสารรายปีหรือ Booking แสดงราคาแพ็กเกจหลักและยอดรวมรายการเสริม
+- เจ้าหน้าที่บันทึกแทนลูกค้าได้ตามสิทธิ์ customerEdit พร้อมประวัติผู้ทำรายการ ยังตรวจราคาปัจจุบันและข้อจำกัด OrderHIS/ปิดค่าใช้จ่าย
+- แก้การแจ้งเตือนบันทึกเอกสารรายปี: พาไปช่องเบอร์โทรเจ้าหน้าที่ขายที่ผิดรูปแบบเพื่อแก้ไขได้ทันที
 
-สำรองข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat → อนุญาต Administrator → รอ health check ผ่าน → Ctrl+F5 และตรวจ v7.65.00
+ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.01
 
-พัฒนา: `npm ci`, `npm run build`, `npm run test:release` สำหรับชุดตรวจรุ่นปัจจุบัน (ไฟล์ release tests เก่ายังคงอยู่เพื่ออ้างอิงรุ่นเดิม)
+พัฒนา: `npm ci`, `npm run build`, `npm run test:release`
 
-ตรวจ build, release 123 tests และ Chromium 7 suites ผ่าน รายละเอียดใน TEST-RESULTS-v7.65.00.txt ยังไม่ได้ทดสอบ Windows GUI/UAC และ HIS จริงในสภาพแวดล้อม Linux นี้
+รายละเอียด: RELEASE-v7.65.01-CHANGES.txt และ TEST-RESULTS-v7.65.01.txt
+ผ่าน release 125 tests, Chromium 3 suites และ PostgreSQL integration test ยังไม่ทดสอบ Windows GUI/UAC และ HIS จริง
 
-บรรจุตัวติดตั้ง: `python3 tools/build-windows-package.py --output-dir /path/to/output` ตรวจ manifest SHA-256 ของทุกไฟล์ใน ZIP อัตโนมัติ ไม่บรรจุฐานข้อมูล .env/API keys, logs หรือ node_modules
+บรรจุตัวติดตั้ง: `python3 tools/build-windows-package.py --output-dir /path/to/output`

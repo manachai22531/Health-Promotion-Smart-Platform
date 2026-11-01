@@ -49,3 +49,8 @@ html body #customerListOverlay .hc-booking-filter-wide #customerBookingSummary .
 html body #customerListOverlay .hc97-tools-secondary>.customer-booking-tools{padding:0!important;min-height:0!important;height:auto!important;border:0!important;background:transparent!important}
 html body #customerListOverlay .hc97-tools-secondary .customer-booking-target{min-height:30px!important;height:auto!important;margin:0!important}
 html body #customerListOverlay .hc-booking-filter-wide #customerBookingSummary{height:auto!important;min-height:30px!important;align-items:flex-start!important}
+
+html body #customerListOverlay .hc-release-command-bar{display:flex!important;align-items:center;gap:12px;overflow-x:auto;white-space:nowrap;padding:8px 0}html body #customerListOverlay .hc-release-command-bar>*{display:flex!important;flex:0 0 auto;gap:8px;align-items:center;margin:0!important;width:auto!important}html body #customerListOverlay .hc-release-command-bar .hc97-actions{margin-left:auto!important;flex-wrap:nowrap!important}html body #customerListOverlay .hc-release-command-bar #customerBulkToolbar{flex-wrap:nowrap!important}html body #customerListOverlay .hc-release-command-bar label{white-space:nowrap!important}
+
+html body #customerListOverlay .hc-release-command-bar .customer-selection-head{flex-direction:row!important;flex-wrap:nowrap!important}html body #customerListOverlay .hc-release-command-bar .customer-list-meta{white-space:nowrap!important}
+html body #customerListOverlay .hc-release-command-bar [hidden]{display:none!important}

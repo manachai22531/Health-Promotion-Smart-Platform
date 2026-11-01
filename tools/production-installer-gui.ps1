@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference='Stop'
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.65.00 PRODUCTION'
+$version='v7.65.01 PRODUCTION'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){

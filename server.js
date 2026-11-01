@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.00-production';
+const RELEASE_NAME = 'v7.65.01-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0218';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -3757,6 +3757,8 @@ async function customerProfileFor(recordKey,qrAuthenticated=false) {
     if (!record) throw Object.assign(new Error('ไม่พบข้อมูลลูกค้า'),{status:404});
     const company = (state.companies || []).find(item => item.id === record.companyId);
     const profile = safeCustomerProfile(record, company, state);
+    profile.primaryChoices=await require('./customer-primary-selection').choices(pool,{...record,key:recordKey});
+    profile.canChoosePrimary=!require('./customer-primary-selection').actual(record).length&&!record.visitedAt&&!record.checkupConfirmedAt&&!customerCatalog.locked(record);
     profile.contextKey=recordKey;
     profile.qrAuthenticated=qrAuthenticated;
     const categoryRows=(await pool.query(`SELECT c.code,c.name,c.active,c.sort_order,COALESCE(json_agg(json_build_object('name',s.name,'active',s.active,'sortOrder',s.sort_order) ORDER BY s.sort_order,s.name) FILTER(WHERE s.id IS NOT NULL),'[]'::json) subcategories FROM package_categories c LEFT JOIN package_subcategories s ON s.category_id=c.id GROUP BY c.id ORDER BY c.sort_order,c.name`)).rows;
@@ -3777,7 +3779,7 @@ app.get('/customer-api/me', customerSessionRequired, async (req,res)=>{
   try {res.set('Cache-Control','no-store').json(await customerProfileFor(req.customerSession.recordKey,req.customerSession.loginMethod==='qr'));}
   catch(error){res.status(error.status||500).json({error:error.status===404?error.message:'อ่านข้อมูลไม่สำเร็จ'});}
 });
-require('./customer-staff-preview').registerCustomerStaffPreview({app,localOnly,staffPermissionRequired,profileFor:customerProfileFor});
+require('./customer-staff-preview').registerCustomerStaffPreview({app,localOnly,staffPermissionRequired,profileFor:customerProfileFor,submitSelection:async(req,key)=>{const lease=await clinicalLifecycle.acquireCustomerSelection(key);let done=false;try{const result=await require('./customer-primary-selection').submit({pool,key,body:req.body,actor:{id:req.staffUser.id,username:req.staffUser.username,displayName:req.staffUser.displayName||req.staffUser.username,staff:true},invalidate:()=>{compressedStateCache={revision:null,body:null}}});done=true;return result}finally{await clinicalLifecycle.finishCustomerSelection(key,lease,done?'SUCCESS':'FAILED')}}});
 
 require('./customer-profile-save').registerCustomerProfileSave({app,pool,customerSessionRequired,safeCustomerProfile,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
 
@@ -3795,8 +3797,8 @@ app.post('/customer-api/me/selection/verify', customerSessionRequired, customerA
     } else if (!req.body?.confirmedNoId || suppliedFirst !== normalizedPersonName(record.first) || suppliedLast !== normalizedPersonName(record.last)) {
       return res.status(401).json({ error:'ชื่อ–นามสกุลสำหรับยืนยันไม่ถูกต้อง' });
     }
-    const selection = await saveCustomerSelection(record, company, state, await buildCustomerSelection(req, company, state));
-    res.json({ ok:true, pendingSelection:selection });
+    const result=await require('./customer-primary-selection').submit({pool,key:req.customerSession.recordKey,body:req.body,expectedIdentity:JSON.stringify([record.id||'',record.first||'',record.last||'']),actor:{id:'customer-self-service',username:'customer',displayName:'ลูกค้าเลือกด้วยตนเอง',staff:false},invalidate:()=>{compressedStateCache={revision:null,body:null}}});
+    res.json(result);
   } catch (error) { res.status(error.status||500).json({ error:error.message || 'ยืนยันและบันทึกรายการไม่สำเร็จ' }); }
 });
 

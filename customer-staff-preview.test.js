@@ -12,3 +12,10 @@ test('staff preview requires search and sensitive permission, returns the real s
  assert.equal((await fetch(url+'missing',{headers:{'x-role':'staff'}})).status,404);
  assert.equal((await fetch(url+'A',{method:'POST',headers:{'x-role':'staff'}})).status,404);
 });
+
+test('staff sales write requires customerEdit and binds the authenticated actor and record key',async t=>{
+ const app=express();app.use(express.json());let writes=0;
+ registerCustomerStaffPreview({app,localOnly:(_q,_r,n)=>n(),staffPermissionRequired:p=>(q,r,n)=>{if(!q.get('x-role'))return r.sendStatus(401);if(p==='customerEdit'&&q.get('x-role')!=='editor')return r.sendStatus(403);q.staffUser={id:'staff-real'};n()},profileFor:async()=>({}),submitSelection:async(req,key)=>{writes++;return {ok:true,key,actor:req.staffUser.id}}});
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));const url='http://127.0.0.1:'+server.address().port+'/api/customer-staff-preview/CASE/selection';
+ assert.equal((await fetch(url,{method:'POST'})).status,401);assert.equal((await fetch(url,{method:'POST',headers:{'x-role':'viewer'}})).status,403);assert.equal(writes,0);const r=await fetch(url,{method:'POST',headers:{'x-role':'editor'}});assert.equal(r.status,200);assert.deepEqual(await r.json(),{ok:true,key:'CASE',actor:'staff-real'});assert.equal(writes,1);
+});

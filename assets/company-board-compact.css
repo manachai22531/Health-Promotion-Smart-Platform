@@ -45,3 +45,34 @@ html body #companyView .company-project-arrow{display:none!important}
 #companyView .company-board-period-inline.upcoming{background:#e8f2fc;border-color:#bfd6ed;color:#2b657f}
 #companyView .company-board-period-inline.unset{background:#f1f3f5;border-color:#d6dce1;color:#667b88}
 #companyView .company-board-period-inline small{background:rgba(255,255,255,.55);color:inherit}
+
+/* Keep the complete annual command bar on one line; narrow screens can scroll it. */
+html body #companyView .company-board-year-row{grid-template-columns:max-content minmax(max-content,1fr)!important;grid-template-rows:auto auto auto!important;overflow-x:auto!important}
+html body #companyView .company-board-year-title{grid-column:1!important;grid-row:1!important;flex-wrap:nowrap!important}
+html body #companyView .company-board-year-actions{margin-left:0!important;flex-wrap:nowrap!important}
+html body #companyView .company-board-period-inline{flex-wrap:nowrap!important;white-space:nowrap}
+html body #companyView .company-board-booking-actions{grid-column:2!important;grid-row:1!important;flex-wrap:nowrap!important;justify-content:flex-end!important}
+html body #companyView .company-board-year-metrics{grid-column:1/-1!important;grid-row:2!important;justify-content:flex-start!important}
+html body #companyView .company-board-year-note{color:#62788b;white-space:normal;overflow-wrap:anywhere}
+html body #companyView .company-board-year-row.company-year-tone-0{background:#f0f7ff!important}
+html body #companyView .company-board-year-row.company-year-tone-1{background:#eef8f3!important}
+html body #companyView .company-board-year-row.company-year-tone-2{background:#faf4ec!important}
+html body #companyView .company-board-year-row.company-year-tone-3{background:#f5f1fb!important}
+#companySalesPhone[aria-invalid="true"]{border:2px solid #c84252!important;background:#fff6f6!important}
+
+/* Approved annual mockup v3: identity left, note middle, actions and metrics right. */
+html body #companyView .company-board-year-row{grid-template-columns:250px minmax(180px,1fr) 580px!important;grid-template-rows:auto auto auto!important;gap:10px 12px!important;padding:14px!important}
+html body #companyView .company-board-year-title{grid-column:1!important;grid-row:1/3!important;display:grid!important;grid-template-columns:auto 1fr!important;gap:8px!important;align-content:start!important}
+html body #companyView .company-board-year-title h3{margin:0!important}
+html body #companyView .company-board-year-actions{grid-column:1/-1!important;justify-content:flex-start!important}
+html body #companyView .company-board-year-note{grid-column:2!important;grid-row:1/3!important;align-self:stretch!important;min-height:78px!important;background:#fff1bd!important;border:1px solid #e1c772!important;border-left:4px solid #bf9020!important;border-radius:8px!important;padding:10px 12px!important;color:#704b0a!important;font-size:13px!important;font-weight:700!important;line-height:1.8!important}
+html body #companyView .company-board-booking-actions{grid-column:3!important;grid-row:1!important;gap:5px!important;justify-content:flex-start!important}
+html body #companyView .company-board-booking-actions .button{font-size:10px!important;padding:7px!important}
+html body #companyView .company-board-year-metrics{grid-column:3!important;grid-row:2!important;align-self:start!important;gap:4px 8px!important;font-size:10px!important}
+html body #companyView .company-project-bars,html body #companyView .company-project-empty{grid-row:3!important}
+@media(max-width:1500px){html body #companyView .company-board-year-row{grid-template-columns:240px minmax(160px,1fr) 540px!important}html body #companyView .company-board-booking-actions .button{font-size:9px!important;padding:6px!important}}
+@media(max-width:1200px){html body #companyView .company-board-years{overflow-x:auto!important}html body #companyView .company-board-year-row{min-width:1120px!important}}
+html body #companyView .company-board-year-title{grid-template-columns:58px minmax(0,1fr)!important;align-items:start!important;min-width:0!important}
+html body #companyView .company-board-year-title .company-board-period-inline{min-width:0!important;max-width:100%!important;flex-wrap:wrap!important;white-space:normal!important;font-size:10px!important;gap:3px!important}
+html body #companyView .company-board-period-inline>span:not([aria-hidden]){min-width:0;overflow-wrap:anywhere}
+html body #companyView .company-board-period-inline small{font-size:9px!important;padding:2px 4px!important}

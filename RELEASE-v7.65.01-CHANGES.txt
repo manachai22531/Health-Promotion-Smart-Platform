@@ -1,0 +1,14 @@
+Health Check Smart Search v7.65.01
+Base: v7.65.00 main, e8c03f3bee7d794d2d97767a4e53f2add9ebf852 plus existing local company-board fixes and this release's changes.
+
+- Company annual board follows approved mockup v3: year and period left, status/edit/delete below, prominent note in the middle, actions right and import statistics below the actions. Soft colors distinguish years.
+- Company save/PDF validation now scrolls to and focuses an invalid salesperson phone, explains how to fix it or leave it blank, and clears validation after correction.
+- Customer list selection controls move to the front of one command bar; sidebar search/Booking and collapse behavior remain available.
+- Customers with no primary package can choose one explicitly entitled by their Booking or company's annual employee programs. Configure employee HIS program codes in the company's annual circular, or assign Booking package codes. No entitled choices means contact staff; the entire HIS catalog is not exposed.
+- The customer cart shows the primary package code/name/price and total including add-ons. Primary payment entitlement still requires staff confirmation; no invented company allowance is applied.
+- The customer page opened from search can submit on behalf of the customer using the logged-in staff session. Requires search, sensitive customer view and customer edit permissions. Staff identity is stored in the audit and submission.
+- Primary/extra writes recheck current prices, company/Booking scope and Order/charge-close locks in a database transaction. Existing primary packages and confirmed visits cannot be overwritten through this customer picker.
+- Previous v7.65.00 features remain, including the collapsible search/Booking sidebar and editing reviewed customer add-ons with existing clinical restrictions.
+
+Install: back up the database, extract the complete archive, run INSTALL-REPAIR.bat as Administrator, wait for health checks, then Ctrl+F5 and verify v7.65.01.
+The package preserves the existing .env, API key and database connection configuration through the existing installer workflow. A ZIP build does not publish a GitHub release or cloud environment.

@@ -1,0 +1,20 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),{Pool}=require('pg'),{syncStateToRelational}=require('../relational-store'),{choices,submit}=require('../customer-primary-selection');
+test('real PostgreSQL: entitled primary + extras, stale prices, lock, audit actor and rollback',{skip:!process.env.PRIMARY_TEST_PGPORT},async t=>{
+ const port=Number(process.env.PRIMARY_TEST_PGPORT);assert.ok(port>=55000);const pool=new Pool({host:'127.0.0.1',port,user:'health_check',database:'health_check_smart_search'});t.after(()=>pool.end());
+ const current=(await pool.query('SELECT data,revision FROM app_state WHERE id=1')).rows[0];assert.equal((await pool.query('SELECT count(*)::int n FROM company_customers')).rows[0].n,0,'only run against empty disposable DB');
+ const state={...current.data,companies:[{id:'primary-co',code:'PC',name:'Primary fixture',year:'2569',cashPackages:[{id:'EXTRA',code:'EXTRA',name:'Extra',price:50}]}],records:[{key:'primary-case',companyId:'primary-co',id:'TEST1234',first:'Fixture',last:'Customer'}]};
+ const db=await pool.connect();try{await db.query('BEGIN');await db.query('UPDATE app_state SET data=$1::jsonb WHERE id=1',[JSON.stringify(state)]);await syncStateToRelational(db,state,current.revision);await db.query("INSERT INTO company_year_circulars(company_year_id,memo_data) VALUES('primary-co',$1::jsonb)",[JSON.stringify({hospitalPrograms:[{code:'MAIN1'},{code:'MAIN2'}]})]);await db.query("INSERT INTO his_packages(package_code,package_name,total_price,is_approved) VALUES('MAIN1','Main fixture',500,true),('MAIN2','Second fixture',700,true),('OTHER','Not entitled',900,true)");await db.query('COMMIT')}catch(e){await db.query('ROLLBACK');throw e}finally{db.release()}
+ const actor={id:'staff-fixture',username:'staff-fixture',displayName:'Fixture Staff',staff:true},base={pool,key:'primary-case',actor,invalidate:()=>{}};
+ assert.equal((await choices(pool,{key:'primary-case',companyId:'primary-co'})).length,2);
+ await assert.rejects(submit({...base,body:{primaryCode:'OTHER',primaryExpectedPrice:900}}),/สิทธิ์บริษัท/);
+ await assert.rejects(submit({...base,body:{primaryCode:'MAIN1',primaryExpectedPrice:499}}),/ราคาแพ็กเกจหลักเปลี่ยน/);
+ assert.equal((await pool.query("SELECT package_code FROM company_customers WHERE legacy_record_key='primary-case'")).rows[0].package_code,'');
+ const result=await submit({...base,body:{primaryCode:'MAIN1',primaryExpectedPrice:500,cashIds:['EXTRA'],expectedPrices:{'cash:EXTRA':50}}});assert.equal(result.patch.primaryPackages[0].price,500);assert.equal(result.pendingSelection.selfPayTotal,50);assert.equal(result.pendingSelection.submittedBy.username,actor.username);
+ const saved=(await pool.query("SELECT source_data,package_code FROM company_customers WHERE legacy_record_key='primary-case'")).rows[0];assert.equal(saved.package_code,'MAIN1');assert.equal(saved.source_data.primaryPackages[0].code,'MAIN1');
+ const audit=(await pool.query("SELECT performed_by_username,details FROM checkup_audit_log WHERE record_key='primary-case' ORDER BY id DESC LIMIT 1")).rows[0];assert.equal(audit.performed_by_username,actor.username);assert.equal(audit.details.kind,'STAFF_CUSTOMER_SELECTION');
+ await assert.rejects(submit({...base,body:{primaryCode:'MAIN2',primaryExpectedPrice:700}}),/มีแพ็กเกจหลัก/);
+ await pool.query("UPDATE company_customers SET source_data=source_data||'{\"orderHisAt\":\"2026-11-01\"}'::jsonb WHERE legacy_record_key='primary-case'");await assert.rejects(submit({...base,body:{cashIds:[]}}),/ส่ง Order/);
+ const count=(await pool.query("SELECT count(*)::int n FROM checkup_audit_log WHERE record_key='primary-case'")).rows[0].n;assert.equal(count,1,'failed transactions must not create audits');
+ await pool.query("UPDATE company_customers SET visited_at=NOW(),package_code='',package_name='',source_data=source_data-'orderHisAt'-'primaryPackages'-'code'-'packageName'-'visitedAt' WHERE legacy_record_key='primary-case'");await assert.rejects(submit({...base,body:{primaryCode:'MAIN1',primaryExpectedPrice:500}}),/ยืนยันการตรวจแล้ว/);
+});
