@@ -1,0 +1,16 @@
+v7.65.01 validation, Linux, 2026-11-01 (Asia/Bangkok)
+PASS npm run build
+PASS npm run test:release: 125 tests (117 + 8), no failed or skipped tests.
+PASS Chromium tools/company-board-compact-browser.test.cjs: annual positions, colors, notes, responsive layout and save/PDF validation flow using mocked API responses.
+PASS Chromium tools/customer-staff-preview-browser.test.cjs: real customer renderer, primary picker, cart prices, staff save request and mobile action strip; backend responses mocked.
+PASS Chromium tools/workspace-v76497-browser.test.cjs: 100-row toolbar, copy, frozen columns, editor, Booking and sidebar collapse.
+PASS real PostgreSQL tools/customer-primary-selection-integration.test.cjs with PRIMARY_TEST_PGPORT=55432: entitled primary selection, add-ons, unauthorized package, stale price, overwrite and Order locks, audit staff identity, transaction rollback.
+PASS actual customer HTTP: ID/birth login, bad last-4 rejection, initial primary/add-on save and refreshed profile prices.
+PASS initial-primary access regression: pre-visit ID/name sessions can select; QR, existing-primary and closed-case gates remain enforced.
+PASS real application HTTP: staff login, entitled profile, clinical lease, primary/add-on save and authenticated staff audit actor (isolated PostgreSQL).
+PASS authoritative relational visited_at prevents primary selection even when JSON state is stale.
+PASS staff endpoint permission tests (included in release suite).
+PASS fresh application startup against an isolated PostgreSQL 17 database.
+NOT RUN Windows GUI/UAC, Windows upgrade installation, live hospital HIS, external integration APIs.
+The existing npm run smoke remains outdated (old version and incompatible smoke port/database). Release tests and the dedicated browser/database checks above were used instead.
+Archive SHA-256 and every source manifest entry are checked by tools/build-windows-package.py during packaging.
