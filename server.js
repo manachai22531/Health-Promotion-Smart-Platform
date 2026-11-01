@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.02-production';
+const RELEASE_NAME = 'v7.65.03-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0218';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -3038,10 +3038,10 @@ app.patch('/api/company-circulars/:companyId/sections/:section',localOnly,staffP
       '00':['issueDate','documentNo','subject','recipient','walkIn','serviceFormat'],
       '01':['companyNameEn','taxId','address','coordinator','coordinators','employeeCount','payorCode','payorPlan','additionalCompanies'],
       'subsidiaries':['additionalCompanies'],'coordinators':['coordinator','coordinators'],'employees':['employeeCount'],
-      '02':['screeningPeriod'],'03':['listenResults','noListenResults','mealCoupon','noMealCoupon','medicalStaff'],
-      '04':['programConditions'],'05':['eligibility'],'06':['reporting'],
-      '07':['receivables'],'08':['salesContact','signatory'],'09':['programMatrix'],
-      '10':['appendixDetails']
+      '02':['screeningPeriod'],'03':['listenResults','noListenResults','mealCoupon','noMealCoupon','medicalStaff','medicalDetails'],
+      '04':['programConditions'],'05':['eligibility','financeDetails'],'06':['reporting'],
+      '07':['receivables','receivableDetails'],'08':['salesContact','signatory'],'09':['programMatrix'],
+      '10':['appendixDetails'],'attachments':['appendixDetails']
     }[section];
     if(!allowed)return res.status(400).json({error:'หัวข้อเอกสารเวียนไม่ถูกต้อง'});
     const current=(await pool.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[co.id])).rows[0]?.memo_data||{};
@@ -3057,8 +3057,8 @@ app.patch('/api/company-years/:companyId/sections/:section',localOnly,staffPermi
     const fields={
       '00':[],'01':['name','year','code'],'02':['checkupStartDate','checkupEndDate'],'03':[],
       '04':[],'05':[],'06':['reportConditions'],'07':[],'08':['salesName','salesPhone'],
-      '09':[],'10':['billingPackages','cashPackages','note']
-    }[section];if(!fields)return res.status(400).json({error:'หัวข้อต้องเป็น 00-10'});
+      '09':[],'10':['billingPackages','cashPackages','note'],'11':['note']
+    }[section];if(!fields)return res.status(400).json({error:'หัวข้อต้องเป็น 00-11'});
     await client.query('BEGIN');const locked=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE'),data=locked.rows[0]?.data||{},companies=Array.isArray(data.companies)?[...data.companies]:[];let index=companies.findIndex(x=>String(x?.id||'')===id);
     // A normalized company/year can exist before an older app_state snapshot has
     // been refreshed. Rehydrate that valid row instead of rejecting the save.

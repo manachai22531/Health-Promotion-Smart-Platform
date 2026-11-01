@@ -1,6 +1,6 @@
-# Health Check Smart Search — v7.65.02
+# Health Check Smart Search — v7.65.03
 
-[ดาวน์โหลดตัวติดตั้ง Windows v7.65.02](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.02/HealthCheck-v7.65.02-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง Windows v7.65.03](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.03/HealthCheck-v7.65.03-PRODUCTION-WINDOWS-INSTALLER.zip)
 
 รวมงานที่อนุมัติจากมอคอัพรุ่น 3 และปรับหน้าลูกค้าให้เลือกแพ็กเกจหลักตามสิทธิ์ พร้อมบันทึกแทนลูกค้าจากหน้าค้นหาได้
 
@@ -10,11 +10,13 @@
 - เจ้าหน้าที่บันทึกแทนลูกค้าได้ตามสิทธิ์ customerEdit พร้อมประวัติผู้ทำรายการ ยังตรวจราคาปัจจุบันและข้อจำกัด OrderHIS/ปิดค่าใช้จ่าย
 - แก้การแจ้งเตือนบันทึกเอกสารรายปี: พาไปช่องเบอร์โทรเจ้าหน้าที่ขายที่ผิดรูปแบบเพื่อแก้ไขได้ทันที
 
-ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.02
+ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.03
+
+- เอกสารรายปี: ข้อความแพทย์/การเงินแสดงตรงแถว PDF เพิ่มหัวข้อ 14 หมายเหตุรายปี ช่องรายละเอียดลูกหนี้ และย้ายรายละเอียดแนบท้ายขึ้นต้นกล่องเอกสารแนบ
 
 พัฒนา: `npm ci`, `npm run build`, `npm run test:release`
 
-รายละเอียด: RELEASE-v7.65.02-CHANGES.txt และ TEST-RESULTS-v7.65.02.txt
-ผ่าน release 125 tests, Chromium 3 suites และ PostgreSQL integration test ยังไม่ทดสอบ Windows GUI/UAC และ HIS จริง
+รายละเอียด: RELEASE-v7.65.03-CHANGES.txt และ TEST-RESULTS-v7.65.03.txt
+ผ่าน release 128 tests, Chromium 3 suites และ PostgreSQL integration test ยังไม่ทดสอบ Windows GUI/UAC และ HIS จริง
 
 บรรจุตัวติดตั้ง: `python3 tools/build-windows-package.py --output-dir /path/to/output`

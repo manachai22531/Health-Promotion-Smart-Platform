@@ -16,7 +16,7 @@ const TEXT_FIELDS = Object.freeze({
   payorPlan: 150, screeningPeriod: 300, medicalStaff: 250, programConditions: 2500,
   eligibility: 2500, reporting: 2500, receivables: 2500,
   salesContact: 350, signatory: 180, appendixDetails: 3500, subject: 250, recipient: 700,
-  medicalDetails: 1000, financeDetails: 1000, receivableDetails: 1000, serviceFormat: 1000
+  medicalDetails: 3500, financeDetails: 3500, receivableDetails: 1000, serviceFormat: 1000
 });
 function clean(value, max=400) { return String(value == null ? '' : value).replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim().slice(0,max); }
 function normalizeCircular(input={}) {
@@ -98,7 +98,7 @@ async function buildCorporateCircularPdf(company, data, options={}) {
     if(pdf.getPageCount()>matrixStart)topics.push({title:'ตารางเปรียบเทียบโปรแกรม',page:pdf.getPages()[matrixStart]});
   }
   const additional=[...(Array.isArray(company.billingPackages)?company.billingPackages:[]).map(p=>({...p,billingType:'วางบิล'})),...(Array.isArray(company.cashPackages)?company.cashPackages:[]).map(p=>({...p,billingType:'เงินสด'}))];
-  if(additional.length||d.appendixDetails){
+  if(additional.length){
     const columns=[{label:'ลำดับ',width:24},{label:'การชำระ',width:43},{label:'Code',width:100},{label:'รายการตรวจเพิ่มเติม',width:274},{label:'จำนวน',width:30},{label:'ราคา/หน่วย',width:60}],left=32;
     let page,top,rowNo=0;
     const moneyValue=v=>{const n=Number(v);return Number.isFinite(n)?n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):clean(v,40)};
@@ -109,7 +109,6 @@ async function buildCorporateCircularPdf(company, data, options={}) {
       if(top+height>791)addPage();let x=left;
       cells.forEach((value,i)=>{const col=columns[i],size=i===2?6.8:7.2;page.drawRectangle({x,y:841.92-top-height,width:col.width,height:height,color:rowNo%2?theme.white:theme.stripe});page.drawLine({start:{x,y:841.92-top-height},end:{x:x+col.width,y:841.92-top-height},thickness:.45,color:theme.grid});prepared[i].forEach((t,j)=>{const tx=i===5?x+col.width-4-font.widthOfTextAtSize(t,size):x+4;page.drawText(t,{x:tx,y:841.92-top-12-j*10,font,size,color:i===2?theme.blue:theme.ink})});x+=col.width});top+=height;
     }
-    if(d.appendixDetails){top+=14;for(const t of wrap('หมายเหตุ: '+d.appendixDetails,7.6,523)){if(top+11>791)addPage();page.drawText(t,{x:left+4,y:841.92-top-8,font,size:7.6,color:theme.ink});top+=11}}
   }
   drawFooters(pdf,theme,company);
   // The PDF page sequence is already correct: 00–08 → 09 → 10.

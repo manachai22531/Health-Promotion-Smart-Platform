@@ -115,24 +115,26 @@ function appendAnnualCircularSections(pdf,font,company={},data={},options={}) {
   }
   field('จำนวนพนักงานทั้งหมด',data.employeeCount);
   field('ช่วงวันที่ตรวจ',data.screeningPeriod);
-  field('แพทย์ + พยาบาล',data.medicalStaff);
+  if(data.medicalDetails&&trim(data.medicalStaff)&&!trim(data.medicalDetails).startsWith(trim(data.medicalStaff)))field('แพทย์ + พยาบาล',data.medicalStaff);
   field('รูปแบบการตรวจ',data.listenResults?'ตรวจแบบฟังผล':data.noListenResults?'ตรวจแบบไม่ฟังผล':'ตรวจตามเงื่อนไขบริษัท');
   field('คูปองอาหาร',data.mealCoupon?'มี':'ไม่มี');
   // No duplicate medical-staff value: this is a separate source field in Word.
-  field('รายละเอียดเพิ่มเติม',data.medicalDetails);
+  field('รายละเอียดเพิ่มเติม',data.medicalDetails||data.medicalStaff);
   programRows('โปรแกรมพนักงาน',data.hospitalPrograms);
   programRows('โปรแกรมครอบครัว',data.familyPrograms);
   field('เงื่อนไขโปรแกรมตรวจ',data.programConditions);
-  field('ต้อนรับและการเงิน',data.financeDetails);
-  field('การแสดงสิทธิ์ / การเงิน',data.eligibility);
+  field('ต้อนรับและการเงิน',data.financeDetails||data.eligibility);
+  if(data.financeDetails&&trim(data.eligibility)&&!trim(data.financeDetails).startsWith(trim(data.eligibility)))field('การแสดงสิทธิ์ / การเงิน',data.eligibility);
   field('เงื่อนไขการรายงานผล',data.reporting);
   field('บัญชีลูกหนี้',data.receivables);
   field('รายละเอียด / เงื่อนไข',data.receivableDetails);
   field('เจ้าหน้าที่ขาย',data.salesContact);
+  field('หมายเหตุข้อมูลรายปี',company.note);
   const matrix=data.programMatrix||{},matrixCount=Array.isArray(matrix.rows)?matrix.rows.length:0;
   field('ตารางโปรแกรม',matrixCount?`มี ${matrixCount} รายการ (ดูตารางแนบ)`:'—');
   const additional=options.extraExaminationCount||0;
-  field('รายการตรวจ',trim(data.appendixDetails)||(additional?`มี ${additional} รายการ (ดูตารางแนบ)`:'—'));
+  field('รายการตรวจ',additional?`มี ${additional} รายการ (ดูตารางแนบ)`:'—');
+  field('รายละเอียดเอกสารแนบท้าย',data.appendixDetails);
   return count;
 }
 module.exports={appendAnnualCircularSections};

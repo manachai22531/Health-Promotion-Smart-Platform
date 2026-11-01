@@ -1,0 +1,8 @@
+v7.65.03 validation, Linux, 2026-11-01 Asia/Bangkok
+PASS npm run build.
+PASS npm run test:release: 128 tests (120 + 8), zero skipped or failed tests. Includes generated PDF text, legacy text compatibility, description length and one-page appendix-description checks.
+PASS Chromium tools/annual-pdf-fields-browser.test.cjs: canonical editor payloads, scoped section saves, note-only save, appendix save, reload, heading 14 and first-input attachment placement.
+PASS Chromium tools/company-board-compact-browser.test.cjs: annual layout, full-height year backgrounds, inline period badge, colors, notes, filters, actions and save validation.
+Known baseline failures: five older checks across corporate-mockup-implementation-v76419.test.js, corporate-pdf-alignment-r2.test.js and corporate-word-layout-regression.test.js. Reproduced with unchanged v7.65.02 Git sources; stale layout assertions and an outdated VM dependency stub remain. These checks are distinct from the passing release suite and the actual PDF/browser checks above.
+NOT RUN Windows GUI/UAC installation and live hospital HIS.
+Packaging checks ZIP integrity, SHA-256 and every manifest entry; downloaded GitHub payload is checked again before sharing the link.

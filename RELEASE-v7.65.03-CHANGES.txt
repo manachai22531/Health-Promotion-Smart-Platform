@@ -1,0 +1,8 @@
+Health Check Smart Search v7.65.03
+Base: v7.65.02, b434c6962df5d0c9e316b94159b899ed6fe04e48. All previous features retained.
+- Correct medical/finance editor field mappings, section PATCH allowlists and PDF rows. Legacy saved text remains readable and repeated aliases are not printed twice.
+- Add heading 14 for the annual company note, with its own save button and PDF row. Notes are saved to the company/year record without rewriting unrelated circular fields.
+- Move the appendix description to the first input in the attachments box and give it an independent scoped save action.
+- Expose receivableDetails under heading 10 so the PDF's additional receivable terms can be entered, saved and reloaded.
+- Preserve medical and finance input text up to the advertised 3500-character limit. An appendix description alone no longer creates an empty additional-examination table page.
+Installation: back up the database, extract the full ZIP, run INSTALL-REPAIR.bat as Administrator, wait for health checks, Ctrl+F5 and verify v7.65.03.
