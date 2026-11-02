@@ -87,6 +87,10 @@
 #resultRows .customer-compact-card .cc-packages .cc-package-cash>td{background:#d8f0df!important;border-color:#b6d9c1!important;color:#194b70!important}
 #resultRows .customer-compact-card .cc-packages .cc-package-billing>td:first-child{box-shadow:inset 3px 0 #1593c5}
 #resultRows .customer-compact-card .cc-packages .cc-package-cash>td:first-child{box-shadow:inset 3px 0 #26a26b}
+/* Keep the package type column compact and make its labels easy to scan. */
+#resultRows .customer-compact-card .cc-packages th:nth-child(1),
+#resultRows .customer-compact-card .cc-packages td:nth-child(1){width:10%!important;font-weight:800!important}
+#resultRows .customer-compact-card .cc-packages th:nth-child(3){width:41%!important}
 @media(max-width:600px){.customer-compact-card .cc-data th,.customer-compact-card .cc-data td{padding:4px 5px}.customer-compact-card .cc-packages th,.customer-compact-card .cc-packages td{padding:5px;font-size:10px}.customer-compact-card .cc-contract.is-empty{align-items:start;flex-direction:column;gap:3px}.customer-compact-card .cc-contract.is-empty>header{width:100%}.customer-compact-card .cc-personal-note-summary.is-empty>p{font-size:10px}}
 
 #resultRows .customer-compact-card .cc-identity{padding:9px;gap:9px}.customer-compact-card .cc-contract.is-empty{flex-direction:row}@media(max-width:600px){.customer-compact-card .cc-contract.is-empty{flex-direction:column}}

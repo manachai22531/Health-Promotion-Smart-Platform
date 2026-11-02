@@ -20,7 +20,8 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 </script>
 <link href="assets/user-experience.css?v=7.65.06-header-shield-only" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/role-experience.css?v=7.65.06-role-exp"/>
-<link rel="stylesheet" href="assets/customer-compact.css?v=7.65.06-remove-open-button"/>
+<link rel="stylesheet" href="assets/customer-compact.css?v=7.65.07-type-column"/>
+<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.07"/>
 <link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.65.06-global-dismiss"/>
 <link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.06-single-busy"/>
 <link rel="stylesheet" href="assets/customer-id-camera.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.65.06-knowledge"/>
@@ -483,8 +484,30 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <button type="button" class="button secondary" id="searchTodayToggle" aria-expanded="false" aria-controls="searchTodayDrawer">ยืนยันแล้ววันนี้ <span id="searchTodayCount">0</span> ☰</button>
 </div><!-- end hc-one-line-search-row -->
 
+<div class="customer-search-display-bar" id="customerSearchDisplayBar">
+<div class="customer-search-view-toggle" role="group" aria-label="รูปแบบการแสดงรายชื่อลูกค้า">
+<button class="active" data-customer-search-mode="card" type="button">▦ แบบเดิม</button>
+<button data-customer-search-mode="table" type="button">☷ แบบตาราง</button>
+</div>
+</div>
 <div class="result-meta" id="resultMeta"></div>
 <div class="result-cards" hidden="" id="resultRows"></div>
+<section class="customer-search-table-pane" id="customerSearchTablePane" hidden>
+<div class="customer-search-table-tools">
+<strong id="customerSearchSelection">○ เลือกลูกค้า 1 รายการเพื่อทำงาน</strong>
+<div class="customer-search-single-actions" id="customerSearchSingleActions">
+<button data-customer-search-action="detail" disabled type="button">รายละเอียด</button>
+<button data-customer-search-action="edit" disabled type="button">แก้ไขข้อมูล</button>
+<button class="primary" data-customer-search-action="receive" disabled type="button">ยืนยันการตรวจ</button>
+<button data-customer-search-action="customer" disabled type="button">เปิดหน้าลูกค้า</button>
+<button data-customer-search-action="appointment" disabled type="button">ดูนัดหมาย</button>
+<button data-customer-search-action="book" disabled type="button">ดูเล่ม</button>
+<button class="danger" data-customer-search-action="circular" disabled type="button">เอกสารเวียน</button>
+</div>
+<button class="button secondary" data-permission="customerExport" id="customerSearchExport" type="button">⇩ Export</button>
+</div>
+<div class="customer-search-table-scroll"><table class="customer-search-table"><thead><tr><th>เลือก</th><th>#</th><th>ชื่อ–นามสกุล</th><th>บริษัท / ปี</th><th>ID / Passport</th><th>HN</th><th>VN</th><th>การมารับบริการ</th><th>แพ็กเกจหลัก</th><th>วางบิล</th><th>ชำระเอง</th><th>คู่สัญญา</th><th>นัดหมาย</th></tr></thead><tbody id="customerSearchTableRows"></tbody></table></div>
+</section>
 <div class="empty" id="emptyState">
 <span class="empty-icon">⌕</span><strong>พร้อมค้นหารายชื่อ</strong><span>กรอกชื่อ, ID/Passport, HN หรือเลือกบริษัท แล้วกดค้นหาเพื่อเริ่มต้น</span>
 </div>
@@ -2531,7 +2554,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
 <script src="assets/emr-book-model.js?v=7.65.06"></script>
 <script src="assets/personal-note-model.js?v=7.65.06-note-import"></script>
-<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.06-annual-pdf-fields-fix-sticky-headers-draft3-customer-summary-note-detail-customer-setup"></script>
+<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.07-customer-table-permission-coverage"></script>
 <script src="assets/customer-search-one-row.js?v=7.65.06-compact-search"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
 <script src="assets/worklist-board.js?v=7.65.06"></script>
@@ -2567,5 +2590,5 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-profile-header.js?v=7.65.06-fast-save"></script><script src="assets/booking-calendar.js?v=7.65.06"></script><script src="assets/id-card-camera-model.js?v=7.65.06"></script><script src="assets/customer-id-camera.js?v=7.65.06"></script><script src="assets/appointment-schedules.js?v=7.65.06"></script>
 <script src="assets/personal-notes.js?v=7.65.06-note-detail"></script>
 <script src="assets/customer-selection-review.js?v=7.65.06-selection-edit-draft1"></script>
-<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.06"></script><script src="assets/customer-staff-preview.js?v=7.65.06"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.06"></script></body>
+<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.06"></script><script src="assets/customer-staff-preview.js?v=7.65.06"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.07-health-visible-1"></script></body>
 </html>

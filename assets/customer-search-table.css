@@ -1,0 +1,41 @@
+#searchView .customer-search-display-bar{display:flex;justify-content:flex-end;margin:8px 0 0}
+#searchView .customer-search-view-toggle{display:flex;gap:3px;padding:3px;border:1px solid #c6e0e9;border-radius:10px;background:#edf7fa}
+#searchView .customer-search-view-toggle button{min-height:32px;padding:5px 10px;border:0;border-radius:7px;background:transparent;color:#54788b;font-weight:800;cursor:pointer;white-space:nowrap}
+#searchView .customer-search-view-toggle button.active{background:#078fa9;color:#fff;box-shadow:0 3px 8px #08799130}
+#searchView #resultMeta{display:none!important}
+#searchView .customer-search-table-pane{margin-top:8px;border:1px solid #bddce8;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 6px 20px #124e6710}
+#searchView .customer-search-table-pane[hidden]{display:none!important}
+#searchView .customer-search-table-tools{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#edf8fb;border-bottom:1px solid #cde3ec}
+#searchView .customer-search-table-tools>strong{color:#57798b;font-size:10px;white-space:nowrap}
+#searchView .customer-search-table-tools>strong.selected{color:#087d98}
+#searchView .customer-search-single-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+#searchView .customer-search-single-actions button{padding:6px 8px;border:1px solid #b9d8e5;border-radius:7px;background:#fff;color:#087d98;font-size:9px;font-weight:800;cursor:pointer;white-space:nowrap}
+#searchView .customer-search-single-actions button.primary{background:#078fa9;border-color:#078fa9;color:#fff}
+#searchView .customer-search-single-actions button.danger{background:#d64147;border-color:#d64147;color:#fff}
+#searchView .customer-search-single-actions button:disabled{opacity:.42;cursor:not-allowed;background:#edf2f4!important;border-color:#d4e0e5!important;color:#78909b!important}
+#searchView #customerSearchExport{margin-left:auto;min-height:34px;padding:6px 11px;white-space:nowrap}
+#searchView .customer-search-table-scroll{max-width:100%;overflow:auto}
+#searchView .customer-search-table{width:100%;min-width:1480px;border-collapse:separate;border-spacing:0;table-layout:fixed;color:#174e68}
+#searchView .customer-search-table th{position:sticky;top:0;z-index:2;height:38px;padding:7px;border-right:1px solid #bedbe7;border-bottom:1px solid #aacfdc;background:#dff1f6;font-size:10px;text-align:left}
+#searchView .customer-search-table td{height:48px;padding:6px 7px;border-right:1px solid #dbe9ef;border-bottom:1px solid #dbe9ef;background:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#searchView .customer-search-table tbody tr{cursor:pointer}
+#searchView .customer-search-table tbody tr:hover td{background:#eef9fb}
+#searchView .customer-search-table tbody tr.selected td{background:#e4f3ff}
+#searchView .customer-search-table th:nth-child(1){width:42px;text-align:center}
+#searchView .customer-search-table th:nth-child(2){width:50px}
+#searchView .customer-search-table th:nth-child(3){width:205px}
+#searchView .customer-search-table th:nth-child(4){width:170px}
+#searchView .customer-search-table th:nth-child(5){width:145px}
+#searchView .customer-search-table th:nth-child(6),#searchView .customer-search-table th:nth-child(7){width:125px}
+#searchView .customer-search-table th:nth-child(8){width:115px}
+#searchView .customer-search-table th:nth-child(9){width:180px}
+#searchView .customer-search-table th:nth-child(10),#searchView .customer-search-table th:nth-child(11),#searchView .customer-search-table th:nth-child(12){width:90px}
+#searchView .customer-search-table th:nth-child(13){width:145px}
+#searchView .customer-search-table input[type=radio]{accent-color:#078fa9;cursor:pointer}
+#searchView .customer-search-name b,#searchView .customer-search-name small{display:block}
+#searchView .customer-search-name small{margin-top:3px;color:#79919d}
+#searchView .customer-search-status{display:inline-flex;padding:5px 7px;border-radius:12px;background:#daf4e4;color:#087244;font-size:10px;font-weight:800}
+#searchView .customer-search-status.wait{background:#fff2cc;color:#8b6507}
+#searchView .customer-search-count{display:inline-flex;padding:4px 6px;border-radius:7px;background:#e8f4f8;font-size:9px}
+@media(max-width:1500px){#searchView .customer-search-table-tools{align-items:flex-start;flex-wrap:wrap}#searchView #customerSearchExport{margin-left:0}.customer-search-single-actions button{padding:5px 6px!important;font-size:8px!important}}
+@media(max-width:760px){#searchView .customer-search-display-bar{justify-content:stretch}#searchView .customer-search-view-toggle{width:100%}#searchView .customer-search-view-toggle button{flex:1}}
