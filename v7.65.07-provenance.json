@@ -1,0 +1,10 @@
+{
+  "version": "7.65.07",
+  "sourceBaseCommit": "158c668e0181748085714231a07f3b12814f6d58",
+  "sourceBranch": "releases/v7.65.06",
+  "builtAt": "2026-11-02",
+  "sha256": "1777f59c9f902d8fc45fb420a2f3874155fee8768b603253e5f409f07b49fad7",
+  "files": 927,
+  "tests": "Build; 137 release tests; permission coverage 95/95; 6 Chromium suites; ZIP per-file SHA256",
+  "windowsInstallationExecuted": false
+}
