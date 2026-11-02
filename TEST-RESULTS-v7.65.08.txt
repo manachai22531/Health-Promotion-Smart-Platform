@@ -1,0 +1,11 @@
+HealthCheck v7.65.08 verification — 2026-11-02
+
+PASS npm run build
+PASS npm run test:release — 137 tests (129 + 8), zero failures
+PASS Chromium browser suites 6/6, including desktop one-row search controls and direct row-to-content customer workflow
+PASS permission coverage: 95/95 permissions represented in Role settings and all referenced permissions declared
+PASS JavaScript syntax checks and git diff --check
+
+Package builder validates ZIP integrity and SHA-256 of every payload file. Final archive SHA-256 is supplied beside the ZIP.
+
+Not executed in this build environment: Windows GUI/UAC installation, live hospital HIS endpoints, production database migration, hospital Wi-Fi routing, or restore on a real Windows host.

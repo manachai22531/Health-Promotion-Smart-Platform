@@ -5,7 +5,7 @@ const express = require('express');
 const path = require('node:path');
 const { chromium } = require('playwright-core');
 
-test('customer search keeps the existing cards and adds a single-select table action bar', async t => {
+test('customer search controls stay on one row and table rows open customer content without an action bar', async t => {
   const app = express();
   app.use(express.static(path.resolve(__dirname, '..')));
   const server = app.listen(0, '127.0.0.1');
@@ -13,7 +13,7 @@ test('customer search keeps the existing cards and adds a single-select table ac
   t.after(() => new Promise(resolve => server.close(resolve)));
   const browser = await chromium.launch({ headless: true, executablePath: '/usr/bin/chromium', args: ['--no-sandbox'] });
   t.after(() => browser.close());
-  const page = await browser.newPage({ viewport: { width: 1660, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1920, height: 900 } });
   await page.route('**/api/**', route => route.fulfill({ json: { authenticated: false, items: [] } }));
   await page.route('**/customer-api/**', route => route.fulfill({ json: {} }));
   await page.goto(`http://127.0.0.1:${server.address().port}/app.html`, { waitUntil: 'networkidle' });
@@ -35,6 +35,8 @@ test('customer search keeps the existing cards and adds a single-select table ac
   });
 
   assert.equal(await page.locator('#resultMeta').isVisible(), false);
+  const searchGridRows = await page.locator('#searchView .hc-one-line-search-row').evaluate(element => getComputedStyle(element).gridTemplateRows.trim().split(/\s+/).length);
+  assert.equal(searchGridRows, 1, 'desktop search controls and display switch must stay on one row');
   await page.locator('[data-customer-search-mode="table"]').click();
   assert.equal(await page.locator('#resultRows').isVisible(), false);
   assert.equal(await page.locator('#customerSearchTablePane').isVisible(), true);
@@ -42,19 +44,14 @@ test('customer search keeps the existing cards and adds a single-select table ac
   assert.equal(await page.locator('#customerSearchTableRows input[type="radio"]').count(), 2);
   assert.equal(await page.locator('#customerSearchTableRows input[type="checkbox"]').count(), 0);
   assert.equal(await page.locator('#customerSearchTableRows button').count(), 0);
-  const actions = page.locator('[data-customer-search-action]');
-  assert.equal(await actions.count(), 7);
-  assert.equal(await actions.evaluateAll(buttons => buttons.every(button => button.disabled)), true);
+  assert.equal(await page.locator('[data-customer-search-action]').count(), 0, 'table action bar must be removed');
 
   const radios = page.locator('#customerSearchTableRows input[type="radio"]');
   await radios.nth(0).check();
-  const disabledAfterSelection = await actions.evaluateAll(buttons => buttons.filter(button => button.disabled).map(button => ({ action: button.dataset.customerSearchAction, title: button.title })));
-  assert.deepEqual(disabledAfterSelection, []);
-  await radios.nth(1).check();
   assert.equal(await radios.evaluateAll(inputs => inputs.filter(input => input.checked).length), 1);
   assert.equal(await page.locator('#customerSearchTableRows tr.selected').count(), 1);
-  await page.locator('[data-customer-search-action="detail"]').click();
   assert.equal(await page.locator('#detailOverlay').evaluate(el => el.classList.contains('open')), true);
+  assert.match(await page.locator('#detailBody').innerText(), /ข้อมูลลูกค้าในโปรแกรม/);
 
   await page.evaluate(() => setCustomerSearchView('card'));
   assert.equal(await page.locator('#resultRows').isVisible(), true);
