@@ -1,0 +1,7 @@
+{
+  "version": "7.65.05",
+  "sourceCommit": "d081b1226b909b92627a89f30222bc21debcfe90",
+  "sourceBranch": "releases/v7.65.05",
+  "sha256": "027001dd8d6184b7e0574d5ab8c0590b491028027ac232bd803ed7c6b6988237",
+  "tests": "Build; 132 release tests; 2 Chromium suites; ZIP per-file SHA256"
+}
