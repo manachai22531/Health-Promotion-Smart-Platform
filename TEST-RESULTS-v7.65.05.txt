@@ -1,0 +1,17 @@
+HealthCheck v7.65.05 verification — 2026-11-02
+
+PASS npm run build
+PASS npm run test:release — 132 tests (124 + 8), zero failures
+PASS Chromium regression suites — 2 tests, zero failures
+  tools/annual-pdf-fields-browser.test.cjs
+  tools/company-board-compact-browser.test.cjs
+PASS git diff --check
+
+Annual-note scope tests execute the actual section route using an isolated database mock.
+Cover same company/different years, different companies, clear note, scope mismatch,
+additional-package save, and newly created company/year editor binding.
+Browser APIs use synthetic fixtures. No production patient/company data was modified.
+
+Not tested this round: Windows GUI/UAC, live HIS/production database, hospital Wi-Fi routing.
+Existing duplicate TEST notes are retained; this build does not infer or delete real notes.
+Package builder verifies ZIP integrity and per-file SHA256 manifest.

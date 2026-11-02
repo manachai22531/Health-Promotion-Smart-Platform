@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.04-production';
+const RELEASE_NAME = 'v7.65.05-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0218';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -902,7 +902,7 @@ async function hydrateRelationalState(base={}){
       FROM company_customers cc JOIN customers c ON c.id=cc.customer_id ORDER BY cc.updated_at DESC,cc.id`),
     pool.query(`SELECT id,package_code,package_name,price,usage_condition,source_data FROM contract_packages ORDER BY updated_at DESC,id`)
   ]);
-  const companies=companiesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.id||''),code:String(row.company_code||row.source_data?.code||''),name:String(row.company_name||row.source_data?.name||''),year:String(row.screening_year||row.source_data?.year||''),note:String(row.note||row.source_data?.note||'')}));
+  const companies=companiesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.id||''),code:String(row.company_code||row.source_data?.code||''),name:String(row.company_name||row.source_data?.name||''),year:String(row.screening_year||row.source_data?.year||''),note:String(row.note??row.source_data?.note??'')}));
   const records=recordsResult.rows.map(row=>({...(row.source_data||{}),key:String(row.legacy_record_key||row.source_data?.key||row.source_data?.id||''),companyId:String(row.company_year_id||row.source_data?.companyId||''),hn:String(row.hn||row.source_data?.hn||''),vn:String(row.vn||row.source_data?.vn||row.source_data?.hisLastVisitUID||''),hisLastVisitUID:String(row.vn||row.source_data?.hisLastVisitUID||''),id:String(row.identification_number||row.passport_number||row.source_data?.id||''),title:String(row.title||row.source_data?.title||''),first:String(row.first_name||row.source_data?.first||''),last:String(row.last_name||row.source_data?.last||''),birth:String(row.birth_date||row.source_data?.birth||''),sex:String(row.sex||row.source_data?.sex||''),phone:String(row.phone||row.source_data?.phone||''),email:String(row.email||row.source_data?.email||''),employeeCode:String(row.employee_code||row.source_data?.employeeCode||''),code:String(row.package_code||row.source_data?.code||''),packageName:String(row.package_name||row.source_data?.packageName||''),visitedAt:row.visited_at||row.source_data?.visitedAt||null}));
   const packages=packagesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.source_data?.id||row.id||''),code:String(row.package_code||row.source_data?.code||''),name:String(row.package_name||row.source_data?.name||''),price:row.price??row.source_data?.price??null,usageCondition:String(row.usage_condition||row.source_data?.usageCondition||'')}));
   return {...base,companies,records,packages};
@@ -3080,12 +3080,14 @@ app.patch('/api/company-years/:companyId/sections/:section',localOnly,staffPermi
     const fields={
       '00':[],'01':['name','year','code'],'02':['checkupStartDate','checkupEndDate'],'03':[],
       '04':[],'05':[],'06':['reportConditions'],'07':[],'08':['salesName','salesPhone'],
-      '09':[],'10':['billingPackages','cashPackages','note'],'11':['note']
+      '09':[],'10':['billingPackages','cashPackages'],'11':['note']
     }[section];if(!fields)return res.status(400).json({error:'หัวข้อต้องเป็น 00-11'});
     await client.query('BEGIN');const locked=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE'),data=locked.rows[0]?.data||{},companies=Array.isArray(data.companies)?[...data.companies]:[];let index=companies.findIndex(x=>String(x?.id||'')===id);
     // A normalized company/year can exist before an older app_state snapshot has
     // been refreshed. Rehydrate that valid row instead of rejecting the save.
-    if(index<0){const relational=(await client.query(`SELECT cy.id,cy.screening_year,cy.note,cy.source_data,c.company_code,c.company_name FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 LIMIT 1`,[id])).rows[0];if(!relational){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปี'});}companies.push({...relational.source_data,id:String(relational.id),name:String(relational.company_name||relational.source_data?.name||''),year:String(relational.screening_year||relational.source_data?.year||''),code:String(relational.company_code||relational.source_data?.code||''),note:String(relational.note||relational.source_data?.note||'')});index=companies.length-1;}
+    if(index<0){const relational=(await client.query(`SELECT cy.id,cy.screening_year,cy.note,cy.source_data,c.company_code,c.company_name FROM company_years cy JOIN companies c ON c.id=cy.company_id WHERE cy.id=$1 LIMIT 1`,[id])).rows[0];if(!relational){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปี'});}companies.push({...relational.source_data,id:String(relational.id),name:String(relational.company_name||relational.source_data?.name||''),year:String(relational.screening_year||relational.source_data?.year||''),code:String(relational.company_code||relational.source_data?.code||''),note:String(relational.note??relational.source_data?.note??'')});index=companies.length-1;}
+    const scope=req.body?.scope;
+    if(scope&&(String(scope.companyYearId||'')!==id||String(scope.year||'')!==String(companies[index].year||''))){await client.query('ROLLBACK');return res.status(409).json({error:'บริษัท/ปีไม่ตรงกับข้อมูลที่เปิดแก้ไข กรุณาเปิดข้อมูลรายปีใหม่'});}
     const next={...companies[index]};for(const key of fields)if(Object.prototype.hasOwnProperty.call(patch,key))next[key]=patch[key];next.updatedAt=new Date().toISOString();companies[index]=next;
     const updated=await client.query(`UPDATE app_state SET data=jsonb_set(data,'{companies}',$1::jsonb,true),revision=revision+1,updated_at=NOW() WHERE id=1 RETURNING revision`,[JSON.stringify(companies)]);
     await client.query(`UPDATE company_years SET screening_year=$2,note=$3,source_data=$4::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[id,String(next.year||''),String(next.note||''),JSON.stringify(next)]).catch(()=>{});

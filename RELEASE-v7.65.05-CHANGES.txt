@@ -1,0 +1,13 @@
+HealthCheck v7.65.05 Production Windows Installer
+
+- Separate annual editor sections 00 and 01 into sibling cards.
+- Move attachment details save button into the section header.
+- Bind the annual note editor to its company/year ID; send and validate the company/year scope on section saves.
+- Show the company name and year above the annual note.
+- Additional-package saves cannot overwrite annual notes on client or server.
+- Preserve intentionally empty relational notes instead of restoring stale source-data notes.
+- Preserve all features from v7.65.04, including the System & API sidebar, managed HIS SQL audit and aligned Booking areas.
+
+Existing duplicate TEST notes are preserved; production data requires investigation.
+Mobile LAN/Wi-Fi routing and Windows Firewall settings are not changed by this release.
+Install using INSTALL-REPAIR.bat. Target: D:\HealthCheck\Production, port 3000.
