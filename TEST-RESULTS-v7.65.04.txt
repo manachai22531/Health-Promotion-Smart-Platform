@@ -1,0 +1,9 @@
+v7.65.04 validation, Linux, 2026-11-02 Asia/Bangkok
+PASS npm run build.
+PASS npm run test:release: 130 tests (122 + 8), no failures/skips. Includes SQL read-only validator and apiManage/config-unlock gate tests.
+PASS Chromium 5 suites: System/API full sidebar, all legacy control IDs preserved, SQL unlock/test/save/log; annual company Booking alignment; annual PDF fields; staff customer sales view; 100-row patient workspace/sidebar/frozen columns.
+PASS actual PostgreSQL managed SQL integration: default query, tested activation, runtime result change, audit before/after, actor-bound proof, stale revision, connection/default-plan change invalidation, required columns/parameters, masked/capped test results, reset, PostgreSQL read-only transaction enforcement and extended-protocol single-statement enforcement. Audit serialization contains neither synthetic patient values nor test parameters.
+PASS real application HTTP smoke: v7.65.04 version, staff login, separate config unlock gate, 9 registered SQL jobs, audit endpoint, safe unconfigured-HIS state. Uses an isolated disposable PostgreSQL database with no real patients.
+PASS ZIP integrity, every source-manifest entry and SHA-256 during packaging; GitHub download is verified again before delivery.
+Known older PDF-layout tests had 5 baseline failures established before this release; they are not part of the passing release suite and were not rerun here. PDF implementation is unchanged by this release.
+NOT RUN Windows GUI/UAC install/upgrade and live hospital HIS connectivity/schema/query execution. The SQL editor requires the site's existing HIS connection and live testing before enabling custom SQL.

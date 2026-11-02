@@ -1,0 +1,23 @@
+Health Check Smart Search v7.65.04
+Base: v7.65.03 c29916cfd637891864e2db83ebb6d53d9172aaad, plus approved Booking alignment changes. All v7.65.01-03 features retained.
+
+SYSTEM & API
+- Full left-sidebar workspace based on approved design 1: overview, HIS API, HIS databases, SQL, External API, customer Public URL, menu order, system health, Backup/Update, Log and advanced/reference settings.
+- Existing real controls, IDs, event handlers, staff permissions, passwords and unlock gates are retained. Existing SQL previews are collapsed into reference details instead of duplicating the editable SQL workspace. In-use settings are not deleted.
+- Overview status follows live version/database/backup fields. Main menu sorting, customer URL, HIS API configuration, External API, LAN/Maintenance and update/backup operations remain connected to their existing implementation.
+
+EDITABLE HIS SQL
+- Nine scoped jobs: patient name/DOB second-pass; HIS users; appointments by date; appointments by date/location; appointments by HN; LAB by HN/VN; X-ray request group; patient packages all; patient packages filtered.
+- apiManage and a live password-based config unlock are required for all management/log endpoints.
+- Configure existing HIS database connections first. Default SQL is built from the real schema/column mappings; no fictional connection or SQL is activated.
+- Edit SQL, keep required output aliases and parameters, enter test values and test successfully before saving with a reason. Test proof is tied to actor, exact SQL and current connection/default plan, expires after 10 minutes, and saved revisions prevent overwriting concurrent edits.
+- Managed SQL runs inside PostgreSQL READ ONLY transactions, extended query mode and statement/lock timeouts. Multi-statements, write/DDL commands and non-allowlisted function calls are rejected. Required column contracts and patient/date scopes are checked. Test results are capped at 100 rows and masked; runtime bounds match each managed job's limits.
+- Reset restores built-in SQL without deleting history. App DB tables his_sql_configs and his_sql_audit are created additively on first SQL-manager use.
+- Durable SQL audit: actor, action, revision, before/after SQL, reason, outcome, duration, row count and SQLSTATE. Parameter values, query result values and database passwords are not stored. CSV export neutralizes spreadsheet formula prefixes. Legacy HIS API logs remain in their existing gated HIS API section.
+- SQL administration changes data-fetch queries only; it does not turn HIS writes into editable SQL.
+
+BOOKING LAYOUT
+- Date, project name/code and EMR progress areas use the annual header's grid tracks. All Booking rows align consistently with annual identity, note and actions; Booking type remains beside EMR.
+
+INSTALLATION
+Back up the database, extract the complete ZIP, run INSTALL-REPAIR.bat as Administrator, wait for health checks, Ctrl+F5 and verify v7.65.04. Existing database/.env/API settings are preserved by the installer. Windows GUI/UAC and live hospital HIS were not exercised in Linux.
