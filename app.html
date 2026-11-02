@@ -21,7 +21,7 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <link href="assets/user-experience.css?v=7.65.06-header-shield-only" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/role-experience.css?v=7.65.06-role-exp"/>
 <link rel="stylesheet" href="assets/customer-compact.css?v=7.65.07-type-column"/>
-<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.08-content-actions"/>
+<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.09"/>
 <link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.65.06-global-dismiss"/>
 <link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.06-single-busy"/>
 <link rel="stylesheet" href="assets/customer-id-camera.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.65.06-knowledge"/>
@@ -483,17 +483,15 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 </header>
 <button type="button" class="button secondary" id="searchTodayToggle" aria-expanded="false" aria-controls="searchTodayDrawer">ยืนยันแล้ววันนี้ <span id="searchTodayCount">0</span> ☰</button>
 <div class="customer-search-view-toggle" role="group" aria-label="รูปแบบการแสดงรายชื่อลูกค้า">
-<button class="active" data-customer-search-mode="card" type="button">▦ แบบเดิม</button>
-<button data-customer-search-mode="table" type="button">☷ แบบตาราง</button>
+<button id="customerSearchViewToggle" data-customer-search-mode="table" type="button">เปลี่ยนเป็นแบบตาราง</button>
 </div>
 </div><!-- end hc-one-line-search-row -->
 
-<div class="result-meta" id="resultMeta"></div>
+<div class="result-meta" id="resultMeta" role="status" aria-live="polite"></div>
 <div class="result-cards" hidden="" id="resultRows"></div>
 <section class="customer-search-table-pane" id="customerSearchTablePane" hidden>
 <div class="customer-search-table-tools">
 <strong id="customerSearchSelection">○ คลิกแถวเพื่อเปิดข้อมูลลูกค้า</strong>
-<button class="button secondary" data-permission="customerExport" id="customerSearchExport" type="button">⇩ Export</button>
 </div>
 <div class="customer-search-table-scroll"><table class="customer-search-table"><thead><tr><th>เลือก</th><th>#</th><th>ชื่อ–นามสกุล</th><th>บริษัท / ปี</th><th>ID / Passport</th><th>HN</th><th>VN</th><th>การมารับบริการ</th><th>แพ็กเกจหลัก</th><th>วางบิล</th><th>ชำระเอง</th><th>คู่สัญญา</th><th>นัดหมาย</th></tr></thead><tbody id="customerSearchTableRows"></tbody></table></div>
 </section>
@@ -2543,11 +2541,11 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
 <script src="assets/emr-book-model.js?v=7.65.06"></script>
 <script src="assets/personal-note-model.js?v=7.65.06-note-import"></script>
-<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.08-customer-table-content-actions"></script>
+<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.09"></script>
 <script src="assets/customer-search-one-row.js?v=7.65.06-compact-search"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
 <script src="assets/worklist-board.js?v=7.65.06"></script>
-<script src="assets/flow-v76384.js?v=7.65.06-search-compact-no-auto-select"></script>
+<script src="assets/flow-v76384.js?v=7.65.09"></script>
 <script src="assets/global-ui-density.js?v=7.65.06-users-exp"></script>
 <script src="assets/appearance-settings.js?v=7.65.06-panel-viewport-fix"></script>
 <script src="assets/role-experience.js?v=7.65.06-role-exp"></script>
@@ -2555,7 +2553,7 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-compact.js?v=7.65.06-coverage-rows-remove-open-button"></script>
 <script src="assets/checkup-summary-template.js?v=7.65.06-print-parity-qr"></script>
 <script src="assets/booking-defaults.js?v=7.65.06"></script>
-<script src="assets/checkup-unified.js?v=7.65.06-print-parity-direct-card-print"></script>
+<script src="assets/checkup-unified.js?v=7.65.09"></script>
 <script src="assets/customer-save-all.js?v=7.65.06-note-detail"></script>
 <script src="assets/package-knowledge-editor.js?v=7.65.06"></script>
 <script src="assets/customer-shop.js?v=7.65.06-knowledge"></script>

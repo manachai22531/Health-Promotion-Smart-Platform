@@ -1205,11 +1205,12 @@ function ensureInitialCardActionButtons(records=[]){records.forEach(r=>{const ca
 let customerSearchViewMode=(()=>{try{return localStorage.getItem('healthcheck.customerSearchView.v1')==='table'?'table':'card'}catch(_){return'card'}})(),customerSearchMatches=[],selectedCustomerSearchKey='';
 function updateCustomerSearchSelection(){const record=customerSearchMatches.find(item=>String(item.key)===String(selectedCustomerSearchKey)),label=$('#customerSearchSelection');if(label){label.textContent=record?`● กำลังเปิดข้อมูล: ${[record.title,record.first,record.last].filter(Boolean).join(' ')}`:'○ คลิกแถวเพื่อเปิดข้อมูลลูกค้า';label.classList.toggle('selected',Boolean(record))}document.querySelectorAll('#customerSearchTableRows tr').forEach(row=>row.classList.toggle('selected',String(row.dataset.customerSearchKey)===String(selectedCustomerSearchKey)))}
 function renderCustomerSearchTable(matches=[]){customerSearchMatches=matches;const body=$('#customerSearchTableRows');if(!body)return;if(!matches.some(record=>String(record.key)===String(selectedCustomerSearchKey)))selectedCustomerSearchKey='';body.innerHTML=matches.map((r,index)=>{const co=company(r.companyId),name=[r.title,r.first,r.last].filter(Boolean).join(' ')||'-',english=[r.prefixEN,r.firstNameEN,r.lastNameEN].filter(Boolean).join(' ')||'-',primary=(r.primaryPackages?.length?r.primaryPackages:[{code:r.code,name:r.packageName}]).filter(item=>item.code||item.name),packageText=primary.map(item=>item.code||item.name).join(' / ')||'-',appointment=r.appointmentDate||r.scheduleAppointment||'-',checked=String(r.key)===String(selectedCustomerSearchKey);return `<tr data-customer-search-key="${esc(r.key)}"><td style="text-align:center"><input type="radio" name="customerSearchSelection" data-customer-search-select="${esc(r.key)}" aria-label="เลือก ${esc(name)}" ${checked?'checked':''}></td><td>${(index+1).toLocaleString('th-TH')}</td><td class="customer-search-name"><b>${esc(name)}</b><small>${esc(english)}</small></td><td><b>${esc(co?.name||'-')}</b><br><small>ปี ${esc(co?.year||'-')}</small></td><td>${esc(can('customerSensitiveView')?(r.id||'-'):visibleCustomerId(r.id))}</td><td>${esc(formatHn(r.hn)||'-')}</td><td>${esc(r.hisLastVisitUID||r.vn||'-')}</td><td><span class="customer-search-status ${r.visitedAt?'':'wait'}">${r.visitedAt?'✓ มาตรวจแล้ว':'รอรับบริการ'}</span></td><td title="${esc(packageText)}">${esc(packageText)}</td><td><span class="customer-search-count">${(r.acceptedBillingItems||[]).length.toLocaleString('th-TH')} รายการ</span></td><td><span class="customer-search-count">${(r.acceptedCashItems||[]).length.toLocaleString('th-TH')} รายการ</span></td><td><span class="customer-search-count">${(r.selectedPackages||[]).length.toLocaleString('th-TH')} รายการ</span></td><td>${esc(appointment)}</td></tr>`}).join('');updateCustomerSearchSelection()}
-function applyCustomerSearchView(){const cards=$('#resultRows'),table=$('#customerSearchTablePane'),hasRows=customerSearchMatches.length>0,isTable=customerSearchViewMode==='table';document.querySelectorAll('[data-customer-search-mode]').forEach(button=>button.classList.toggle('active',button.dataset.customerSearchMode===customerSearchViewMode));if(cards)cards.hidden=!hasRows||isTable;if(table)table.hidden=!hasRows||!isTable}
+function applyCustomerSearchView(){const cards=$('#resultRows'),table=$('#customerSearchTablePane'),hasRows=customerSearchMatches.length>0,isTable=customerSearchViewMode==='table';const toggle=$('#customerSearchViewToggle');if(toggle){toggle.dataset.customerSearchMode=isTable?'card':'table';toggle.textContent=isTable?'เปลี่ยนเป็นแบบเดิม':'เปลี่ยนเป็นแบบตาราง';toggle.setAttribute('aria-label',toggle.textContent)}if(cards)cards.hidden=!hasRows||isTable;if(table)table.hidden=!hasRows||!isTable}
 function setCustomerSearchView(mode){customerSearchViewMode=mode==='table'?'table':'card';try{localStorage.setItem('healthcheck.customerSearchView.v1',customerSearchViewMode)}catch(_){}applyCustomerSearchView()}
 document.querySelectorAll('[data-customer-search-mode]').forEach(button=>button.onclick=()=>setCustomerSearchView(button.dataset.customerSearchMode));
 if($('#customerSearchTableRows'))$('#customerSearchTableRows').onclick=event=>{const row=event.target.closest('[data-customer-search-key]');if(!row)return;const radio=row.querySelector('[data-customer-search-select]');radio.checked=true;selectedCustomerSearchKey=row.dataset.customerSearchKey;updateCustomerSearchSelection();detail(selectedCustomerSearchKey)};
-if($('#customerSearchExport'))$('#customerSearchExport').onclick=()=>{if(!guard('customerExport')||!customerSearchMatches.length)return;exportRowsToExcel(customerSearchMatches,`ข้อมูลลูกค้า_${new Date().toISOString().slice(0,10)}.xlsx`,'ข้อมูลลูกค้า')};
+
+function updateCustomerSearchMeta(total,shown,order='เรียงตามการปรับปรุงล่าสุด'){const count=Number(total).toLocaleString('th-TH'),visible=Number(shown).toLocaleString('th-TH');$('#resultMeta').textContent=`ผลการค้นหา · พบ ${count} รายการ · ${total>shown&&shown>0?`แสดง 1–${visible} จาก ${count} รายการ`:`แสดงทั้งหมด ${visible} รายการ`} · ${order}`;}
 function search(recordsOverride=null){
   clearTimeout(customerSearchTimer);customerSearchTimer=null;
   const personQ=norm($('#search').value),packageQ=norm($('#packageFilter').value),records=Array.isArray(recordsOverride)?recordsOverride:filteredRecords();renderSummary();
@@ -1224,14 +1225,14 @@ function search(recordsOverride=null){
     return personMatch&&packageMatch;
   }).sort((a,b)=>b.score-a.score||a.index-b.index).map(item=>item.r);
   const totalMatches=allMatches.length,matches=allMatches.slice(0,120);
-  if(!matches.length){$('#resultMeta').textContent='ไม่พบข้อมูล';return empty('ไม่พบรายชื่อ','ตรวจสอบบริษัท ชื่อ–นามสกุล ID/Passport หรือข้อมูลแพ็กเกจ')}
+  if(!matches.length){empty('ไม่พบรายชื่อ','ตรวจสอบบริษัท ชื่อ–นามสกุล ID/Passport หรือข้อมูลแพ็กเกจ');updateCustomerSearchMeta(0,0);return}
   $('#resultRows').innerHTML=matches.map(r=>{
     const co=company(r.companyId),billing=(co&&co.billingPackages)||[],cash=(co&&co.cashPackages)||[],vn=String(r.hisLastVisitUID||'').trim(),selectedBilling=selectedExtraKeys(r.acceptedBillingItems),selectedCash=selectedExtraKeys(r.acceptedCashItems);
     const list=(items,kind)=>items.length?items.map(item=>{const selected=kind==='billing'?selectedBilling:selectedCash,key=norm(item.code||item.name||''),mark=r.visitedAt?`<i class="extra-choice-mark ${selected.has(key)?'chosen':'not-chosen'}" title="${selected.has(key)?'เลือกแล้ว':'ไม่ได้เลือก'}">${selected.has(key)?'✓':'×'}</i>`:'';return `<span><b>${esc(item.name)}</b>${Number(item.price||0)>0?` <em>${money(item.price)}</em>`:''}${mark}</span>`}).join(''):`<span class="no-extra">ไม่มีรายการ</span>`;
     return `<div class="person-result-group"><article class="person-card" tabindex="0" role="button" data-key="${esc(r.key)}"><span class="person-card-head"><span><strong>${esc([r.title,r.first,r.last].filter(Boolean).join(' '))}</strong><small>${esc(co&&co.name||'-')}</small></span><span class="person-year-badge"><small>ปีบริษัท</small><strong>${esc(co&&co.year||'-')}</strong></span><span class="person-id-passport"><small>ID / Passport</small><strong>${esc(can('customerSensitiveView')?(r.id||'-'):visibleCustomerId(r.id))}</strong></span><span class="person-badge">${r.sex==='M'?'ชาย':r.sex==='F'?'หญิง':esc(r.sex||'-')} · ${customerTemplateAge(r)?esc(customerTemplateAge(r))+' ปี':'-'}</span></span><span class="person-card-grid"><span class="person-english-field"><small>ชื่อ English</small><b>${esc([r.prefixEN,r.firstNameEN,r.lastNameEN].filter(Boolean).join(' ')||'-')}</b></span><span class="person-birth-field"><small>วันเกิด</small><b>${esc(r.birth||'-')}</b></span><span class="person-hn-vn-field"><small>HN / VN</small><b>${esc(formatHn(r.hn)||'-')} / ${esc(vn||'-')}</b></span>${personCustomerExtraHtml(r)}<span class="person-package-code-field"><small>Package Code</small><b>${esc(r.code||'-')}</b></span><span class="person-package-name-field"><small>Package Name</small><b>${esc(r.packageName||'-')}</b></span></span><div class="person-extras-title">สิทธิพิเศษการตรวจเพิ่มเติม</div><span class="person-extras"><span><small>วางบิล</small>${list(billing,'billing')}</span><span><small>ชำระเอง</small>${list(cash,'cash')}</span></span><div class="person-company-due-booking-grid">${companyCheckupPeriodHtml(co)}<section class="person-booking-membership"><small>Booking / โครงการที่อยู่</small><div class="person-booking-main"><div data-booking-membership="${esc(r.key)}">${bookingMembershipHtml(r.key)}</div></div></section></div>${companyServiceInfoHtml(co)}${r.visitedAt?`<span class="card-visit-log"><span class="tag active card-status">มาตรวจแล้ว</span>${personalLog(r.key)}</span>${can('summaryPrint')?`<span class="post-checkup-tools"><button class="saved-hn" type="button" data-copy-hn="${esc(formatHn(r.hn))}" title="คลิกเพื่อคัดลอก HN">HN: ${esc(formatHn(r.hn)||'ยังไม่มี HN')}</button>${recordPriceSummaryHtml(r)}<button class="button secondary" type="button" data-print-saved-hn="${esc(r.key)}" ${r.hn?'':'disabled'}>พิมพ์สติกเกอร์ HN</button><button class="button secondary" type="button" data-print-saved-a4="${esc(r.key)}">พิมพ์สรุปรายการตรวจ</button><button class="button secondary patient-route-print" type="button" data-print-checkup-guide="${esc(r.key)}">พิมพ์ใบนำทาง</button><button class="button secondary patient-other-doc-print" type="button" data-print-other-docs="${esc(r.key)}">พิมพ์เอกสาร</button></span>`:''}`:''}</article>${customerPendingPanelHtml(r,co)}</div>`;
   }).join('');enhanceHisCardActions(matches);ensureInitialCardActionButtons(matches);
   $('#resultRows').querySelectorAll('.person-card').forEach((card,index)=>{const record=matches[index],contact=document.createElement('span');contact.className='person-contact';const phone=document.createElement('span'),email=document.createElement('span');phone.innerHTML='<small>เบอร์โทร</small><b></b>';email.innerHTML='<small>อีเมล</small><b></b>';phone.querySelector('b').textContent=record.phone||'-';email.querySelector('b').textContent=record.email||'-';contact.append(phone,email);card.querySelector('.person-card-head').insertBefore(contact,card.querySelector('.person-badge'));const codeField=card.querySelector('.person-package-code-field'),nameField=card.querySelector('.person-package-name-field');if(codeField&&nameField){codeField.insertAdjacentHTML('beforebegin',personPrimaryPackagesHtml(record));codeField.remove();nameField.remove()}});
-  $('#resultMeta').textContent='';renderCustomerSearchTable(matches);applyCustomerSearchView();$('#emptyState').hidden=true;loadRecordBookingMemberships(matches);
+  updateCustomerSearchMeta(totalMatches,matches.length,Array.isArray(recordsOverride)?'เรียงตามการปรับปรุงล่าสุด':'เรียงตามความตรงกับคำค้น');renderCustomerSearchTable(matches);applyCustomerSearchView();$('#emptyState').hidden=true;loadRecordBookingMemberships(matches);
 }
 let customerSearchTimer=null;function scheduleCustomerSearch(){clearTimeout(customerSearchTimer);customerSearchTimer=setTimeout(search,120)}
 function syncLoginScale(){document.body.classList.toggle('login-unscaled',!$('#loginScreen')?.classList.contains('hidden'))}
@@ -4445,7 +4446,7 @@ let serverSearchSequence=0;
 search=async function(){
   clearTimeout(customerSearchTimer);customerSearchTimer=null;
   const personRaw=String($('#search').value||'').trim(),packageRaw=String($('#packageFilter').value||'').trim(),personQ=norm(personRaw),packageQ=norm(packageRaw);
-  if(personQ.length<2&&packageQ.length<2)return searchV76225();
+  if(personQ.length<2&&packageQ.length<2){++serverSearchSequence;return searchV76225()}
   const sequence=++serverSearchSequence,companyId=companyFilterId();
   $('#resultMeta').textContent='กำลังค้นหาจากฐานข้อมูล…';
   try{
@@ -4455,7 +4456,7 @@ search=async function(){
     const rows=Array.isArray(result.items)?result.items:[];
     searchV76225(rows);
     const shown=rows.length,total=Number(result.total||shown);
-    $('#resultMeta').textContent=total?`พบ ${total.toLocaleString('th-TH')} รายการ${total>shown?` · แสดง ${shown.toLocaleString('th-TH')} รายการแรก`:''}`:'ไม่พบข้อมูล';
+    updateCustomerSearchMeta(total,Math.min(shown,120));
   }catch(error){if(sequence===serverSearchSequence){$('#resultMeta').textContent=error.message||String(error)}}
 };
 if($('#search'))$('#search').oninput=scheduleCustomerSearch;
@@ -4714,7 +4715,7 @@ search=async function(){
   const nameRaw=String($('#searchName')?.value||'').trim(),identityRaw=String($('#searchIdentity')?.value||'').trim(),hnRaw=String($('#searchHn')?.value||'').trim(),bookingRaw=String($('#searchBooking')?.value||'').trim(),legacyRaw=String($('#search')?.value||'').trim();
   const visibleQuery=[nameRaw,identityRaw,hnRaw,bookingRaw].some(value=>norm(value).length>=2);
   const values=[nameRaw,identityRaw,hnRaw,bookingRaw,legacyRaw],hasQuery=values.some(value=>norm(value).length>=2);
-  if(!hasQuery)return searchBeforeBookingField();
+  if(!hasQuery){++serverSearchSequence;return searchBeforeBookingField()}
   const sequence=++serverSearchSequence,companyId=companyFilterId();
   $('#resultMeta').textContent='กำลังค้นหาจากฐานข้อมูล…';
   try{
@@ -4727,7 +4728,7 @@ search=async function(){
     if($('#search'))$('#search').value=nameRaw||identityRaw||hnRaw||bookingRaw||legacyRaw;
     searchV76225(rows);
     const shown=rows.length,total=Number(result.total||shown);
-    $('#resultMeta').textContent=total?`พบ ${total.toLocaleString('th-TH')} รายการ${total>shown?` · แสดง ${shown.toLocaleString('th-TH')} รายการแรก`:''}`:'ไม่พบข้อมูล';
+    updateCustomerSearchMeta(total,Math.min(shown,120));
   }catch(error){if(sequence===serverSearchSequence)$('#resultMeta').textContent=error.message||String(error)}
 };
 ['searchName','searchIdentity','searchHn','searchBooking'].forEach(id=>{
@@ -4737,6 +4738,7 @@ search=async function(){
 });
 if($('#searchSubmit'))$('#searchSubmit').onclick=search;
 if($('#clearSearch'))$('#clearSearch').onclick=()=>{
+  ++serverSearchSequence;clearTimeout(customerSearchTimer);
   ['companyFilter','searchName','searchIdentity','searchHn','searchBooking','search','packageFilter'].forEach(id=>{const input=$('#'+id);if(input)input.value=''});
   if($('#companyFilter'))$('#companyFilter').dataset.companyId='';
   $('#searchView').classList.remove('search-query-active');$('#resultMeta').textContent='';

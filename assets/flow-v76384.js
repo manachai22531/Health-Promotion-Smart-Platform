@@ -164,19 +164,20 @@
   search=async function(){
     clearTimeout(customerSearchTimer);customerSearchTimer=null;
     const nameRaw=String($('#searchName')?.value||'').trim(),identityRaw=String($('#searchIdentity')?.value||'').trim(),hnRaw=String($('#searchHn')?.value||'').trim(),packageRaw=String($('#packageFilter').value||'').trim(),legacyRaw=String(splitSearchLegacy?.value||'').trim();
-    const activeRaw=[nameRaw,identityRaw,hnRaw,packageRaw,legacyRaw].filter(Boolean),companyId=companyFilterId();
-    if(!activeRaw.some(value=>norm(value).length>=2)){if(splitSearchLegacy)splitSearchLegacy.value='';return searchV76225()}
+    const bookingRaw=String($('#searchBooking')?.value||'').trim();
+    const activeRaw=[nameRaw,identityRaw,hnRaw,bookingRaw,packageRaw,legacyRaw].filter(Boolean),companyId=companyFilterId();
+    if(!activeRaw.some(value=>norm(value).length>=2)){++serverSearchSequence;if(splitSearchLegacy)splitSearchLegacy.value='';return searchV76225()}
     const sequence=++serverSearchSequence;$('#resultMeta').textContent='กำลังค้นหาจากฐานข้อมูล…';
     try{
-      const query=new URLSearchParams({name:nameRaw,identity:identityRaw,hn:hnRaw,person:(!nameRaw&&!identityRaw&&!hnRaw)?legacyRaw:'',package:packageRaw,companyId,limit:'120'}),response=await fetch(`/api/customer-search?${query}`,{cache:'no-store'}),result=await response.json().catch(()=>({}));
+      const query=new URLSearchParams({name:nameRaw,identity:identityRaw,hn:hnRaw,booking:bookingRaw,person:(!nameRaw&&!identityRaw&&!hnRaw&&!bookingRaw)?legacyRaw:'',package:packageRaw,companyId,limit:'120'}),response=await fetch(`/api/customer-search?${query}`,{cache:'no-store'}),result=await response.json().catch(()=>({}));
       if(sequence!==serverSearchSequence)return;if(!response.ok)throw new Error(result.error||'ค้นหาข้อมูลไม่สำเร็จ');
       const rows=Array.isArray(result.items)?result.items:[];
       if(splitSearchLegacy)splitSearchLegacy.value=activeRaw.join(' ');
       searchV76225(rows);
-      const shown=rows.length,total=Number(result.total||shown);$('#resultMeta').textContent=total?`พบ ${total.toLocaleString('th-TH')} รายการ${total>shown?` · แสดง ${shown.toLocaleString('th-TH')} รายการแรก`:''}`:'ไม่พบข้อมูล';
+      const shown=rows.length,total=Number(result.total??shown);updateCustomerSearchMeta(total,Math.min(shown,120));
     }catch(error){if(sequence===serverSearchSequence)$('#resultMeta').textContent=error.message||String(error)}
   };
   splitSearchInputIds.forEach(id=>{$('#'+id)?.addEventListener('input',scheduleCustomerSearch)});
   $('#searchSubmit').onclick=search;
-  $('#clearSearch').onclick=()=>{['companyFilter','searchName','searchIdentity','searchHn','packageFilter','search'].forEach(id=>{const input=$('#'+id);if(input)input.value=''});$('#companyFilter').dataset.companyId='';$('#searchView').classList.remove('search-query-active');$('#resultMeta').textContent='';renderSummary();search();$('#searchName')?.focus()};
+  $('#clearSearch').onclick=()=>{++serverSearchSequence;clearTimeout(customerSearchTimer);['companyFilter','searchName','searchIdentity','searchHn','searchBooking','packageFilter','search'].forEach(id=>{const input=$('#'+id);if(input)input.value=''});$('#companyFilter').dataset.companyId='';$('#searchView').classList.remove('search-query-active');$('#resultMeta').textContent='';renderSummary();search();$('#searchName')?.focus()};
 })();

@@ -1,8 +1,12 @@
-# Health Check Smart Search — v7.65.08
+# Health Check Smart Search — v7.65.09
 
-[ดาวน์โหลดตัวติดตั้ง Windows v7.65.08](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.08/HealthCheck-v7.65.08-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง Windows v7.65.09](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.09/HealthCheck-v7.65.09-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-รวมงานเดิม พร้อมศูนย์ตรวจประสิทธิภาพข้อมูลจริงและ Export ให้ Dev พร้อมแก้แถบปุ่มเหนือตารางลูกค้าให้ตัดบรรทัดโดยไม่ต้องเลื่อน
+รวมงานจาก v7.65.08 พร้อมปุ่มเดียวสลับแบบเดิม/ตาราง แถบสรุปจำนวนผลค้นหาจริง และปุ่มเปิดหน้าลูกค้าจากสรุป A4 โดยอ้างอิงลูกค้าปัจจุบัน
+
+- Desktop: ช่องค้นหาและปุ่มอยู่แถวเดียว; Tablet: จัดหลายแถวโดยคงทุกฟังก์ชัน
+- ตารางเลือกได้คนเดียวและเปิดรายละเอียดทันที ปุ่มทำรายการและ Export รายบุคคลอยู่ในรายละเอียด
+- A4/HTML: รีเฟรช → พรีวิว PDF → เปิดหน้าลูกค้า
 
 - System & API: เมนูด้านซ้ายครบทุกหมวด คงฟอร์มและการปลดล็อกเดิม พร้อมภาพรวมและค้นหาหมวด
 - SQL HIS: แก้/ทดสอบ/เปิดใช้ SQL ได้ 9 กลุ่มย่อย เก็บเวอร์ชันและ Log ก่อน–หลัง ต้องมี apiManage และปลดล็อกด้วยรหัสผ่าน ทดสอบสำเร็จก่อนบันทึก มี Read-only transaction/Timeout และย้อนกลับค่าเดิมได้
@@ -13,13 +17,13 @@
 - เจ้าหน้าที่บันทึกแทนลูกค้าได้ตามสิทธิ์ customerEdit พร้อมประวัติผู้ทำรายการ ยังตรวจราคาปัจจุบันและข้อจำกัด OrderHIS/ปิดค่าใช้จ่าย
 - แก้การแจ้งเตือนบันทึกเอกสารรายปี: พาไปช่องเบอร์โทรเจ้าหน้าที่ขายที่ผิดรูปแบบเพื่อแก้ไขได้ทันที
 
-ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.08
+ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.09
 
 - เอกสารรายปี: ข้อความแพทย์/การเงินแสดงตรงแถว PDF เพิ่มหัวข้อ 14 หมายเหตุรายปี ช่องรายละเอียดลูกหนี้ และย้ายรายละเอียดแนบท้ายขึ้นต้นกล่องเอกสารแนบ
 
 พัฒนา: `npm ci`, `npm run build`, `npm run test:release`
 
-รายละเอียด: RELEASE-v7.65.08-CHANGES.txt และ TEST-RESULTS-v7.65.08.txt
+รายละเอียด: RELEASE-v7.65.09-CHANGES.txt และ TEST-RESULTS-v7.65.09.txt
 รอบนี้ตรวจ build, release 137 tests และ Chromium 6 suites ผ่าน ยังไม่ทดสอบ Windows GUI/UAC และฐานข้อมูลโรงพยาบาลจริง
 
 บรรจุตัวติดตั้ง: `python3 tools/build-windows-package.py --output-dir /path/to/output`

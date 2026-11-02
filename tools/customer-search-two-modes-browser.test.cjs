@@ -32,9 +32,10 @@ test('customer search controls stay on one row and table rows open customer cont
     customerSearchMatches = records;
     renderCustomerSearchTable(records);
     applyCustomerSearchView();
+    updateCustomerSearchMeta(records.length,records.length);
   });
 
-  assert.equal(await page.locator('#resultMeta').isVisible(), false);
+  assert.equal(await page.locator('#resultMeta').isVisible(), true);
   const searchGridRows = await page.locator('#searchView .hc-one-line-search-row').evaluate(element => getComputedStyle(element).gridTemplateRows.trim().split(/\s+/).length);
   assert.equal(searchGridRows, 1, 'desktop search controls and display switch must stay on one row');
   await page.locator('[data-customer-search-mode="table"]').click();
@@ -53,7 +54,10 @@ test('customer search controls stay on one row and table rows open customer cont
   assert.equal(await page.locator('#detailOverlay').evaluate(el => el.classList.contains('open')), true);
   assert.match(await page.locator('#detailBody').innerText(), /ข้อมูลลูกค้าในโปรแกรม/);
 
-  await page.evaluate(() => setCustomerSearchView('card'));
+  await page.waitForFunction(()=>document.querySelector('.cf-preview-pane').getAttribute('aria-busy')==='false');
+  page.on('dialog',dialog=>dialog.accept());
+  await page.evaluate(() => close('detailOverlay'));
+  await page.locator('#customerSearchViewToggle').click();
   assert.equal(await page.locator('#resultRows').isVisible(), true);
   assert.equal(await page.locator('#customerSearchTablePane').isVisible(), false);
 });

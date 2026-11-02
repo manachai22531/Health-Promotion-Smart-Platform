@@ -1,0 +1,25 @@
+HealthCheck v7.65.09 verification — 2026-11-02
+
+Commands and outcomes:
+- npm run build: PASS
+- npm run test:release: PASS, 137 tests (129 + 8), zero failures/skips
+- node --test tools/customer-search-two-modes-browser.test.cjs tools/customer-search-v76509-browser.test.cjs: PASS, 5 Chromium tests
+- node --test tools/customer-staff-preview-browser.test.cjs tools/customer-selection-edit-browser.test.cjs tools/customer-command-bar-browser.test.cjs tools/workspace-v76497-browser.test.cjs tools/search-clear-browser.test.cjs: PASS, 5 Chromium tests
+- JavaScript syntax and git diff --check: PASS
+
+New browser scenarios use real app HTML/scripts and mocked API fixtures, at widths 1920, 1280, 1024 and 768:
+- Original -> table -> original using the same toggle
+- Search totals 0, 1, 4 and 125, with 120 displayed for the last case
+- All search/action controls visible and within viewport; Desktop buttons share one row
+- One radio selected; choosing another opens that customer's content
+- No table action buttons or checkboxes; Save/HIS/print actions inside detail
+- Export inside detail sends only the current record
+- Refresh updates rendered A4 HTML from the saved model
+- PDF request has current recordKey and VN for two different customers
+- Real new-tab customer navigation resolves to current staffPreview key for both customers
+- Opening A4 directly for another customer refreshes the customer link as well
+- Clear returns to empty result summary
+
+No page controls exist in this search workflow; tested the existing 120-row cap and server total rather than inventing a pagination claim.
+ZIP builder verifies archive integrity and SHA-256 of every payload file; the final archive checksum is supplied beside the ZIP.
+Not executed: Windows GUI/UAC installation, physical scanner/card hardware, live HIS endpoints, hospital production database migration or Windows restore.

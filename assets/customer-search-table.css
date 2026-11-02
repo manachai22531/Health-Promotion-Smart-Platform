@@ -4,7 +4,8 @@
 @media(min-width:1251px){html body #searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:minmax(105px,1.1fr) minmax(108px,1.1fr) minmax(90px,.9fr) minmax(110px,1.15fr) minmax(115px,1.2fr) 70px 78px 125px 105px 145px 165px!important}}
 #searchView .customer-search-view-toggle button{min-height:32px;padding:5px 10px;border:0;border-radius:7px;background:transparent;color:#54788b;font-weight:800;cursor:pointer;white-space:nowrap}
 #searchView .customer-search-view-toggle button.active{background:#078fa9;color:#fff;box-shadow:0 3px 8px #08799130}
-#searchView #resultMeta{display:none!important}
+#searchView #resultMeta{display:block!important;margin:18px 0 14px!important;padding:11px 14px;min-height:20px!important;border-radius:10px;background:#edf8fb;color:#174e68;line-height:1.6}
+#searchView #resultMeta:empty{padding:0;background:transparent}
 #searchView .customer-search-table-pane{margin-top:8px;border:1px solid #bddce8;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 6px 20px #124e6710}
 #searchView .customer-search-table-pane[hidden]{display:none!important}
 #searchView .customer-search-table-tools{display:flex;align-items:center;gap:8px;padding:9px 11px;background:#edf8fb;border-bottom:1px solid #cde3ec}
@@ -35,3 +36,7 @@
 #searchView .customer-search-status.wait{background:#fff2cc;color:#8b6507}
 #searchView .customer-search-count{display:inline-flex;padding:4px 6px;border-radius:7px;background:#e8f4f8;font-size:9px}
 @media(max-width:1250px){#searchView.hc-search-one-row .hc-one-line-search-row>.customer-search-view-toggle{width:100%}}
+
+/* Keep desktop controls together; tablet controls wrap without losing actions. */
+@media(min-width:1100px){html body #searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:repeat(5,minmax(62px,1fr)) 58px 62px 105px 90px 115px 155px!important;gap:6px!important}}
+@media(min-width:561px) and (max-width:1099px){html body #searchView.hc-search-one-row .hc-one-line-search-row{grid-template-columns:repeat(6,minmax(0,1fr))!important}html body #searchView.hc-search-one-row .hc-one-line-search-row> .customer-search-view-toggle,html body #searchView.hc-search-one-row .hc-one-line-search-row>#searchTodayToggle{grid-column:span 2!important}}

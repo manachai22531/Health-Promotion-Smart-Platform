@@ -1,12 +1,12 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
-test('v7.65.08 runtime, lockfile and installer identify the same release',()=>{
+test('v7.65.09 runtime, lockfile and installer identify the same release',()=>{
  const pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
- assert.equal(pkg.version,'7.65.08');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
- assert.equal(read('VERSION.txt').trim(),'v7.65.08');assert.match(read('server.js'),/const RELEASE_NAME = 'v7\.65\.08-production'/);
- for(const file of ['tools/production-installer-gui.ps1','tools/production-installer-worker.ps1'])assert.match(read(file),/v7\.65\.08/);
- assert.match(read('app.html'),/assets\/app\.js\?v=7\.65\.08/);
+ assert.equal(pkg.version,'7.65.09');assert.equal(lock.version,pkg.version);assert.equal(lock.packages[''].version,pkg.version);
+ assert.equal(read('VERSION.txt').trim(),'v7.65.09');assert.match(read('server.js'),/const RELEASE_NAME = 'v7\.65\.09-production'/);
+ for(const file of ['tools/production-installer-gui.ps1','tools/production-installer-worker.ps1'])assert.match(read(file),/v7\.65\.09/);
+ assert.match(read('app.html'),/assets\/app\.js\?v=7\.65\.09/);
 });
 test('fresh startup creates company tables before circular foreign keys',()=>{
  const server=read('server.js'),start=server.indexOf('async function ensureDatabase()');
