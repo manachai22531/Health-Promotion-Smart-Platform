@@ -1,0 +1,12 @@
+{
+  "version": "7.65.09",
+  "sourceCommit": "a59fd4e4f9d9cc56d32e612863903de924e94d9b",
+  "sourceBranch": "releases/v7.65.09",
+  "baseVersion": "7.65.08",
+  "builtAt": "2026-11-02",
+  "sha256": "91e98a846d31f086d91a3d993915b79fafea114d44b866e2eec113bd2f7965f3",
+  "bytes": 29483478,
+  "files": 934,
+  "tests": "Build; 137 release tests; 10 Chromium tests including Desktop/Tablet, single selection, counts, A4 refresh/PDF and real customer popup; ZIP per-file SHA256",
+  "windowsInstallationExecuted": false
+}
