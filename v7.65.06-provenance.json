@@ -1,0 +1,7 @@
+{
+  "version": "7.65.06",
+  "sourceCommit": "158c668e0181748085714231a07f3b12814f6d58",
+  "sourceBranch": "releases/v7.65.06",
+  "sha256": "4a8dba8ad0629e7c90c473c9c729742affdf2c8992a06f3c9f4d2075abbca4c2",
+  "tests": "Build; 136 release tests; 5 Chromium suites; real application and PostgreSQL telemetry/export integration; ZIP per-file SHA256"
+}
