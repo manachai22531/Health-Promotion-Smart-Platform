@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.05-production';
+const RELEASE_NAME = 'v7.65.06-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0218';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -274,8 +274,11 @@ function lanBasicAccess(req, res, next) {
 
 // Multi-company import replaces the application snapshot atomically. Existing
 // production snapshots can already exceed 15 MB, so leave enough import headroom.
-app.use(express.json({ limit: '100mb' }));
 app.use(lanBasicAccess);
+const performanceMonitor=require('./performance-monitor').makeMonitor({pool,version:RELEASE_NAME});
+performanceMonitor.instrument(require('pg'),http,https);
+app.use(performanceMonitor.middleware);
+app.use(express.json({ limit: '100mb' }));
 // All staff APIs enforce password age and idle expiry. Public/customer/integration
 // routes keep their own authentication, and only explicit activity renews idle time.
 app.use(async(req,res,next)=>{
@@ -639,7 +642,8 @@ async function processSystemHealthJob(job){const started=Date.now(),dbStart=Date
 async function processBackupJob(job){
   if(process.platform!=='win32')throw new Error('Backup จากหน้าเว็บรองรับ Production Windows Server เท่านั้น');const script=path.join(__dirname,'tools','backup.ps1');if(!fs.existsSync(script))throw new Error('ไม่พบ tools/backup.ps1');await operationsUpdateJob(job.id,{total:1,currentItem:'กำลังสำรอง PostgreSQL'});
   const output=await new Promise((resolve,reject)=>{const shell=path.join(process.env.SystemRoot||'C:\\Windows','System32','WindowsPowerShell','v1.0','powershell.exe'),child=spawn(shell,['-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script],{cwd:__dirname,windowsHide:true,env:process.env});let text='',err='';const timer=setTimeout(()=>{child.kill();reject(new Error('Backup timeout เกิน 30 นาที'))},30*60*1000);child.stdout?.on('data',d=>text+=String(d));child.stderr?.on('data',d=>err+=String(d));child.on('error',e=>{clearTimeout(timer);reject(e)});child.on('close',code=>{clearTimeout(timer);if(code===0)resolve(text.trim());else reject(new Error(err.trim()||`backup.ps1 exit ${code}`))})});await operationsUpdateJob(job.id,{progress:1,successCount:1,result:{output}});return {success:1,skip:0,fail:0,processed:1,total:1,output}}
-async function processOperationsJob(job){if(job.job_type==='CHECK_HN')return processCheckHnJob(job);if(job.job_type==='CHECK_VN')return processCheckVnJob(job);if(job.job_type==='BULK_EMR')return processBulkEmrJob(job);if(job.job_type==='REFRESH_PATIENTLOG')return processPatientLogJob(job);if(job.job_type==='SYSTEM_HEALTH')return processSystemHealthJob(job);if(job.job_type==='BACKUP')return processBackupJob(job);throw new Error(`Unsupported job ${job.job_type}`)}
+async function processOperationsJobUnmeasured(job){if(job.job_type==='CHECK_HN')return processCheckHnJob(job);if(job.job_type==='CHECK_VN')return processCheckVnJob(job);if(job.job_type==='BULK_EMR')return processBulkEmrJob(job);if(job.job_type==='REFRESH_PATIENTLOG')return processPatientLogJob(job);if(job.job_type==='SYSTEM_HEALTH')return processSystemHealthJob(job);if(job.job_type==='BACKUP')return processBackupJob(job);throw new Error(`Unsupported job ${job.job_type}`)}
+async function processOperationsJob(job){const name={CHECK_HN:'job-check-hn',CHECK_VN:'job-check-vn',BULK_EMR:'job-bulk-emr',REFRESH_PATIENTLOG:'job-patientlog',SYSTEM_HEALTH:'job-health',BACKUP:'job-backup'}[job.job_type]||'job';return performanceMonitor.runTask(name,job.created_at,()=>processOperationsJobUnmeasured(job));}
 async function operationsWorkerTick(){
   if(operationsWorkerBusy)return;operationsWorkerBusy=true;try{await ensureOperationsSchema();const row=(await pool.query(`SELECT * FROM operations_jobs WHERE status='PENDING' ORDER BY created_at,id LIMIT 1`)).rows[0];if(!row)return;await operationsUpdateJob(row.id,{status:'RUNNING',startedAt:new Date(),currentItem:'กำลังเตรียมงาน'});const job={...row,payload:row.payload||{}};try{const result=await processOperationsJob(job),fresh=(await pool.query('SELECT status FROM operations_jobs WHERE id=$1',[row.id])).rows[0];if(fresh?.status==='CANCELLED'){await operationsNotify('WARNING',`Job ${row.job_type} ถูกยกเลิก`,'ผู้ใช้ยกเลิกงานระหว่างดำเนินการ','JOB',row.id,result);return}const status=result.fail>0?(result.success>0||result.skip>0?'PARTIAL':'FAILED'):'SUCCESS';await operationsUpdateJob(row.id,{status,progress:result.processed,total:result.total,successCount:result.success,skipCount:result.skip,failCount:result.fail,finishedAt:new Date(),currentItem:'',result});await operationsNotify(status==='SUCCESS'?'SUCCESS':status==='PARTIAL'?'WARNING':'ERROR',`Job ${row.job_type} ${status==='SUCCESS'?'เสร็จสิ้น':status==='PARTIAL'?'เสร็จบางส่วน':'ไม่สำเร็จ'}`,`สำเร็จ ${result.success||0} · ข้าม ${result.skip||0} · ผิดพลาด ${result.fail||0}`,'JOB',row.id,result)}catch(error){await operationsUpdateJob(row.id,{status:'FAILED',finishedAt:new Date(),errorMessage:error.message||String(error),currentItem:''});await operationsNotify('ERROR',`Job ${row.job_type} ไม่สำเร็จ`,error.message||String(error),'JOB',row.id,{})}}
   catch(error){console.warn('[OPS WORKER]',error.message)}finally{operationsWorkerBusy=false}
@@ -4115,6 +4119,7 @@ registerScalableApi(app,{pool,localOnly,readState,workflowActor,clientAddress});
 // page directly for both URL forms instead.
 app.get(['/customer-setup','/customer-setup/'],(_req,res)=>res.set('Cache-Control','no-store').sendFile(path.join(__dirname,'customer-setup.html')));
 app.get(['/customer', '/customer/'], (_req, res) => res.sendFile(path.join(__dirname, 'app.html')));
+require('./performance-monitor').registerRoutes(app,performanceMonitor,{localOnly,staffPermissionRequired,audit:recordSystemHealthEvent});
 // v7.62.80 System Health + In-App Update Center (Production only).
 app.get('/api/system/health',localOnly,async(req,res)=>{
   const started=Date.now();

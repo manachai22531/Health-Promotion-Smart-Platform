@@ -1,0 +1,36 @@
+HealthCheck v7.65.06 Production Windows Installer
+
+Includes every feature and fix from v7.65.05 plus:
+
+1. Customer toolbar: independent wrapping selection/actions with no horizontal
+   scrollbar; preserve the wide table horizontal scrollbar. Tested at desktop,
+   tablet and mobile widths.
+2. System & API > System and performance: real diagnostic dashboard with overview,
+   events, per-trace drilldown, P95 trend and cautious matched-group comparison.
+   Existing patient-save integrity / database / memory cards remain expandable.
+3. API timing through response completion; PostgreSQL query and pool acquisition
+   timing; main database vs external/HIS database; outbound HTTP/HTTPS; fetch
+   headers timing. Trace IDs link browser request timing to server spans.
+4. Browser API response/body timing, main company/customer/search renders to two
+   animation frames, menu switches and beginProcessing/endProcessing intervals.
+   Browser telemetry applies after staff login and batches every 10 seconds.
+5. Operations queue tasks: HN, VN, EMR, patientlog, health, backup — task duration,
+   queue wait and nested spans. Process CPU (one-core percentage / 5 seconds),
+   memory, event loop P95 and database pool metrics.
+6. PostgreSQL telemetry retention up to 7 days / about 50,000 records; bounded
+   memory/ingestion buffers and fallback with dropped/persistence error counts.
+7. JSON detail and CSV summary exports honor filters or a selected Trace ID.
+   Viewing requires apiView; export requires apiManage and writes an audit event.
+   Diagnostics allowlist excludes patient data, SQL, parameter values, request/
+   response content, raw URLs, tokens and exception messages.
+
+Limits are explicit in the UI: first-page pre-login load and arbitrary background
+jobs outside Operations Queue are not fully traced; network time is an estimate;
+server fetch measures headers; overlapping spans must not be summed. P95 across
+mixed operations is a diagnostic view, not an SLA. Maximum 5,000 exported events
+per query; table displays the latest 200 matching records.
+
+No production patient data was modified. Existing duplicate TEST notes remain.
+This release does not change hospital network routing or Windows Firewall.
+Install: extract the complete ZIP, run INSTALL-REPAIR.bat as Administrator.
+Target D:\HealthCheck\Production, production port 3000.

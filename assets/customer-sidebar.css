@@ -45,3 +45,12 @@ html body #customerListOverlay .hc-sidebar-collapsed .hc-sidebar-rail{display:fl
 html body #customerListOverlay .hc-sidebar-rail button{min-width:32px!important;padding:6px!important}
 html body #customerListOverlay .hc-sidebar-rail span{writing-mode:vertical-rl;font-size:10px;color:#7890a2}
 @media(max-width:800px){html body #customerListOverlay .hc-search-sidebar{width:240px!important;flex-basis:240px!important}html body #customerListOverlay .hc-sidebar-workspace{gap:6px!important}html body #customerListOverlay .hc-sidebar-heading{padding:8px!important}html body #customerListOverlay .hc-sidebar-content{padding:9px!important}}
+
+/* The command bar wraps independently of the wide customer table. */
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar{flex-wrap:wrap!important;min-width:0!important;max-width:100%!important;overflow:visible!important;white-space:normal!important;gap:8px 12px!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar>*{flex:0 1 auto!important;min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar .hc97-actions{flex:1 1 480px!important;justify-content:flex-end!important;flex-wrap:wrap!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar #customerBulkToolbar,html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar .customer-selection-head{flex-wrap:wrap!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar .customer-list-meta{white-space:normal!important;overflow-wrap:anywhere!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar label{white-space:normal!important;min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important}
+html body #customerListOverlay .hc-sidebar-main .hc-release-command-bar .button{min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}

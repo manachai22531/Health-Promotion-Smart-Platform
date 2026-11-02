@@ -1,0 +1,20 @@
+HealthCheck v7.65.06 verification — 2026-11-02
+
+PASS npm run build
+PASS npm run test:release — 136 tests (128 + 8), zero failures
+PASS five Chromium browser suites:
+  annual-pdf-fields-browser, company-board-compact-browser,
+  system-api-workspace-browser, customer-command-bar-browser,
+  performance-dashboard-browser.
+PASS real application HTTP login and PostgreSQL integration, using an isolated
+  postgres:17 disposable container and synthetic accounts with no patient data.
+  Checks telemetry authentication, view/export permissions, actual query and
+  pool-wait spans, browser/server Trace ID correlation, PostgreSQL persistence,
+  recovered storage, sanitized JSON/CSV exports and export audit.
+PASS telemetry allowlist, callback/promise behavior, concurrent trace isolation,
+  failed query status, buffer bounds, persistence fallback and export filters.
+PASS git diff --check and Node syntax checks.
+Package builder verifies ZIP integrity and every source-file SHA256.
+
+Not tested: Windows GUI/UAC, live HIS endpoints/production database or hospital
+Wi-Fi routing. Background tasks not in Operations Queue are not fully traced.

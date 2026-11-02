@@ -1,8 +1,8 @@
-# Health Check Smart Search — v7.65.05
+# Health Check Smart Search — v7.65.06
 
-[ดาวน์โหลดตัวติดตั้ง Windows v7.65.05](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.05/HealthCheck-v7.65.05-PRODUCTION-WINDOWS-INSTALLER.zip)
+[ดาวน์โหลดตัวติดตั้ง Windows v7.65.06](https://github.com/manachai22531/Health-Promotion-Smart-Platform/raw/refs/heads/installers/v7.65.06/HealthCheck-v7.65.06-PRODUCTION-WINDOWS-INSTALLER.zip)
 
-รวมงานเดิม พร้อมแยกกล่องข้อมูลบริษัท/หัวหนังสือ ย้ายปุ่มบันทึกเอกสารแนบ และตรวจบริษัท/ปีก่อนบันทึกหมายเหตุ
+รวมงานเดิม พร้อมศูนย์ตรวจประสิทธิภาพข้อมูลจริงและ Export ให้ Dev พร้อมแก้แถบปุ่มเหนือตารางลูกค้าให้ตัดบรรทัดโดยไม่ต้องเลื่อน
 
 - System & API: เมนูด้านซ้ายครบทุกหมวด คงฟอร์มและการปลดล็อกเดิม พร้อมภาพรวมและค้นหาหมวด
 - SQL HIS: แก้/ทดสอบ/เปิดใช้ SQL ได้ 9 กลุ่มย่อย เก็บเวอร์ชันและ Log ก่อน–หลัง ต้องมี apiManage และปลดล็อกด้วยรหัสผ่าน ทดสอบสำเร็จก่อนบันทึก มี Read-only transaction/Timeout และย้อนกลับค่าเดิมได้
@@ -13,13 +13,13 @@
 - เจ้าหน้าที่บันทึกแทนลูกค้าได้ตามสิทธิ์ customerEdit พร้อมประวัติผู้ทำรายการ ยังตรวจราคาปัจจุบันและข้อจำกัด OrderHIS/ปิดค่าใช้จ่าย
 - แก้การแจ้งเตือนบันทึกเอกสารรายปี: พาไปช่องเบอร์โทรเจ้าหน้าที่ขายที่ผิดรูปแบบเพื่อแก้ไขได้ทันที
 
-ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.05
+ติดตั้ง: สำรองฐานข้อมูล → แตก ZIP ทั้งหมด → เปิด INSTALL-REPAIR.bat ด้วย Administrator → รอ health check → Ctrl+F5 ตรวจ v7.65.06
 
 - เอกสารรายปี: ข้อความแพทย์/การเงินแสดงตรงแถว PDF เพิ่มหัวข้อ 14 หมายเหตุรายปี ช่องรายละเอียดลูกหนี้ และย้ายรายละเอียดแนบท้ายขึ้นต้นกล่องเอกสารแนบ
 
 พัฒนา: `npm ci`, `npm run build`, `npm run test:release`
 
-รายละเอียด: RELEASE-v7.65.05-CHANGES.txt และ TEST-RESULTS-v7.65.05.txt
-รอบนี้ตรวจ build, release 132 tests และ Chromium 2 suites ผ่าน ยังไม่ทดสอบ Windows GUI/UAC และฐานข้อมูลโรงพยาบาลจริง
+รายละเอียด: RELEASE-v7.65.06-CHANGES.txt และ TEST-RESULTS-v7.65.06.txt
+รอบนี้ตรวจ build, release 136 tests และ Chromium 5 suites ผ่าน ยังไม่ทดสอบ Windows GUI/UAC และฐานข้อมูลโรงพยาบาลจริง
 
 บรรจุตัวติดตั้ง: `python3 tools/build-windows-package.py --output-dir /path/to/output`
