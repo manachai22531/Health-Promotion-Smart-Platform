@@ -162,6 +162,7 @@
   const splitSearchInputIds=['searchName','searchIdentity','searchHn'];
   const splitSearchLegacy=$('#search');
   search=async function(){
+    await window.HealthCheckSearchPreferences?.ready();
     clearTimeout(customerSearchTimer);customerSearchTimer=null;
     const nameRaw=String($('#searchName')?.value||'').trim(),identityRaw=String($('#searchIdentity')?.value||'').trim(),hnRaw=String($('#searchHn')?.value||'').trim(),packageRaw=String($('#packageFilter').value||'').trim(),legacyRaw=String(splitSearchLegacy?.value||'').trim();
     const bookingRaw=String($('#searchBooking')?.value||'').trim();
@@ -169,7 +170,7 @@
     if(!activeRaw.some(value=>norm(value).length>=2)){++serverSearchSequence;if(splitSearchLegacy)splitSearchLegacy.value='';return searchV76225()}
     const sequence=++serverSearchSequence;$('#resultMeta').textContent='กำลังค้นหาจากฐานข้อมูล…';
     try{
-      const query=new URLSearchParams({name:nameRaw,identity:identityRaw,hn:hnRaw,booking:bookingRaw,person:(!nameRaw&&!identityRaw&&!hnRaw&&!bookingRaw)?legacyRaw:'',package:packageRaw,companyId,limit:'120'}),response=await fetch(`/api/customer-search?${query}`,{cache:'no-store'}),result=await response.json().catch(()=>({}));
+      const query=new URLSearchParams({name:nameRaw,identity:identityRaw,hn:hnRaw,booking:bookingRaw,person:(!nameRaw&&!identityRaw&&!hnRaw&&!bookingRaw)?legacyRaw:'',package:packageRaw,companyId,limit:'120',...(window.HealthCheckSearchPreferences?.params()||{})}),response=await fetch(`/api/customer-search?${query}`,{cache:'no-store'}),result=await response.json().catch(()=>({}));
       if(sequence!==serverSearchSequence)return;if(!response.ok)throw new Error(result.error||'ค้นหาข้อมูลไม่สำเร็จ');
       const rows=Array.isArray(result.items)?result.items:[];
       if(splitSearchLegacy)splitSearchLegacy.value=activeRaw.join(' ');

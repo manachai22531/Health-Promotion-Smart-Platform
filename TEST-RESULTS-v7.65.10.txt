@@ -1,0 +1,26 @@
+HealthCheck v7.65.10 verification — 2026-11-03
+
+PASS npm run build
+PASS npm run test:release — 145 tests (137 + 8), zero failures/skips
+PASS 13 unique Chromium browser tests:
+  tools/customer-search-two-modes-browser.test.cjs (1)
+  tools/customer-search-v76509-browser.test.cjs (4; updated for current approved row navigation)
+  tools/customer-preferences-v76510-browser.test.cjs (1)
+  tools/customer-primary-tabs-v76510-browser.test.cjs (2)
+  tools/customer-staff-preview-browser.test.cjs (1)
+  tools/customer-selection-edit-browser.test.cjs (1)
+  tools/customer-command-bar-browser.test.cjs (1)
+  tools/workspace-v76497-browser.test.cjs (1)
+  tools/search-clear-browser.test.cjs (1)
+
+UI coverage: Desktop 1920/1440/1280 and Tablet 1024/768; counts 0/1/4/125 with 120-row cap; card/table toggle; all controls including save/sort remain within viewport; row-click opens one customer; no selection column or individual Export; Copy does not navigate and copies masked rather than hidden identity; explicit save persists view/field/direction across reload and isolates users; feedback is fixed-position and does not move the table; A4 refresh updates HTML; PDF has current recordKey/VN; real customer popup URLs match two different customers; preview action buttons align right on one row; primary package tabs, shared search, lazy loading, one package and submitted price.
+
+PASS PostgreSQL integration with temporary tables and ROLLBACK:
+  PGHOST=<development socket/host> PGUSER=<development user> PGDATABASE=<development database> node tools/search-operations-postgres-check.cjs
+  Checks 24 sort combinations, numeric ascending/descending with NULLS LAST and stable tie-breaking, and six Operations EMR-presence cases. No production tables were modified.
+PASS real startup against isolated local PostgreSQL, /api/health with schema 0218 and v7.65.10, /api/version, and new settings endpoint rejects unauthenticated access with 401.
+PASS JavaScript syntax checks and git diff --check.
+
+Windows package builder validates required new runtime modules, ZIP integrity and SHA-256 for every payload file. Final archive checksum and provenance are supplied on the installer branch. Download verification is performed after upload.
+
+Not executed: Windows GUI/UAC installation, physical scanner/card hardware, hospital HIS services, hospital production database migration/restore. Browser tests use API fixtures; the PostgreSQL and startup checks use an isolated development database. No production performance improvement percentage is claimed.

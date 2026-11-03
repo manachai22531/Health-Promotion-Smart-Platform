@@ -42,14 +42,12 @@ test('customer search controls stay on one row and table rows open customer cont
   assert.equal(await page.locator('#resultRows').isVisible(), false);
   assert.equal(await page.locator('#customerSearchTablePane').isVisible(), true);
   assert.equal(await page.locator('#customerSearchTableRows tr').count(), 2);
-  assert.equal(await page.locator('#customerSearchTableRows input[type="radio"]').count(), 2);
+  assert.equal(await page.locator('#customerSearchTableRows input[type="radio"]').count(), 0);
   assert.equal(await page.locator('#customerSearchTableRows input[type="checkbox"]').count(), 0);
-  assert.equal(await page.locator('#customerSearchTableRows button').count(), 0);
+  assert.equal(await page.locator('#customerSearchTableRows button:not(.customer-copy)').count(), 0);
   assert.equal(await page.locator('[data-customer-search-action]').count(), 0, 'table action bar must be removed');
 
-  const radios = page.locator('#customerSearchTableRows input[type="radio"]');
-  await radios.nth(0).check();
-  assert.equal(await radios.evaluateAll(inputs => inputs.filter(input => input.checked).length), 1);
+  await page.locator('#customerSearchTableRows tr').nth(0).click();
   assert.equal(await page.locator('#customerSearchTableRows tr.selected').count(), 1);
   assert.equal(await page.locator('#detailOverlay').evaluate(el => el.classList.contains('open')), true);
   assert.match(await page.locator('#detailBody').innerText(), /ข้อมูลลูกค้าในโปรแกรม/);

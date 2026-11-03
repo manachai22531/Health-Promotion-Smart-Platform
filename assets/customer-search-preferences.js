@@ -1,0 +1,16 @@
+/* Explicit per-user save of view and sort settings; toast never affects layout. */
+(()=>{'use strict';if(!document.getElementById('customerSearchSave'))return;
+const defaults={view:'card',field:'updated',direction:'za'},fields={updated:'ปรับปรุงล่าสุด',name:'ชื่อ–นามสกุล',company:'บริษัท',id:'ID / Passport',hn:'HN',vn:'VN'},directions={az:'A–Z / ก–ฮ',za:'Z–A / ฮ–ก','09':'0–9 · น้อยไปมาก','90':'9–0 · มากไปน้อย'};
+let userKey=null,settings={...defaults},edited=0,loading=Promise.resolve(),toastTimer;
+const field=document.getElementById('customerSearchSort'),direction=document.getElementById('customerSearchDirection'),save=document.getElementById('customerSearchSave');
+const normalize=raw=>({view:raw?.view==='table'?'table':'card',field:Object.hasOwn(fields,raw?.field)?raw.field:'updated',direction:Object.hasOwn(directions,raw?.direction)?raw.direction:'za'});
+function paint(){field.value=settings.field;direction.value=settings.direction;customerSearchViewMode=settings.view;applyCustomerSearchView()}
+function ensure(){const identity=currentUser&&(currentUser.id||currentUser.username);const next=identity?String(identity):null;if(next===userKey)return loading;userKey=next;edited=0;settings={...defaults};if(!next){paint();return loading=Promise.resolve()}
+ try{settings=normalize(JSON.parse(localStorage.getItem('healthcheck.searchPreferences.v2:'+next)||'null'))}catch(_){}paint();const captured=next;
+ loading=fetch('/api/users/me/customer-search-settings',{cache:'no-store'}).then(async response=>{if(!response.ok)return;const data=await response.json();if(userKey===captured&&!edited&&data.settings){settings=normalize(data.settings);paint()}}).catch(()=>{});return loading}
+function notice(message,failed=false){let toast=document.getElementById('customerSearchToast');if(!toast){toast=document.createElement('div');toast.id='customerSearchToast';toast.setAttribute('role','status');document.body.append(toast)}clearTimeout(toastTimer);toast.textContent=message;toast.classList.toggle('failed',failed);toast.hidden=false;toastTimer=setTimeout(()=>toast.hidden=true,3000)}
+window.HealthCheckSearchPreferences={ready:ensure,params(){ensure();return {sort:settings.field,direction:settings.direction}},description(){return `เรียงตาม${fields[settings.field]} · ${directions[settings.direction]}`},onView(view){ensure();settings.view=view;customerSearchViewMode=view;edited++}};
+for(const control of [field,direction])control.onchange=()=>{ensure();settings.field=field.value;settings.direction=direction.value;edited++;search()};
+save.onclick=async()=>{await ensure();if(!userKey)return notice('กรุณาเข้าสู่ระบบก่อนบันทึก',true);const captured=userKey,payload={...settings,view:customerSearchViewMode};save.disabled=true;try{const response=await fetch('/api/users/me/customer-search-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok)throw Error('บันทึกการตั้งค่าไม่สำเร็จ กรุณาลองใหม่');if(userKey!==captured)return;try{localStorage.setItem('healthcheck.searchPreferences.v2:'+captured,JSON.stringify(payload))}catch(_){}notice('บันทึกมุมมองและการเรียงแล้ว')}catch(error){notice(error.message,true)}finally{save.disabled=false}};
+const oldRender=renderAll;renderAll=function(){ensure();return oldRender.apply(this,arguments)};ensure();
+})();

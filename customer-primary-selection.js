@@ -2,13 +2,13 @@
 const crypto=require('node:crypto'),catalog=require('./customer-catalog');
 const fail=(message,status=409)=>Object.assign(Error(message),{status});
 const actual=record=>(record.primaryPackages?.length?record.primaryPackages:[{code:record.code,name:record.packageName,price:record.packagePrice}]).filter(p=>p.code||p.name);
-async function choices(db,record){
+async function choices(db,record,scope='circular'){
  const bookings=(await db.query("SELECT b.package_code,p.default_package_code FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.record_key=$1 AND b.booking_status<>'CANCELLED'",[record.key])).rows;
  const memo=(await db.query('SELECT memo_data FROM company_year_circulars WHERE company_year_id=$1',[record.companyId])).rows[0]?.memo_data||{};
  const split=value=>String(value||'').split(/\s*\|\s*/).filter(Boolean),bookingCodes=bookings.flatMap(b=>[...split(b.package_code),...split(b.default_package_code)]),companyCodes=(memo.hospitalPrograms||[]).map(p=>String(p.code||'').trim()).filter(Boolean);
- // Only explicitly entitled company programs or booking packages are customer-selectable.
- const codes=bookings.length?bookingCodes:companyCodes;if(!codes.length)return [];
- const rows=(await db.query("SELECT package_code,package_name,total_price,detail_items FROM his_packages WHERE package_code=ANY($1::text[]) AND total_price IS NOT NULL AND total_price>=0 AND is_approved IS DISTINCT FROM false AND (active_from='' OR active_from<=to_char(CURRENT_DATE,'YYYY-MM-DD')) AND (active_to='' OR active_to>=to_char(CURRENT_DATE,'YYYY-MM-DD')) ORDER BY package_name",[codes])).rows;
+ // Circular tab intersects company programs with Booking; all tab retains Booking restrictions.
+ const codes=scope==='all'?(bookings.length?bookingCodes:null):bookings.length?companyCodes.filter(code=>bookingCodes.includes(code)):companyCodes;if(codes&&!codes.length)return [];
+ const rows=(await db.query("SELECT package_code,package_name,total_price,detail_items FROM his_packages WHERE ($1::text[] IS NULL OR package_code=ANY($1::text[])) AND total_price IS NOT NULL AND total_price>=0 AND is_approved IS DISTINCT FROM false AND (active_from='' OR active_from<=to_char(CURRENT_DATE,'YYYY-MM-DD')) AND (active_to='' OR active_to>=to_char(CURRENT_DATE,'YYYY-MM-DD')) ORDER BY package_name",[codes])).rows;
  return rows.map(r=>({code:r.package_code,name:r.package_name,price:Number(r.total_price),details:r.detail_items||[]}));
 }
 async function submit({pool,key,body,actor,expectedIdentity,invalidate}){
@@ -25,7 +25,7 @@ async function submit({pool,key,body,actor,expectedIdentity,invalidate}){
  const selection=catalog.buildSelection(body,company,{packages,customerCategoryMaster:masters}),patch={};
  if(body.primaryCode){
   if(actual(record).length||record.visitedAt||record.checkupConfirmedAt)throw fail('มีแพ็กเกจหลักหรือยืนยันการตรวจแล้ว กรุณาโหลดข้อมูลล่าสุดหรือติดต่อเจ้าหน้าที่');
-  const item=(await choices(db,record)).find(p=>p.code===body.primaryCode);if(!item)throw fail('แพ็กเกจหลักไม่ตรงกับสิทธิ์บริษัทหรือ Booking');
+  const item=(await choices(db,record,'all')).find(p=>p.code===body.primaryCode);if(!item)throw fail('แพ็กเกจหลักไม่ตรงกับสิทธิ์บริษัทหรือ Booking');
   if(typeof body.primaryExpectedPrice!=='number'||body.primaryExpectedPrice!==item.price)throw fail('ราคาแพ็กเกจหลักเปลี่ยนแปลง กรุณาโหลดข้อมูลล่าสุด');
   patch.primaryPackages=[{code:item.code,name:item.name,price:item.price}];patch.code=item.code;patch.packageName=item.name;patch.packagePrice=item.price;
  }

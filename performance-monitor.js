@@ -39,7 +39,7 @@ function makeMonitor({pool,version,limit=10000}){
  if(global.fetch&&!global.fetch.__healthPerf){const native=global.fetch;const wrapped=async function(...args){const end=span('external',performance.now());try{const response=await native(...args);end(!response.ok);return response}catch(e){end(true);throw e}};wrapped.__healthPerf=true;global.fetch=wrapped}
  }
  async function runTask(operation,queuedAt,fn){const start=performance.now(),ctx={traceId:randomUUID(),start,spans:[],closed:false,truncated:false};let status='ok';try{return await als.run(ctx,async()=>{const result=await fn();if(result?.fail>0)status='error';return result})}catch(e){status='error';throw e}finally{ctx.closed=true;add({source:'server',traceId:ctx.traceId,operation,category:'task',status,durationMs:performance.now()-start,spans:ctx.spans,truncated:ctx.truncated,queueMs:Number.isFinite(Date.parse(queuedAt))?Math.max(0,Date.now()-(performance.now()-start)-Date.parse(queuedAt)):null})}}
- return {add,read,flush,middleware,instrument,runTask,stop(){clearInterval(timer);loopDelay.disable()}};
+ return {add,read,flush,middleware,instrument,runTask,span,stop(){clearInterval(timer);loopDelay.disable()}};
 }
 function registerRoutes(app,monitor,{localOnly,staffPermissionRequired,audit}){
  const rates=new Map();

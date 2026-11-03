@@ -6,7 +6,7 @@ const path=require('node:path');
 const {chromium}=require('playwright-core');
 const {PDFDocument}=require('pdf-lib');
 
-for(const width of [1920,1280,1024,768]) test(`search counts, single selection and A4 actions at ${width}px`,async t=>{
+for(const width of [1920,1280,1024,768]) test(`search counts, row navigation and A4 actions at ${width}px`,async t=>{
   const app=express();app.use(express.static(path.resolve(__dirname,'..')));
   app.get('/customer',(req,res)=>res.send('<html><body>Customer preview navigation test</body></html>'));
   const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r)}));
@@ -40,30 +40,31 @@ for(const width of [1920,1280,1024,768]) test(`search counts, single selection a
     assert.match(meta,count>120?/แสดง 1–120 จาก 125 รายการ/:new RegExp(`แสดงทั้งหมด ${count} รายการ`));
     assert.equal(await page.locator('#customerSearchTableRows tr').count(),Math.min(count,120));
   }
-  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'เปลี่ยนเป็นแบบตาราง');
+  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'ตาราง');
   await page.locator('#customerSearchViewToggle').click();
-  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'เปลี่ยนเป็นแบบเดิม');
+  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'การ์ด');
   assert.equal(await page.locator('#customerSearchTablePane').isVisible(),true);
-  assert.equal(await page.locator('#customerSearchTablePane button').count(),0);
+  assert.equal(await page.locator('#customerSearchTablePane button:not(.customer-copy)').count(),0);
   assert.equal(await page.locator('#customerSearchTablePane input[type=checkbox]').count(),0);
   // All controls remain present and inside the viewport on tablets.
-  for(const id of ['searchName','searchIdentity','searchHn','searchBooking','companyFilter','searchSubmit','clearSearch','searchAddCustomer','companyQuickLookupToggle','searchTodayToggle','customerSearchViewToggle']){
+  for(const id of ['searchName','searchIdentity','searchHn','searchBooking','companyFilter','searchSubmit','clearSearch','searchAddCustomer','companyQuickLookupToggle','searchTodayToggle','customerSearchViewToggle','customerSearchSave','customerSearchSort','customerSearchDirection']){
     const el=page.locator('#'+id);assert.equal(await el.isVisible(),true,id);
     const rect=await el.boundingBox();assert(rect.x>=0&&rect.x+rect.width<=width+1,`${id} outside viewport at ${width}`);
   }
   if(width>=1280){const rects=await Promise.all(['searchSubmit','clearSearch','searchAddCustomer','customerSearchViewToggle','searchTodayToggle'].map(id=>page.locator('#'+id).boundingBox()));assert(Math.max(...rects.map(r=>r.y))-Math.min(...rects.map(r=>r.y))<5,'desktop action buttons must share a row')}
-  await page.locator('#customerSearchTableRows input[type=radio]').nth(0).check();
+  await page.locator('#customerSearchTableRows tr').nth(0).click();
   await page.waitForFunction(()=>document.querySelector('.cf-preview-pane').getAttribute('aria-busy')==='false');
   assert.match(await page.locator('#cfPreviewState').innerText(),/ข้อมูลที่บันทึกแล้ว/);
   assert.equal(await page.locator('#detailOverlay').evaluate(el=>el.classList.contains('open')),true);
   assert.equal(await page.locator('#detailOverlay #saveCustomerAll').isVisible(),true);
   assert.equal(await page.locator('#detailOverlay #printSummary').isVisible(),true);
   assert.equal(await page.locator('#detailOverlay #openHisVisit').isVisible(),true);
-  assert.equal(await page.locator('#detailOverlay #customerSearchExport').isVisible(),true);
-  await page.evaluate(()=>{window.exportedKeys=[];exportRowsToExcel=rows=>{window.exportedKeys=rows.map(row=>row.key)}});
-  await page.locator('#detailOverlay #customerSearchExport').click();
-  assert.deepEqual(await page.evaluate(()=>exportedKeys),['record-0']);
+  assert.equal(await page.locator('#detailOverlay #customerSearchExport').count(),0);
   assert.equal(await page.locator('#cfRefreshPreview').innerText(),'รีเฟรช');
+  const actionRects=await Promise.all(['cfRefreshPreview','cfOpenPdf','cfOpenCustomer'].map(id=>page.locator('#'+id).boundingBox()));
+  assert(Math.max(...actionRects.map(r=>r.y))-Math.min(...actionRects.map(r=>r.y))<2,'preview actions share one row');
+  const headerRect=await page.locator('.cf-preview-pane>header').boundingBox();assert(headerRect.x+headerRect.width-actionRects[2].x-actionRects[2].width<16,'preview actions align right');
+  assert.equal(await page.locator('#cfOpenCustomer').evaluate(e=>getComputedStyle(e).textDecorationLine),'none');
   await page.evaluate(()=>{state.companies[0].name='REFRESHED COMPANY'});
   await page.locator('#cfRefreshPreview').click();
   await page.waitForFunction(()=>document.querySelector('.cf-preview-pane').getAttribute('aria-busy')==='false');
@@ -78,9 +79,9 @@ for(const width of [1920,1280,1024,768]) test(`search counts, single selection a
   let popup=await popupPromise;await popup.waitForURL('**/customer?staffPreview=record-0');
   assert.equal(new URL(popup.url()).searchParams.get('staffPreview'),'record-0');await popup.close();
   await page.evaluate(()=>close('detailOverlay'));
-  await page.locator('#customerSearchTableRows input[type=radio]').nth(1).check();
-  assert.equal(await page.locator('#customerSearchTableRows input:checked').count(),1);
-  assert.equal(await page.locator('#customerSearchTableRows input:checked').getAttribute('data-customer-search-select'),'record-1');
+  await page.locator('#customerSearchTableRows tr').nth(1).click();
+  assert.equal(await page.locator('#customerSearchTableRows input[type=radio]').count(),0);
+  assert.equal(await page.locator('#customerSearchTableRows tr.selected').getAttribute('data-customer-search-key'),'record-1');
   await page.waitForFunction(()=>document.querySelector('.cf-preview-pane').getAttribute('aria-busy')==='false');
   popupPromise=page.waitForEvent('popup');await page.locator('#cfOpenCustomer').click();
   popup=await popupPromise;await popup.waitForURL('**/customer?staffPreview=record-1');

@@ -145,3 +145,5 @@ body.cf-customer-saving #processingOverlay{display:none!important}
 #detailBody .customer-package-items[open] .when-collapsed{display:none}
 #detailBody .customer-package-items>.table-wrap{margin:0;padding:0 8px 8px}
 @media(max-width:600px){#detailBody .customer-package-items>summary{gap:8px;padding:10px}#detailBody .customer-package-items-toggle{max-width:46%;flex-shrink:0}}
+.cf-preview-pane>header{justify-content:flex-start}.cf-preview-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap}.cf-preview-actions>.button{display:inline-flex;align-items:center;justify-content:center;min-height:34px;white-space:nowrap;text-decoration:none;padding:6px 11px}.cf-preview-actions #cfOpenCustomer{background:linear-gradient(105deg,#00a6a6,#008bc3);color:white;border-color:transparent;text-decoration:none}
+@media(max-width:600px){.cf-preview-actions{width:100%;gap:5px}.cf-preview-actions>.button{flex:1;font-size:11px;padding:6px}}

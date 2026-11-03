@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.09-production';
+const RELEASE_NAME = 'v7.65.10-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0218';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -506,7 +506,9 @@ function localOnly(req, res, next) {
 
 const SYSTEM_HEALTH_EVENT_LIMIT=200;
 const systemHealthMemory=[];
-async function ensureSystemHealthSchema(){
+let systemHealthSchemaReady=null;
+function ensureSystemHealthSchema(){
+  if(!systemHealthSchemaReady)systemHealthSchemaReady=(async()=>{
   await pool.query(`CREATE TABLE IF NOT EXISTS system_health_events(
     id BIGSERIAL PRIMARY KEY,
     event_type TEXT NOT NULL,
@@ -521,7 +523,11 @@ async function ensureSystemHealthSchema(){
   )`);
   await pool.query('CREATE INDEX IF NOT EXISTS system_health_events_created_idx ON system_health_events(created_at DESC)');
   await pool.query('CREATE INDEX IF NOT EXISTS system_health_events_type_idx ON system_health_events(event_type,status,created_at DESC)');
+
+  })().catch(error=>{systemHealthSchemaReady=null;throw error});
+  return systemHealthSchemaReady;
 }
+
 async function recordSystemHealthEvent(event={}){
   const row={eventType:String(event.eventType||'GENERAL'),status:String(event.status||'OK'),endpoint:String(event.endpoint||''),entityKey:String(event.entityKey||''),durationMs:Math.max(0,Math.round(Number(event.durationMs)||0)),expectedRows:Number.isFinite(Number(event.expectedRows))?Number(event.expectedRows):null,actualRows:Number.isFinite(Number(event.actualRows))?Number(event.actualRows):null,detail:event.detail&&typeof event.detail==='object'?event.detail:{},createdAt:new Date().toISOString()};
   systemHealthMemory.unshift(row);if(systemHealthMemory.length>SYSTEM_HEALTH_EVENT_LIMIT)systemHealthMemory.length=SYSTEM_HEALTH_EVENT_LIMIT;
@@ -649,7 +655,7 @@ async function operationsWorkerTick(){
   catch(error){console.warn('[OPS WORKER]',error.message)}finally{operationsWorkerBusy=false}
 }
 async function operationsWorkItems(){
-  const state=await readState(),bookings=(await pool.query(`SELECT b.id,b.project_id,b.record_key,b.hn AS booking_hn,b.patient_name,b.company_name,b.package_code,b.package_name,b.booking_status,p.project_code,p.project_name FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.booking_status<>'CANCELLED' AND p.status<>'CANCELLED' AND p.project_code<>'HIS-OPEN-VISIT' ORDER BY b.updated_at DESC LIMIT 10000`)).rows,bookingByRecord=new Map();for(const b of bookings){const key=String(b.record_key||'');if(key&&!bookingByRecord.has(key))bookingByRecord.set(key,b)}const items=[];
+  const state={records:await require('./operations-records').load(pool)},bookings=(await pool.query(`SELECT b.id,b.project_id,b.record_key,b.hn AS booking_hn,b.patient_name,b.company_name,b.package_code,b.package_name,b.booking_status,p.project_code,p.project_name FROM checkup_bookings b JOIN checkup_projects p ON p.id=b.project_id WHERE b.booking_status<>'CANCELLED' AND p.status<>'CANCELLED' AND p.project_code<>'HIS-OPEN-VISIT' ORDER BY b.updated_at DESC LIMIT 10000`)).rows,bookingByRecord=new Map();for(const b of bookings){const key=String(b.record_key||'');if(key&&!bookingByRecord.has(key))bookingByRecord.set(key,b)}const items=[];
   for(const r of state.records||[]){const key=String(r.key||r.id||''),b=bookingByRecord.get(key),hn=String(r.hn||b?.booking_hn||'').trim(),vn=String(r.hisLastVisitUID||r.vn||'').trim(),hasEmr=recordHasEmr(r),base={recordKey:key,hn,vn,patientName:recordPatientName(r),companyName:b?.company_name||'',projectCode:b?.project_code||'',projectName:b?.project_name||'',bookingId:b?.id||'',packageCode:r.code||b?.package_code||'',packageName:r.packageName||b?.package_name||''};if(!hn)items.push({...base,type:'NO_HN',severity:'ERROR',message:'ยังไม่มี HN'});else if(!vn)items.push({...base,type:'NO_VN',severity:'WARNING',message:'มี HN แล้ว แต่ยังไม่มี VN'});else if(!hasEmr)items.push({...base,type:'NO_EMR',severity:'WARNING',message:'มี HN/VN แล้ว แต่ยังไม่ได้รับ EMR'});if(String(r.hisPatientLogStatus||'').toLowerCase()==='error')items.push({...base,type:'HIS_STATUS_ERROR',severity:'ERROR',message:'patientlog ล่าสุดเป็น Error'})}
   return {items,records:state.records||[],bookingCount:bookings.length};
 }
@@ -2625,9 +2631,11 @@ async function buildStateResponse(revision){
   if(compressedStateCache.revision===revision&&compressedStateCache.body&&compressedStateCache.jsonBody)return compressedStateCache;
   if(stateResponseBuild?.revision===revision)return stateResponseBuild.promise;
   const promise=(async()=>{
-    const state=await readState(),wireState={...state,records:(state.records||[]).map(compactRecordForWire)};
-    const jsonBody=Buffer.from(JSON.stringify(wireState));
+    const state=await readState(),prepareEnd=performanceMonitor.span('render',performance.now()),wireState={...state,records:(state.records||[]).map(compactRecordForWire)};
+    const jsonBody=Buffer.from(JSON.stringify(wireState));prepareEnd(false);
+    const gzipEnd=performanceMonitor.span('render',performance.now());
     const body=await new Promise((resolve,reject)=>zlib.gzip(jsonBody,{level:zlib.constants.Z_BEST_SPEED},(error,result)=>error?reject(error):resolve(result)));
+    gzipEnd(false);
     const built={revision,body,jsonBody};
     compressedStateCache=built;
     return built;
@@ -3551,10 +3559,12 @@ app.post('/api/customer-import',localOnly,staffPermissionRequired('customerImpor
   }catch(error){await client.query('ROLLBACK').catch(()=>{});console.error('นำเข้าข้อมูลลูกค้าไม่สำเร็จ',error);res.status(500).json({error:'นำเข้าข้อมูลลูกค้าไม่สำเร็จ',detail:String(error.message||error).slice(0,500)});}finally{client.release();}
 });
 
+require('./customer-search-settings').register({app,pool,localOnly,staffPermissionRequired});
 app.get('/api/customer-search',localOnly,async(req,res)=>{try{
   const person=String(req.query.person||'').trim().slice(0,180),nameText=String(req.query.name||'').trim().slice(0,180),identityText=String(req.query.identity||'').trim().slice(0,180),hnText=String(req.query.hn||'').trim().slice(0,80),packageText=String(req.query.package||'').trim().slice(0,180),bookingText=String(req.query.booking||'').trim().slice(0,180),companyId=String(req.query.companyId||'').trim(),limit=Math.min(Math.max(Number(req.query.limit)||120,1),200);
-  const projection=`SELECT cc.source_data AS record,c.revision AS customer_revision,c.hn,c.vn,c.identification_number,c.title,c.first_name,c.last_name,c.birth_date,c.sex,c.phone,c.email,cc.employee_code,cc.package_code,cc.package_name,COUNT(*) OVER()::int AS total FROM company_customers cc JOIN customers c ON c.id=cc.customer_id`;
-  const send=result=>{const total=Number(result.rows[0]?.total||0),items=result.rows.map(row=>({...row.record,hn:row.hn||row.record?.hn||'',vn:row.vn||row.record?.vn||row.record?.hisLastVisitUID||'',hisLastVisitUID:row.vn||row.record?.hisLastVisitUID||'',id:row.identification_number||row.record?.id||'',title:row.title||row.record?.title||'',first:row.first_name||row.record?.first||'',last:row.last_name||row.record?.last||'',birth:row.birth_date||row.record?.birth||'',sex:row.sex||row.record?.sex||'',phone:row.phone||row.record?.phone||'',email:row.email||row.record?.email||'',employeeCode:row.employee_code||row.record?.employeeCode||'',code:row.package_code||row.record?.code||'',packageName:row.package_name||row.record?.packageName||'',_relRevision:Number(row.customer_revision||1)})).filter(Boolean);res.set('Cache-Control','no-store');return res.json({total,limit,items})};
+  const sortOrder=require('./customer-search-settings').orderSql(req.query);
+  const projection=`SELECT cc.source_data AS record,c.revision AS customer_revision,c.hn,c.vn,c.identification_number,c.passport_number,c.title,c.first_name,c.last_name,c.birth_date,c.sex,c.phone,c.email,cc.employee_code,cc.package_code,cc.package_name,COUNT(*) OVER()::int AS total FROM company_customers cc JOIN customers c ON c.id=cc.customer_id`;
+  const send=result=>{const total=Number(result.rows[0]?.total||0),items=result.rows.map(row=>({...row.record,hn:row.hn||row.record?.hn||'',vn:row.vn||row.record?.vn||row.record?.hisLastVisitUID||'',hisLastVisitUID:row.vn||row.record?.hisLastVisitUID||'',id:row.identification_number||row.passport_number||row.record?.id||'',title:row.title||row.record?.title||'',first:row.first_name||row.record?.first||'',last:row.last_name||row.record?.last||'',birth:row.birth_date||row.record?.birth||'',sex:row.sex||row.record?.sex||'',phone:row.phone||row.record?.phone||'',email:row.email||row.record?.email||'',employeeCode:row.employee_code||row.record?.employeeCode||'',code:row.package_code||row.record?.code||'',packageName:row.package_name||row.record?.packageName||'',_relRevision:Number(row.customer_revision||1)})).filter(Boolean);res.set('Cache-Control','no-store');return res.json({total,limit,items})};
   // Resolve identifier-like input through B-tree indexes first. If no exact record
   // exists, retain the legacy contains-search behavior so partial queries still work.
   const normalizedPerson=person.replace(/[^A-Za-z0-9]/g,'').toLowerCase();
@@ -3563,7 +3573,7 @@ app.get('/api/customer-search',localOnly,async(req,res)=>{try{
     if(companyId){exactParams.push(companyId);exactWhere.push(`cc.company_year_id=$${exactParams.length}`)}
     exactWhere.push(`(LOWER(c.hn)=LOWER($1) OR regexp_replace(LOWER(COALESCE(c.hn,'')),'[^a-z0-9]','','g')=$2 OR LOWER(c.vn)=LOWER($1) OR LOWER(c.identification_number)=LOWER($1) OR LOWER(c.passport_number)=LOWER($1) OR LOWER(cc.employee_code)=LOWER($1))`);
     exactParams.push(limit);
-    const exact=await pool.query(`${projection} WHERE ${exactWhere.join(' AND ')} ORDER BY cc.updated_at DESC LIMIT $${exactParams.length}`,exactParams);
+    const exact=await pool.query(`${projection} WHERE ${exactWhere.join(' AND ')} ORDER BY ${sortOrder} LIMIT $${exactParams.length}`,exactParams);
     if(exact.rowCount)return send(exact);
   }
   const params=[],where=[];
@@ -3575,7 +3585,7 @@ app.get('/api/customer-search',localOnly,async(req,res)=>{try{
   if(packageText){params.push(packageText);const n=params.length;where.push(`(cc.package_code ILIKE '%'||$${n}||'%' OR cc.package_name ILIKE '%'||$${n}||'%' OR cc.source_data->>'code' ILIKE '%'||$${n}||'%' OR cc.source_data->>'packageName' ILIKE '%'||$${n}||'%')`)}
   if(bookingText){params.push(bookingText);const n=params.length;where.push(`EXISTS (SELECT 1 FROM checkup_bookings b LEFT JOIN checkup_projects p ON p.id=b.project_id WHERE b.record_key=cc.legacy_record_key AND (b.id ILIKE '%'||$${n}||'%' OR b.project_id ILIKE '%'||$${n}||'%' OR b.company_id ILIKE '%'||$${n}||'%' OR b.company_name ILIKE '%'||$${n}||'%' OR b.hn ILIKE '%'||$${n}||'%' OR b.employee_code ILIKE '%'||$${n}||'%' OR p.project_code ILIKE '%'||$${n}||'%' OR p.project_name ILIKE '%'||$${n}||'%'))`)}
   params.push(limit);
-  const result=await pool.query(`${projection} ${where.length?'WHERE '+where.join(' AND '):''} ORDER BY cc.updated_at DESC LIMIT $${params.length}`,params);
+  const result=await pool.query(`${projection} ${where.length?'WHERE '+where.join(' AND '):''} ORDER BY ${sortOrder} LIMIT $${params.length}`,params);
   return send(result);
 }catch(error){res.status(500).json({error:'ค้นหาข้อมูลลูกค้าไม่สำเร็จ',detail:error.message})}});
 app.post('/api/checkup-bookings',localOnly,async(req,res)=>{try{const b=req.body||{},recordKey=String(b.recordKey||'').trim();if(!recordKey)return res.status(400).json({error:'recordKey is required'});const found=(await pool.query(`SELECT cc.legacy_record_key,cc.company_year_id,cc.employee_code,cc.package_code,cc.package_name,cc.source_data,c.hn,c.vn,c.identification_number,c.title,c.first_name,c.last_name,c.birth_date,c.sex,cy.company_id AS normalized_company_id,co.company_name FROM company_customers cc JOIN customers c ON c.id=cc.customer_id JOIN company_years cy ON cy.id=cc.company_year_id JOIN companies co ON co.id=cy.company_id WHERE cc.legacy_record_key=$1 LIMIT 1`,[recordKey])).rows[0];if(!found)return res.status(404).json({error:'ไม่พบข้อมูลลูกค้าที่เลือก'});const record={...found.source_data,key:recordKey,companyId:found.company_year_id,hn:found.hn||found.source_data?.hn||'',id:found.identification_number||found.source_data?.id||'',title:found.title||found.source_data?.title||'',first:found.first_name||found.source_data?.first||'',last:found.last_name||found.source_data?.last||'',birth:found.birth_date||found.source_data?.birth||'',sex:found.sex||found.source_data?.sex||'',employeeCode:found.employee_code||found.source_data?.employeeCode||'',code:found.package_code||found.source_data?.code||'',packageName:found.package_name||found.source_data?.packageName||''};const project=typedWorkflowRepository?.findCheckupProjectById?await typedWorkflowRepository.findCheckupProjectById(pool,b.projectId):(await pool.query('SELECT * FROM checkup_projects WHERE id=$1',[b.projectId])).rows[0];if(!project)return res.status(404).json({error:'ไม่พบโครงการ'});const id=crypto.randomUUID(),actor=workflowActor(req),values=[id,project.id,recordKey,String(record.hn||''),String(record.employeeCode||''),[record.title,record.first,record.last].filter(Boolean).join(' '),String(record.id||''),String(record.birth||''),String(record.sex||''),String(found.company_year_id||''),String(found.company_name||project.company_name||''),String(record.departmentName||''),String(record.positionName||''),String(b.packageCode||record.code||project.default_package_code||''),String(b.packageName||record.packageName||project.default_package_name||''),b.scheduledDate||project.start_date||null,String(b.remark||''),actor],created=typedWorkflowRepository?.insertCheckupBooking?await typedWorkflowRepository.insertCheckupBooking(pool,values):(await pool.query(`INSERT INTO checkup_bookings(id,project_id,record_key,hn,employee_code,patient_name,id_passport,birth_date,sex,company_id,company_name,department_name,position_name,package_code,package_name,scheduled_date,booking_status,remark,created_by,updated_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'BOOKED',$17,$18,$18) RETURNING *`,values)).rows[0];await workflowAudit(req,'BOOKING',id,'CREATE',{projectId:project.id,recordKey});res.status(201).json(created)}catch(error){if(error.code==='23505')return res.status(409).json({error:'รายชื่อนี้มี Booking ในโครงการแล้ว'});res.status(500).json({error:'สร้าง Booking ไม่สำเร็จ',detail:error.message})}});
@@ -3780,14 +3790,17 @@ app.post('/customer-api/session', async (req, res) => {
   } catch (error) { res.status(500).json({ error:'ยืนยันตัวตนไม่สำเร็จ' }); }
 });
 
+async function customerPrimaryChoicesFor(key,scope='circular'){
+ const row=(await pool.query('SELECT source_data,company_year_id,visited_at FROM company_customers WHERE legacy_record_key=$1',[key])).rows[0];if(!row)throw Object.assign(Error('ไม่พบข้อมูลลูกค้า'),{status:404});const record={...row.source_data,key,companyId:row.company_year_id,visitedAt:row.visited_at||row.source_data?.visitedAt};const primary=require('./customer-primary-selection');if(primary.actual(record).length||record.visitedAt||record.checkupConfirmedAt||customerCatalog.locked(record))return [];return primary.choices(pool,record,scope==='all'?'all':'circular');
+}
 async function customerProfileFor(recordKey,qrAuthenticated=false) {
     const state = await readState();
     const record = (state.records || []).find(item => String(item.key || item.id) === recordKey);
     if (!record) throw Object.assign(new Error('ไม่พบข้อมูลลูกค้า'),{status:404});
     const company = (state.companies || []).find(item => item.id === record.companyId);
     const profile = safeCustomerProfile(record, company, state);
-    profile.primaryChoices=await require('./customer-primary-selection').choices(pool,{...record,key:recordKey});
     profile.canChoosePrimary=!require('./customer-primary-selection').actual(record).length&&!record.visitedAt&&!record.checkupConfirmedAt&&!customerCatalog.locked(record);
+    profile.primaryChoices=profile.canChoosePrimary?await require('./customer-primary-selection').choices(pool,{...record,key:recordKey}):[];
     profile.contextKey=recordKey;
     profile.qrAuthenticated=qrAuthenticated;
     const categoryRows=(await pool.query(`SELECT c.code,c.name,c.active,c.sort_order,COALESCE(json_agg(json_build_object('name',s.name,'active',s.active,'sortOrder',s.sort_order) ORDER BY s.sort_order,s.name) FILTER(WHERE s.id IS NOT NULL),'[]'::json) subcategories FROM package_categories c LEFT JOIN package_subcategories s ON s.category_id=c.id GROUP BY c.id ORDER BY c.sort_order,c.name`)).rows;
@@ -3804,11 +3817,12 @@ async function customerProfileFor(recordKey,qrAuthenticated=false) {
     profile.primaryPackageTotal=profile.primaryPackages.reduce((sum,item)=>sum+Number(item.price||0),0);
     return profile;
 }
+app.get('/customer-api/me/primary-packages',customerSessionRequired,async(req,res)=>{try{res.set('Cache-Control','no-store').json({items:await customerPrimaryChoicesFor(req.customerSession.recordKey,req.query.scope)})}catch(error){res.status(error.status||500).json({error:'โหลดแพ็กเกจไม่สำเร็จ'})}});
 app.get('/customer-api/me', customerSessionRequired, async (req,res)=>{
   try {res.set('Cache-Control','no-store').json(await customerProfileFor(req.customerSession.recordKey,req.customerSession.loginMethod==='qr'));}
   catch(error){res.status(error.status||500).json({error:error.status===404?error.message:'อ่านข้อมูลไม่สำเร็จ'});}
 });
-require('./customer-staff-preview').registerCustomerStaffPreview({app,localOnly,staffPermissionRequired,profileFor:customerProfileFor,submitSelection:async(req,key)=>{const lease=await clinicalLifecycle.acquireCustomerSelection(key);let done=false;try{const result=await require('./customer-primary-selection').submit({pool,key,body:req.body,actor:{id:req.staffUser.id,username:req.staffUser.username,displayName:req.staffUser.displayName||req.staffUser.username,staff:true},invalidate:()=>{compressedStateCache={revision:null,body:null}}});done=true;return result}finally{await clinicalLifecycle.finishCustomerSelection(key,lease,done?'SUCCESS':'FAILED')}}});
+require('./customer-staff-preview').registerCustomerStaffPreview({app,localOnly,staffPermissionRequired,profileFor:customerProfileFor,primaryChoicesFor:customerPrimaryChoicesFor,submitSelection:async(req,key)=>{const lease=await clinicalLifecycle.acquireCustomerSelection(key);let done=false;try{const result=await require('./customer-primary-selection').submit({pool,key,body:req.body,actor:{id:req.staffUser.id,username:req.staffUser.username,displayName:req.staffUser.displayName||req.staffUser.username,staff:true},invalidate:()=>{compressedStateCache={revision:null,body:null}}});done=true;return result}finally{await clinicalLifecycle.finishCustomerSelection(key,lease,done?'SUCCESS':'FAILED')}}});
 
 require('./customer-profile-save').registerCustomerProfileSave({app,pool,customerSessionRequired,safeCustomerProfile,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
 
