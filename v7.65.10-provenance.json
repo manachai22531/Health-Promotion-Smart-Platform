@@ -1,0 +1,13 @@
+{
+  "version": "7.65.10",
+  "baseVersion": "7.65.09",
+  "sourceCommit": "ebbf33b66cc1a1e5dc63fe079d17e5240469ed25",
+  "sourceBranch": "releases/v7.65.10",
+  "builtAt": "2026-11-03",
+  "sha256": "8d2acc042992700dea0aa29b5ee3e3112d605dc5545199bd5426c644b1e50fd3",
+  "bytes": 29506141,
+  "files": 948,
+  "tests": "Build; 145 release tests; 13 Chromium tests; real PostgreSQL temporary-table sorting and EMR parity; real application startup and health; ZIP per-file SHA256",
+  "windowsInstallationExecuted": false,
+  "productionPerformanceSpeedupMeasured": false
+}
