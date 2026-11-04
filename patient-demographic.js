@@ -1,5 +1,6 @@
 'use strict';
 const {Pool}=require('pg'),path=require('node:path');
+const related=require('./patient-demographic-related');
 const text=value=>String(value??'').normalize('NFKC').trim();
 const token=value=>text(value).replace(/[\s-]/g,'').toUpperCase();
 const name=value=>text(value).replace(/\s+/g,' ').toLocaleLowerCase('th-TH');
@@ -39,14 +40,16 @@ async function projection(db){
  const normalizedGender='CASE '+Object.entries(groups).map(([key,values])=>`WHEN ${genderValues.map(expression=>`UPPER(BTRIM(COALESCE(${expression},''))) IN (${values.map(v=>`'${v}'`).join(',')})`).join(' OR ')} THEN '${key}'`).join(' ') +" ELSE '' END";
  const selected=[`${value(c.patientId)} AS patient_id`,`${value(c.hn)} AS hn`,`${value(c.first)} AS first_name`,`${value(c.last)} AS last_name`,`${value(c.firstEn)} AS first_name_en`,`${value(c.lastEn)} AS last_name_en`,c.dob?`TO_CHAR(${p(c.dob)}::date,'YYYY-MM-DD') AS birth_date`:'NULL::text AS birth_date',`${normalizedGender} AS gender`,`${genderValue} AS gender_label`,`${c.identity.length?`COALESCE(${c.identity.map(col=>`NULLIF(${value(col)},'')`).join(',')})`:'NULL::text'} AS identification_number`,`${c.passport.length?`COALESCE(${c.passport.map(col=>`NULLIF(${value(col)},'')`).join(',')})`:'NULL::text'} AS passport_number`].join(',');
  const base=`SELECT ${selected} FROM public.patient p${joins} WHERE ${c.deleted?`${p(c.deleted)} IS NOT TRUE`:'TRUE'}`;
- return {columns:c,base,p,normalizedGender,capabilities:{id:identity.length>0,passport:passport.length>0,nameOnly:!!(c.first&&c.last),gender:!!(c.gender||genderValues.length>1),nameDobGender:!!(c.first&&c.last&&c.dob&&(c.gender||genderValues.length>1))}};
+ const relatedTables=await related.discover(db),additionalPassportWhere=related.passportWhere(relatedTables,p(c.patientId)),additionalNameWhere=related.nameWhere(relatedTables,p(c.patientId));
+ return {columns:c,base,p,normalizedGender,relatedTables,additionalPassportWhere,additionalNameWhere,capabilities:{id:identity.length>0,passport:passport.length>0||!!additionalPassportWhere,nameOnly:!!(c.first&&c.last),gender:!!(c.gender||genderValues.length>1),nameDobGender:!!(c.first&&c.last&&c.dob&&(c.gender||genderValues.length>1))}};
 }
 function mismatches(input,patient){
  const out=[];
  if(input.id&&patient.identification_number&&token(input.id)!==token(patient.identification_number))out.push('ID');
- if(input.passport&&patient.passport_number&&token(input.passport)!==token(patient.passport_number))out.push('Passport');
- if(input.firstName&&![patient.first_name,patient.first_name_en].filter(Boolean).some(v=>name(v)===name(input.firstName)))out.push('ชื่อ');
- if(input.lastName&&![patient.last_name,patient.last_name_en].filter(Boolean).some(v=>name(v)===name(input.lastName)))out.push('นามสกุล');
+ if(input.passport&&(patient.passport_number||patient.additional_passports?.length)&&![patient.passport_number,...(patient.additional_passports||[])].some(value=>token(input.passport)===token(value)))out.push('Passport');
+ if(input.firstName&&![patient.first_name,patient.first_name_en,...(patient.alternate_names||[]).map(r=>r.first_name)].filter(Boolean).some(v=>name(v)===name(input.firstName)))out.push('ชื่อ');
+ if(input.lastName&&![patient.last_name,patient.last_name_en,...(patient.alternate_names||[]).map(r=>r.last_name)].filter(Boolean).some(v=>name(v)===name(input.lastName)))out.push('นามสกุล');
+ if(input.firstName&&input.lastName&&!out.includes('ชื่อ')&&!out.includes('นามสกุล')){const pairs=[{first_name:patient.first_name,last_name:patient.last_name},{first_name:patient.first_name_en,last_name:patient.last_name_en},...(patient.alternate_names||[])];if(!pairs.some(pair=>name(pair.first_name)===name(input.firstName)&&name(pair.last_name)===name(input.lastName)))out.push('ชื่อ–นามสกุลไม่ใช่ชุดเดียวกัน')}
  if(input.rawDob&&(!input.dob||input.dob!==patient.birth_date))out.push('วันเกิด');
  if(input.rawGender&&(!input.gender||input.gender!==patient.gender))out.push('Gender');
  return out;
@@ -64,15 +67,16 @@ async function matchRow(db,plan,raw){
  }
  for(const [method,value,columns] of stages){
   if(!value)continue;
-  if(!columns.length){warnings.push(`HIS ไม่มีคอลัมน์สำหรับ ${method}`);continue}
+  if(!columns.length&&!(method==='PASSPORT'&&plan.additionalPassportWhere)){warnings.push(`HIS ไม่มีคอลัมน์สำหรับ ${method}`);continue}
   const variants=[...new Set([text(value),token(value),token(value).toLowerCase()])];
-  const result=await find(method,columns.map(col=>`UPPER(REGEXP_REPLACE(${plan.p(col)}::text,'[-[:space:]]','','g'))=ANY($1::text[])`).join(' OR '),[variants]);if(result)return result;
+  const conditions=columns.map(col=>`UPPER(REGEXP_REPLACE(${plan.p(col)}::text,'[-[:space:]]','','g'))=ANY($1::text[])`).join(' OR ');const where=[conditions,method==='PASSPORT'?plan.additionalPassportWhere:null].filter(Boolean).join(' OR ');const result=await find(method,where,[variants]);if(result)return result;
  }
  if(hasNames&&!invalidOptional){
   if(plan.columns.first&&plan.columns.last){
    const first=`LOWER(REGEXP_REPLACE(BTRIM(${plan.p(plan.columns.first)}::text),'[[:space:]]+',' ','g'))=$1`,last=`LOWER(REGEXP_REPLACE(BTRIM(${plan.p(plan.columns.last)}::text),'[[:space:]]+',' ','g'))=$2`;
    let names=`(${first} AND ${last})`;
    if(plan.columns.firstEn&&plan.columns.lastEn)names+=` OR (LOWER(REGEXP_REPLACE(BTRIM(${plan.p(plan.columns.firstEn)}::text),'[[:space:]]+',' ','g'))=$1 AND LOWER(REGEXP_REPLACE(BTRIM(${plan.p(plan.columns.lastEn)}::text),'[[:space:]]+',' ','g'))=$2)`;
+   if(plan.additionalNameWhere)names+=` OR (${plan.additionalNameWhere})`;
    const params=[name(input.firstName),name(input.lastName)],conditions=[`(${names})`];let available=true;
    if(input.dob){if(plan.columns.dob){params.push(input.dob);const index=params.length;conditions.push(`${plan.p(plan.columns.dob)}>=$${index}::date AND ${plan.p(plan.columns.dob)}<($${index}::date+1)`)}else{warnings.push('HIS ไม่มีคอลัมน์วันเกิด จึงยังกรองตามวันเกิดที่ระบุไม่ได้');available=false}}
    if(input.gender){if(plan.capabilities.gender??plan.capabilities.nameDobGender){params.push(input.gender);conditions.push(`(${plan.normalizedGender})=$${params.length}`)}else{warnings.push('HIS ไม่มีคอลัมน์ Gender จึงยังกรองตามเพศที่ระบุไม่ได้');available=false}}
@@ -100,7 +104,9 @@ function registerPatientDemographic({app,localOnly,rootDir,readConfig,staffPermi
    pool=makePool(cfg);const plan=await projection(pool),results=Array(rows.length);let cursor=0;
    async function worker(){while(cursor<rows.length){const index=cursor++;if(req.aborted||res.destroyed)break;try{results[index]=await matchRow(pool,plan,rows[index])}catch(_){results[index]={input:normalizeRow(rows[index]),status:'ERROR',matchMethod:'',candidates:[],message:'ค้นหา HIS ไม่สำเร็จหรือเกินเวลารอ แถวนี้ยังไม่ได้ยืนยันผล'}}}}
    await Promise.all(Array.from({length:Math.min(3,rows.length)},worker));if(res.destroyed)return;
-   res.set('Cache-Control','no-store');res.json({ok:true,capabilities:plan.capabilities,results});
+   const candidates=results.flatMap(result=>result?.candidates||[]),enriched=await related.enrich(pool,candidates,plan.relatedTables),byId=new Map(enriched.map(patient=>[String(patient.patient_id),patient]));for(const result of results){if(!result)continue;result.candidates=(result.candidates||[]).map(patient=>byId.get(String(patient.patient_id))||patient);const messages=[...new Set(result.candidates.flatMap(patient=>patient.related_warnings||[]))];result.warnings=[...(result.warnings||[]),...messages];if(result.candidates.length===1){result.mismatches=mismatches(result.input,result.candidates[0]);if(['ID','PASSPORT'].includes(result.matchMethod))result.status=result.mismatches.length?'REVIEW':'MATCH'}}
+
+   res.set('Cache-Control','no-store');res.json({ok:true,capabilities:plan.capabilities,relatedColumns:Object.fromEntries(['patientdetail','patientothername'].map(name=>[name,plan.relatedTables[name].columns])),results});
   }catch(error){res.status(502).json({ok:false,error:'เชื่อมต่อ HIS หรือตรวจโครงสร้าง patient ไม่สำเร็จ กรุณาตรวจ System & API',code:error.code==='42703'?'SCHEMA_MISMATCH':'HIS_UNAVAILABLE'})}
   finally{if(pool)await pool.end().catch(()=>{})}
  });

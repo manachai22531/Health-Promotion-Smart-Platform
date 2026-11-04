@@ -1,0 +1,11 @@
+HealthCheck v7.65.11 — 2026-11-04
+Includes v7.65.10 and all approved pending changes:
+- Search: aligned status controls; centered compact view toggle shows current view (ตาราง/การ์ด), explicit per-user view/sort save and fixed toast retained.
+- Table: main package code and name; hover/focus/tap item counts to inspect contents without navigating; actual Booking scheduled date, excluding cancelled bookings. No fabricated HIS appointment dates. One customer opens per row, no selection column or batch actions.
+- Resend: visible button with fresh server-side eligibility check; UNKNOWN/running commands stay blocked; OpenVisit confirmation still required. Checking a prior command does not resend it.
+- Patient Demographic: read-only joins patient.id to patientdetail.patientid and patientothername.patientid; retains all discovered source fields and active child records. English names resolved from name-type LOV; ambiguous/unmapped aliases retained with warnings. Same main Excel sheet, numbered child columns, no duplicated patient rows and no separate child-table sheets. Existing reviewed sheet retains enriched columns.
+- Deployment: idempotent migration 0219 creates missing his_operation_attempts. Atomic guard + history acquisition prevents a failed history write from leaving a new stuck guard. Existing unresolved HIS operations are preserved for reconciliation.
+- PDF: installer loads actual PDF modules, repairs dependencies from lockfile on failed check and stops if still broken. Server PDF error cause must still be read from its log; MODULE_NOT_FOUND alone does not identify the missing module. Existing A4 printing remains available.
+- Current-customer A4 actions, package tabs, copy buttons, counts and sorting from v7.65.10 retained. Cancelled personal/package layout redesign is not reintroduced.
+Installation: back up database; extract entire ZIP; run INSTALL-REPAIR.bat as Administrator; wait for health check; hard refresh and confirm v7.65.11. Copying source files alone does not install dependencies or run the installer migration.
+Pruksa: use the separately supplied PowerShell script with ZIP and checksum in the same folder. Credentials are entered through local Git; no password in script. Script verifies a fresh download after push.

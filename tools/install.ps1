@@ -824,6 +824,17 @@ if ($missingRuntimeModules.Count -gt 0) {
   Write-Host 'Application dependencies are already installed.'
 }
 
+Write-Step 'Validate PDF runtime modules'
+Push-Location $appRoot
+try {
+  & $nodePath 'tools\check-pdf-runtime.js'
+  if ($LASTEXITCODE -ne 0) {
+    Invoke-NpmCiChecked -WorkingDirectory $appRoot
+    & $nodePath 'tools\check-pdf-runtime.js'
+    if ($LASTEXITCODE -ne 0) { throw 'PDF runtime dependency validation failed; see installer log.' }
+  }
+} finally { Pop-Location }
+
 Write-Step 'Initialize administrator account'
 Push-Location $appRoot
 try {
@@ -932,6 +943,11 @@ if (Test-Path -LiteralPath $migration0150) {
 } else {
   throw 'System Health migration 0150 is missing from the installer package.'
 }
+
+Write-Step 'Repair HIS operation history schema'
+$migration0219 = Join-Path $appRoot 'migrations\0219_his_operation_attempts.up.sql'
+if (-not (Test-Path -LiteralPath $migration0219)) { throw 'HIS history migration 0219 is missing.' }
+Invoke-DatabaseMigration -Arguments @('-h','127.0.0.1','-p',[string]$port,'-U',$dbUser,'-d',$dbName,'-v','ON_ERROR_STOP=1','-f',$migration0219) -FailureMessage 'HIS history migration 0219 failed.'
 
 Repair-ApplicationOwnershipAfterMigration
 $migrationAdminPassword = $null

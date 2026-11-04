@@ -1,0 +1,25 @@
+'use strict';
+// Creates and drops only its own disposable database; use an isolated development cluster.
+const {Client,Pool}=require('pg'),{randomUUID}=require('node:crypto'),express=require('express'),assert=require('node:assert/strict');
+const {projection,matchRow,registerPatientDemographic}=require('../patient-demographic');const {enrich}=require('../patient-demographic-related');
+(async()=>{
+ if(!process.env.PGHOST||!process.env.PGUSER)throw Error('Set PGHOST and PGUSER for an isolated development cluster');
+ const database='demographic_related_'+randomUUID().replaceAll('-',''),admin=new Client({database:'postgres'});await admin.connect();let db,pool,server,created=false;
+ try{await admin.query('CREATE DATABASE "'+database+'"');created=true;db=new Client({database});await db.connect();
+ await db.query(`CREATE TABLE patient(id bigint PRIMARY KEY,hn text,firstname text,lastname text,birthdate date,gender text,identificationnumber text,isdeleted boolean DEFAULT false);
+ CREATE TABLE patientdetail(id bigint PRIMARY KEY,patientid bigint,email text,residentphone text,passport text,companyname text,custom_extra text,isdeleted boolean DEFAULT false);
+ CREATE TABLE patientothername(id bigint PRIMARY KEY,patientid bigint,lovptothnameid bigint,title text,firstname text,middlename text,lastname text,comment text,isdeleted boolean DEFAULT false);
+ CREATE TABLE lov(id bigint PRIMARY KEY,code text,name text,isdeleted boolean DEFAULT false);
+ INSERT INTO patient VALUES(9007199254740993,'HN-A','ทดสอบ','หนึ่ง','2000-01-02','F','000123',false),(2,'HN-B','Other','Person','1999-01-01','M','000456',false);
+ INSERT INTO patientdetail VALUES(1,9007199254740993,'one@example.invalid','00123','PP001','Company A','retain all fields',false),(2,9007199254740993,'two@example.invalid','00456','PP002','Company B','second row',false),(3,9007199254740993,'deleted@example.invalid','','DELETED','','',true),(4,2,'other@example.invalid','','OTHER','','',false);
+ INSERT INTO lov VALUES(4546,'EN','ชื่อภาษาอังกฤษ',false),(4544,'OLD','ชื่อเดิม',false);
+ INSERT INTO patientothername VALUES(1,9007199254740993,4546,'MS','Alice','','Tester','English',false),(2,9007199254740993,4544,'','Alias','','Previous','not English',false),(3,9007199254740993,4546,'','Deleted','','Name','',true),(4,2,4546,'','Other','','English','',false);`);
+ pool=new Pool({database,max:3,options:'-c default_transaction_read_only=on -c statement_timeout=10000'});const plan=await projection(pool),found=await matchRow(pool,plan,{passport:'PP001'});assert.equal(found.matchCount,1);assert.equal(found.candidates[0].patient_id,'9007199254740993');
+ const enriched=await enrich(pool,found.candidates,plan.relatedTables);assert.equal(enriched.length,1);const p=enriched[0];assert.equal(p.patient_details.length,2);assert.equal(p.other_names.length,2);assert.equal(p.first_name_en,'Alice');assert.equal(p.last_name_en,'Tester');assert.equal(p.patient_details[0].patientid,'9007199254740993');assert.equal(p.patient_details[0].custom_extra,'retain all fields');assert(p.patient_details.every(d=>d.patientid===p.patient_id));
+ const named=await matchRow(pool,plan,{firstName:'Alice',lastName:'Tester'});assert.equal(named.matchCount,1);assert.equal(named.requiresSelection,true);
+ const app=express();app.use(express.json());registerPatientDemographic({app,localOnly:(_q,_r,n)=>n(),rootDir:'.',staffPermissionRequired:()=> (_q,_r,n)=>n(),readConfig:async()=>({host:'fixture',database,user:'fixture',password:'fixture'}),makePool:()=>({query:(...args)=>pool.query(...args),end:async()=>{}})});server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const response=await fetch('http://127.0.0.1:'+server.address().port+'/api/datacenter/patient-demographic/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows:[{passport:'PP001'}]})});assert.equal(response.status,200);const data=await response.json();assert.equal(data.results[0].status,'MATCH');assert(data.relatedColumns.patientdetail.includes('custom_extra'));assert.equal(data.results[0].candidates[0].patient_details.length,2);
+ await db.query("INSERT INTO patientothername VALUES(5,9007199254740993,4546,'','Different','','English','',false)");const ambiguous=await enrich(pool,found.candidates,plan.relatedTables);assert.equal(ambiguous[0].first_name_en,'');assert(ambiguous[0].related_warnings.some(w=>w.includes('หลายชุด')));
+ const missing=await matchRow(pool,plan,{passport:'DELETED'});assert.equal(missing.candidates.length,0);
+ console.log('PASS real PostgreSQL joins, large identifiers, all child columns, multiple child rows, deleted-row exclusion, English LOV resolution/ambiguity, alias/Passport search, read-only pool and HTTP export metadata');
+ }finally{if(server)await new Promise(r=>{server.closeAllConnections();server.close(r)});if(pool)await pool.end();if(db)await db.end();if(created)await admin.query('DROP DATABASE "'+database+'"');await admin.end()}
+})().catch(e=>{console.error(e);process.exitCode=1});

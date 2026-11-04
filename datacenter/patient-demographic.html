@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patient Demographic</title>
-<link rel="stylesheet" href="/assets/patient-demographic.css?v=7.64.92">
+<link rel="stylesheet" href="/assets/patient-demographic.css?v=7.65.11-related-patients-1">
 <script src="/assets/vendor/xlsx.full.min.js"></script><script src="/assets/auth-session.js?v=7.64.92"></script>
-<script defer src="/assets/patient-demographic.js?v=7.64.92-hisgender-fix"></script></head>
-<body><main class="wrap"><header><div><h1>Patient Demographic</h1><p>ค้นหาข้อมูลผู้ป่วยใน HIS จากไฟล์ Excel</p></div><span id="connection" role="status">กำลังตรวจการเชื่อมต่อ…</span></header>
+<script defer src="/assets/patient-demographic.js?v=7.65.11-related-patients-1"></script></head>
+<body><main class="wrap"><header><div><h1>Patient Demographic</h1><p>ค้นหาข้อมูลผู้ป่วยใน HIS จากไฟล์ Excel · เชื่อม patientdetail / patientothername</p></div><span id="connection" role="status">กำลังตรวจการเชื่อมต่อ…</span></header>
 <section class="card"><strong>ลำดับการค้นหา: ID → Passport → ชื่อ + นามสกุล (กรองด้วยวันเกิด/Gender ถ้ามี)</strong><p>ไปขั้นถัดไปเมื่อขั้นก่อนหน้าไม่พบเท่านั้น ค้นด้วยชื่อ–นามสกุลอย่างเดียวได้ ผลจากชื่อต้องตรวจเลือกผู้ป่วยก่อนนำ HN ไปใช้</p><p>ใช้การเชื่อมต่อเดียวกับ Patient Package / Radiology ใน System &amp; API · ค้นหาอย่างเดียว ไม่แก้ไขข้อมูล HIS หรือรายชื่อบริษัท</p></section>
 <section class="card"><div class="controls upload-controls"><label>ไฟล์ Excel <input id="excelFile" type="file" accept=".xlsx,.xls"></label><label>แผ่นงาน <select id="sheet" disabled><option>เลือกไฟล์ก่อน</option></select></label><button id="template" type="button" class="secondary">ดาวน์โหลดเทมเพลต</button></div>
 <p class="hint">รองรับ FirstName, LastName, DOB, Gender, ID, Passport หรือหัวคอลัมน์ภาษาไทย · วันเกิด DD/MM/YYYY หรือ YYYY-MM-DD (พ.ศ./ค.ศ.) · Gender: M/F, Male/Female, ชาย/หญิง · ID/Passport ควรตั้งรูปแบบเซลล์เป็น Text เพื่อรักษาเลข 0 ด้านหน้า</p>

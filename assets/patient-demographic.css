@@ -7,3 +7,5 @@
 .upload-controls label{min-width:0}
 .upload-controls input,.upload-controls select,.upload-controls>button{height:44px;min-height:44px;margin:0}
 @media(max-width:750px){.upload-controls{grid-template-columns:minmax(0,1fr)}.upload-controls>button{width:100%}}
+
+#demographicRelatedDialog{width:min(1050px,94vw)}#demographicRelatedDialog table{min-width:0;table-layout:fixed}#demographicRelatedDialog th{width:30%;position:static}#demographicRelatedDialog header{display:flex;align-items:center;justify-content:space-between}#demographicRelatedDialog details{margin:12px 0;border:1px solid #d5e4ed;padding:10px;border-radius:8px}#demographicRelatedDialog td{white-space:pre-wrap;word-break:break-word}

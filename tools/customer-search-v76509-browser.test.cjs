@@ -40,9 +40,9 @@ for(const width of [1920,1280,1024,768]) test(`search counts, row navigation and
     assert.match(meta,count>120?/แสดง 1–120 จาก 125 รายการ/:new RegExp(`แสดงทั้งหมด ${count} รายการ`));
     assert.equal(await page.locator('#customerSearchTableRows tr').count(),Math.min(count,120));
   }
-  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'ตาราง');
-  await page.locator('#customerSearchViewToggle').click();
   assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'การ์ด');
+  await page.locator('#customerSearchViewToggle').click();
+  assert.equal(await page.locator('#customerSearchViewToggle').innerText(),'ตาราง');
   assert.equal(await page.locator('#customerSearchTablePane').isVisible(),true);
   assert.equal(await page.locator('#customerSearchTablePane button:not(.customer-copy)').count(),0);
   assert.equal(await page.locator('#customerSearchTablePane input[type=checkbox]').count(),0);

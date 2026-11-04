@@ -55,3 +55,9 @@
 
 /* Unconfirmed cases have no visible HIS/audit action strip. */
 .clinical-controls[hidden],.customer-compact-card .cc-audit-strip[hidden]{display:none!important}
+
+/* Align audit/status controls in a shared row, with wrapping on smaller screens. */
+.customer-compact-card .cc-audit-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.customer-compact-card .cc-audit-strip .cc-log{display:flex;align-items:center;gap:6px;margin:0;flex-wrap:wrap}
+.customer-compact-card .cc-audit-strip .clinical-controls,.customer-compact-card .cc-audit-strip .clinical-state,.customer-compact-card .cc-audit-strip .clinical-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-block:0}
+.customer-compact-card .cc-audit-strip .button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;box-sizing:border-box;margin-block:0;line-height:1.25}

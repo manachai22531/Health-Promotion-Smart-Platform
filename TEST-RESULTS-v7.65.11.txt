@@ -1,0 +1,27 @@
+HealthCheck v7.65.11 verification — 2026-11-04
+PASS npm run build
+PASS npm run test:release — 148 tests (140 + 8), zero failures/skips
+PASS 16 Chromium tests in 12 files:
+ tools/customer-search-two-modes-browser.test.cjs
+ tools/customer-search-v76509-browser.test.cjs (4 widths)
+ tools/customer-preferences-v76510-browser.test.cjs
+ tools/customer-primary-tabs-v76510-browser.test.cjs (2 widths)
+ tools/customer-staff-preview-browser.test.cjs
+ tools/customer-selection-edit-browser.test.cjs
+ tools/customer-command-bar-browser.test.cjs
+ tools/workspace-v76497-browser.test.cjs
+ tools/search-clear-browser.test.cjs
+ tools/his-resend-browser.test.cjs
+ tools/customer-table-details-browser.test.cjs
+ tools/patient-demographic-related-browser.test.cjs
+Coverage: Desktop/Tablet 1920/1440/1280/1024/768, 0/1/4/125 results with actual 120-row cap, card-table-card, current-view label, persistent per-user sorting/settings, no selection column or batch actions, copy without navigating/revealing masked identity, current customer A4 refresh/PDF payload/popup URL, primary package tabs and single choice; item hover/focus/tap details and asynchronously loaded record-scoped Booking date; safe Resend revalidation and no blind HIS dispatch; real Excel download and same-sheet enriched columns without multiplying patient rows.
+PASS tools/check-pdf-runtime.js — actual module loading including pdfjs ESM and checkup summary module
+PASS real Chromium A4 PDF generation — valid PDF signature, 38174 bytes (synthetic data)
+PASS actual server startup against isolated PostgreSQL — /api/health and /api/version, v7.65.11 and schema 0219
+PASS tools/search-operations-postgres-check.cjs — numeric ordering, NULLS LAST, stable tie-breaks, 6 EMR presence cases
+PASS tools/patient-demographic-related-postgres-check.cjs — disposable database, real joins, large IDs, every child column, multiple child rows/deleted filtering, English type resolution and ambiguity, alias/Passport matching, read-only pool and HTTP metadata
+PASS tools/his-history-postgres-check.cjs — isolated transactional schema, upgrade without history table, migration idempotency, atomic guard/history, duplicate blocking, no stuck guard after failed history insert
+PASS git diff --check
+Package builder checks required runtime files, every source SHA and ZIP integrity. GitHub uploaded download and checksum are verified separately before reporting completion.
+Legacy tools/patient-demographic-browser.test.cjs requires a separate disposable app/HIS fixture and was skipped; it is not counted among the 16 passing browser tests. The new related-data browser test ran and passed.
+Not executed: Windows GUI/UAC or local PowerShell/Git Credential Manager; physical hardware; hospital HIS endpoints or hospital database. Browser API fixtures and isolated PostgreSQL were used. Existing UNKNOWN HIS commands require actual HIS reconciliation and are never automatically resent. Production PDF missing-module identity cannot be established without its server log.
