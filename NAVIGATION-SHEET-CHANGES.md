@@ -1,0 +1,11 @@
+# Navigation sheet and DataCenter theme
+
+The clinical mockup theme applies to the three DataCenter modules and the scoped DataCenter shell. Search, other staff pages and customer setup retain their original theme. Previously approved search field order and bulk company/year selection remain.
+
+Customer detail now has Summary and Navigation tabs in its existing right-hand pane. The Navigation tab implements seven stations based on the supplied FM-CHU-004 Rev.01 form, including registration, assessment/history, lab, imaging, cardio, physician/report delivery and discharge/consult. Identity/company/year come from the saved customer membership. Clinical values are blank until staff enter them; order-related flags can be derived from administrator mapping rules and actual selected package items; this does not import measurements from HIS or send orders.
+
+Staff with receiveCreate can save the navigation form. Viewing requires search and PDF generation requires summaryPrint. Data live in customer_navigation_sheets, keyed by company_customers.id with cascading cleanup, separate from customer profile/packages. Startup creates the table idempotently. Saves lock the membership, check current closure/retrospective policy, require the loaded revision and write a workflow audit record in the same transaction. Audit metadata records field names and revision, not clinical values. Stale revisions return 409; closed cases return 423. The existing retrospective grant is respected.
+
+Refresh, PDF preview and A4 printing use the selected document tab. PDF is generated from saved data on the server using the same seven-station renderer and a locally embedded Thai font. A dirty form warns before refresh, closing, changing customer or requesting a saved PDF. Customer links and summary actions remain unchanged; the original navigation-template print flow remains available when viewing the Summary tab.
+
+Validation performed: build, release tests, template validation/escaping, isolated PostgreSQL HTTP save/reload/permissions/concurrency/locks/audit/cascade, Chromium tab/edit/save/refresh/PDF and customer isolation at Desktop/Tablet, and a real one-page A4 PDF. No production database or HIS calls were used, and physical printer/Windows installation was not tested. Packaged in v7.65.12; see the release changes and validation report.

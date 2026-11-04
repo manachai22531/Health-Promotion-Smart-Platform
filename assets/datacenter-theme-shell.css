@@ -1,0 +1,10 @@
+/* Scope the new theme to the DataCenter container; search and all other staff pages retain their styles. */
+@media screen{
+#dataCenterView{--hc-action-start:#009d9f;--hc-action-end:#008b97;--hc-action-border:#008b97;--hc-action-ink:#174a70;font-family:Tahoma,"Noto Sans Thai",sans-serif}
+#dataCenterView .datacenter-hero{background:linear-gradient(110deg,#fff,#eaf8fb)!important;border-color:#bfdde9!important;box-shadow:0 3px 12px #174c7010!important}
+#dataCenterView .datacenter-hero h1{color:#123455}
+#dataCenterView .datacenter-shell{border-color:#bfdde9!important;background:#fff!important;box-shadow:0 3px 12px #174c7010!important}
+#dataCenterView .datacenter-tabs .button{border-radius:7px}
+#dataCenterView .datacenter-tabs .button.active{color:#fff!important;background:linear-gradient(135deg,#009d9f,#008b97)!important;border-color:#008b97!important}
+#dataCenterView .datacenter-tabs .button:not(.active){color:#174a70!important;background:#f8fcff!important;border-color:#b5d4e5!important}
+}

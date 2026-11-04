@@ -28,9 +28,9 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.11-production';
+const RELEASE_NAME = 'v7.65.12-production';
 const { registerDataCenter } = require('./datacenter');
-const SCHEMA_VERSION = '0219';
+const SCHEMA_VERSION = '0220';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
 const {importSignature,importBatchKey}=require('./experience-rules');
 const {registerSummaryPdf}=require('./checkup-summary-pdf');
@@ -1375,7 +1375,7 @@ END $$`);
     created_by TEXT NOT NULL DEFAULT 'system',
     updated_by TEXT NOT NULL DEFAULT 'system'
   )`);
-  await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
+  await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./navigation-sheet').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS booking_defaults JSONB NOT NULL DEFAULT '{}'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS payor_options JSONB NOT NULL DEFAULT '[]'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS default_location_code TEXT NOT NULL DEFAULT ''");
@@ -2515,6 +2515,8 @@ app.put('/api/roles/:roleId/security-policy',localOnly,staffPermissionRequired('
 });
 registerCheckupFormats(app,{pool,localOnly,staffPermissionRequired});
 registerSummaryPdf(app,{localOnly,staffPermissionRequired,customerQr:(req,key)=>customerAccess.issue(req,key)});
+require('./navigation-sheet').register({app,pool,localOnly,staffPermissionRequired});
+require('./navigation-mapping').register({app,pool,localOnly,staffPermissionRequired});
 registerOrderVisibility(app,{pool,localOnly,staffPermissionRequired,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
 app.get('/api/users/me/experience',localOnly,staffPermissionRequired(null),async(req,res)=>{try{res.set('Cache-Control','no-store');res.json(await readExperience(pool,req.staffUser.id,req.staffRole))}catch(error){res.status(500).json({error:'โหลด EXP ไม่สำเร็จ'})}});
 app.post('/api/users/save',localOnly,(req,res,next)=>staffPermissionRequired(req.body?.id?'userEdit':'userCreate')(req,res,next),async(req,res)=>{try{

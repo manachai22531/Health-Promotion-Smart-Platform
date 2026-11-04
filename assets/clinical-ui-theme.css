@@ -1,0 +1,27 @@
+/* Shared staff UI palette from the approved clinical mockup. Screen only: printed forms keep their own styles. */
+@font-face{font-family:HCClinical;src:url('./fonts/Sarabun-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:HCClinical;src:url('./fonts/Sarabun-Bold.ttf') format('truetype');font-weight:600 900;font-display:swap}
+@media screen{
+  :root{--hc-ui-font:HCClinical,Tahoma,Arial,sans-serif;--hc-ui-navy:#123455;--hc-ui-teal:#008f99;--hc-ui-border:#bfdde9;--hc-ui-tint:#edf8fc;--hc-ui-shadow:0 3px 12px #174c7010}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]){--ink:#173d59;--muted:#607d91;--line:#cce2ec;--surface:#fff;--canvas:#f2f9fc;--brand:#008f99;--brand-dark:#075674;--navy:#123455;--primary:#008f99;--primary-strong:#007780;--primary-soft:#e7f7f8;--border:#bfdde9;--page:#f2f9fc;--hc-action-start:#009c9f;--hc-action-end:#008d99;--hc-action-border:#008b96;--hc-action-ink:#174a70;--hc-action-soft:#f6fbfe;--hc-action-ring:#008f99;--hc-action-shadow:#008f991c;font-family:var(--hc-ui-font);color:var(--ink);background:var(--canvas)}
+  body{font-family:var(--hc-ui-font)}
+  :where(button,input,select,textarea){font-family:var(--hc-ui-font)}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) body{background:linear-gradient(135deg,#f8fcfe,#edf7fb);color:var(--ink)}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.topbar,.checkup-unified-header){background:#fff!important;border-color:var(--hc-ui-border)!important;box-shadow:0 2px 9px #174c7010!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.card,.search-card,.access-card,.workflow-table-card,.appointment-filter-card,.appointment-calendar-card,.hc-dialog,.customer-create-card){border-color:var(--hc-ui-border)!important;box-shadow:var(--hc-ui-shadow)!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.card,.search-card,.access-card,.workflow-table-card){background:#fff!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="hidden"]):not([type="button"]):not([type="submit"]),select,textarea){border-color:#b5d4e5;border-radius:7px;background:#fff;color:#173d59;box-shadow:inset 0 1px 2px #174c7005}
+  :where(input[type="checkbox"],input[type="radio"]){accent-color:var(--primary,#008f99)}
+  :where(input,select,textarea):focus-visible{outline:2px solid var(--hc-action-ring,#008f99);outline-offset:2px}
+  :where(button,.button,.btn):focus-visible{outline:2px solid var(--hc-action-ring,#008f99);outline-offset:3px}
+  :where(.button,.btn){border-radius:7px;text-align:center}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.button.primary,.btn.primary,button.primary){background:linear-gradient(135deg,#009d9f,#008b97)!important;border-color:#008b97!important;color:#fff!important;box-shadow:0 2px 5px #008f9918!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.button.secondary,.btn.secondary,button.secondary){background:#f8fcff!important;border-color:#b5d4e5!important;color:#174a70!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.nav-button.active,.data-center-tab.active,.hc-data-center .result-tab.active,.hc-data-center .tab.active,.customer-shop-tab.active){background:linear-gradient(135deg,#009d9f,#008b97)!important;border-color:#008b97!important;color:#fff!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) .nav-button.active i{color:inherit}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.customer-search-summary,.customer-search-table thead th,.import-preview-table thead th,.api-table thead th,.hc-data-center thead th){background:#e5f4fa!important;color:#16466a!important;border-color:#c4dfeb!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) :is(.workflow-hero,.data-center-hero){background:linear-gradient(110deg,#fff,#eaf8fb)!important;border-color:var(--hc-ui-border)!important;box-shadow:var(--hc-ui-shadow)!important}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) .hc-data-center h1{color:#123455}
+  :root:not([data-hc-theme="premium"]):not([data-hc-theme="warm"]) .hc-data-center button:not(.secondary):not(.danger):not(.error):not(.success):not(.result-tab):not(.tab):not(#togglePassword):not([data-related-close]){background:linear-gradient(135deg,#009d9f,#008b97);border-color:#008b97;color:#fff;border-radius:7px}
+  :where(button,.button,.btn):disabled{cursor:not-allowed}
+}

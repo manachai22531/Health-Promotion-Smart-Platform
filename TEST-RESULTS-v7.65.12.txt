@@ -1,0 +1,23 @@
+HealthCheck v7.65.12 verification — 2026-11-04
+PASS npm run build
+PASS npm run test:release — 153 tests (145 + 8), zero failures/skips
+PASS 13 unique Chromium tests:
+ tools/customer-search-v76509-browser.test.cjs (4 Desktop/Tablet widths)
+ tools/customer-preferences-v76510-browser.test.cjs (1)
+ tools/customer-table-details-browser.test.cjs (1)
+ tools/patient-demographic-related-browser.test.cjs (1)
+ tools/customer-primary-tabs-v76510-browser.test.cjs (2)
+ tools/his-resend-browser.test.cjs (1)
+ tools/navigation-sheet-browser.test.cjs (2)
+ tools/navigation-setup-openvisit-browser.test.cjs (1)
+Coverage includes original search theme, ID/HN/name field order, counts and current-view toggle, preference persistence, safe copy, current-customer summary actions, package tabs, same-sheet demographic export; bulk filtered Select All/Clear without deleting; navigation seven-station editing/save/refresh/PDF with two-customer isolation; derived ticks versus manual overrides and reset/removed-order clearing; specimen rules and per-item settings persistence/trial; date-batch OpenVisit search, 100+1 pagination, 0 results and escaped data; Desktop/Tablet.
+PASS PostgreSQL integration with isolated disposable databases:
+ tools/navigation-sheet-postgres-check.cjs — schema/migration idempotency, permissions, save/reload, missing customer, case isolation, conflict, validation, closed-case block, audit, cascade
+ tools/navigation-mapping-openvisit-postgres-check.cjs — mapping permission/revision conflicts, actual package expansion, live navigation automatic/manual values, removed-order clearing; read-only insertion date boundaries, 0/101 results, pagination, latest VN status, identity mismatch
+ tools/patient-demographic-related-postgres-check.cjs — real joins/English resolution/ambiguity/large IDs/child fields and HTTP metadata
+PASS tools/search-operations-postgres-check.cjs — ordering/null/tie-break and EMR presence parity
+PASS real Chromium PDF output: Navigation 1 A4 page (36296 bytes), Summary 1 A4 page (37966 bytes), synthetic data
+PASS actual startup v7.65.12 / schema 0220 and unauthenticated rejection on all three new API groups
+PASS syntax and diff whitespace checks (CRLF accepted for existing Windows HTML files)
+Windows package builder checks required payload modules, ZIP CRC and each source SHA-256. Uploaded files are downloaded and verified before reporting completion.
+Limits: browser API fixtures and isolated PostgreSQL were used. No hospital HIS/production database, physical printer, Windows GUI/UAC installer, or local PowerShell credential interaction was exercised. Actual hospital schema/permissions and administrator-configured mapping rules must be verified during deployment; missing data is shown, not fabricated.

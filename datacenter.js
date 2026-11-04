@@ -87,6 +87,7 @@ ORDER BY h.resultentereddatetime DESC,h.labresult_id DESC,ldt.id ASC NULLS LAST`
   // Patient Package: relational lookup from HIS patientvisitpackage + patient + package.
   const readPatientPackageConfig=async()=>await readStoredConfig(PATIENT_PACKAGE_SETTING_KEY,patientPackageConfigPath)||await readStoredConfig(RADIOLOGY_SETTING_KEY,radiologyConfigPath);
   require('./patient-demographic').registerPatientDemographic({app,localOnly,rootDir,readConfig:readPatientPackageConfig,staffPermissionRequired});
+  require('./datacenter-openvisit').register({app,localOnly,rootDir,readConfig:readPatientPackageConfig,staffPermissionRequired});
   const quoted=name=>`"${String(name).replace(/"/g,'""')}"`;
   async function detectPatientPackageDateColumn(p){
     const q=await p.query(`SELECT column_name,data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='patientvisitpackage' AND LOWER(column_name)='insdate' LIMIT 1`);
