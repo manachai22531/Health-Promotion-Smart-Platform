@@ -1,0 +1,12 @@
+{
+  "release": "v7.65.17",
+  "source_branch": "releases/v7.65.17",
+  "source_commit": "7e24af2f464db38e6e690f4b10fe4705531e67bc",
+  "installer_branch": "installers/v7.65.17",
+  "archive": "HealthCheck-v7.65.17-PRODUCTION-WINDOWS-INSTALLER.zip",
+  "bytes": 29657454,
+  "sha256": "649d0356d8d2388341f39e4b2a202a42e753ddbf71e45e1d525255c26bece690",
+  "pruksa_upload_script": "Push-HealthCheck-v7.65.17.ps1",
+  "windows_installation_executed": false,
+  "hospital_his_executed": false
+}
