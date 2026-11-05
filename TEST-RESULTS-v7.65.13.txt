@@ -1,0 +1,13 @@
+HealthCheck v7.65.13 verification — 2026-11-05
+PASS npm run build
+PASS npm run test:release — 161 tests (153 + 8), zero failures/skips
+PASS Chromium browser tests — 5 tests, zero failures:
+ API Request/Response log workspace
+ Company year fields / reporting delivery / alignment
+ Navigation sheet workspace and tab actions (2)
+ Direct navigation printing and cancellation without application preview
+PASS actual PostgreSQL API log integration in disposable database: persistence, HTTP/business correlation, masking, permissions, filters, pagination, auth/self exclusion, PDF metadata.
+PASS HN/VN clipboard browser verification: exact values, row click isolation, confirmation, legacy clipboard fallback.
+PASS syntax checks and diff whitespace checks (existing CRLF preserved).
+The builder checks ZIP CRC, all required payloads, every source SHA-256, and version consistency. Installer artifact is downloaded after upload and compared by SHA-256.
+Limits: no Windows GUI/UAC installation, hospital HIS/production database, or physical printer exercised. Direct print was checked with browser print fixture; deployment must validate actual hospital connectivity, permissions and printer.

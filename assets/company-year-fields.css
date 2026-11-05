@@ -1,0 +1,10 @@
+/* Matching caption rows keep annual company and Payor controls at the same baseline. */
+#companyOverlay .annual-v76419-company-fields>label:not(.wide){display:flex!important;flex-direction:column;justify-content:flex-start;gap:5px!important;min-width:0}
+#companyOverlay .annual-company-caption{display:block;min-height:18px;line-height:18px;margin:0}
+#companyOverlay .annual-company-caption .required{display:inline!important;line-height:inherit}
+#companyOverlay .annual-v76419-company-fields datalist{display:none!important}
+#companyOverlay .company-report-delivery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:0 0 14px;padding:12px;border:1px solid #c4dfe9;border-radius:8px}
+#companyOverlay .company-report-delivery legend{font-size:12px;font-weight:700;color:#174d70;padding:0 5px}
+#companyOverlay .company-report-delivery label{display:flex!important;align-items:center;gap:7px;margin:0;min-width:0;font-weight:500}
+#companyOverlay .company-report-delivery input[type=checkbox]{flex:0 0 auto;width:16px!important;height:16px!important;min-height:16px!important;margin:0;padding:0;accent-color:#009da6}
+@media(max-width:650px){#companyOverlay .company-report-delivery{grid-template-columns:1fr}}

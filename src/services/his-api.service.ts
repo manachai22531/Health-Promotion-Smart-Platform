@@ -128,7 +128,7 @@ export function requestConfiguredHisJson<T = unknown>(
             : null;
           const detailText = apiMessage || (typeof data === 'string' ? data : '');
           const detail = detailText ? ` · ${String(detailText).slice(0, 1000)}` : '';
-          reject(new Error(`${connection.apiName} ตอบกลับ HTTP ${status}${detail}`));
+          reject(Object.defineProperties(new Error(`${connection.apiName} ตอบกลับ HTTP ${status}${detail}`), {httpStatus:{value:status},responseData:{value:data},requestMethod:{value:method}}));
           return;
         }
         resolve({ status, data: data as T, method, url: String(url) });

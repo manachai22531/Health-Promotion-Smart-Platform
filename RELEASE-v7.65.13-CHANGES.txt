@@ -1,0 +1,12 @@
+HealthCheck v7.65.13
+
+Includes all v7.65.12 functionality and subsequent approved changes:
+- Operations API Request/Response log with result filters and masked payloads.
+- Company year validation, aligned fields and report delivery selections persisted to PDF.
+- Restored blank multi-company customer Excel import template download.
+- Separate Summary / Navigation tab actions.
+- Navigation workspace with station cards, order-derived selections and manual overrides.
+- Direct navigation printing; separate Preview PDF action; existing A4 PDF preserved.
+- Click-to-copy HN and VN cells with confirmation and clipboard fallback.
+
+Deployment: run INSTALL-REPAIR.bat as administrator. Preserve existing environment and database configuration. Installer startup applies database migrations. Back up production database before upgrade.

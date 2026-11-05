@@ -23,6 +23,7 @@ function normalizeCircular(input={}) {
   if(!input || typeof input !== 'object' || Array.isArray(input))throw new Error('รูปแบบหนังสือเวียนไม่ถูกต้อง');
   const o={};
   for (const [key,max] of Object.entries(TEXT_FIELDS)) o[key]=clean(input[key],max);
+  o.reportDelivery = require('./assets/company-year-fields').normalizeDelivery(input.reportDelivery);
   o.listenResults = input.listenResults === true;
   o.mealCoupon = input.mealCoupon === true;
   o.noListenResults = input.noListenResults === true && !o.listenResults;

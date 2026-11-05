@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.12-production';
+const RELEASE_NAME = 'v7.65.13-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0220';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -278,6 +278,8 @@ app.use(lanBasicAccess);
 const performanceMonitor=require('./performance-monitor').makeMonitor({pool,version:RELEASE_NAME});
 performanceMonitor.instrument(require('pg'),http,https);
 app.use(performanceMonitor.middleware);
+const apiExchangeLogger=require('./api-exchange-log').makeLogger({pool});
+app.use(apiExchangeLogger.middleware);
 app.use(express.json({ limit: '100mb' }));
 // All staff APIs enforce password age and idle expiry. Public/customer/integration
 // routes keep their own authentication, and only explicit activity renews idle time.
@@ -1375,7 +1377,7 @@ END $$`);
     created_by TEXT NOT NULL DEFAULT 'system',
     updated_by TEXT NOT NULL DEFAULT 'system'
   )`);
-  await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./navigation-sheet').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
+  await pool.query(require('./api-exchange-log').schemaSql);await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./navigation-sheet').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS booking_defaults JSONB NOT NULL DEFAULT '{}'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS payor_options JSONB NOT NULL DEFAULT '[]'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS default_location_code TEXT NOT NULL DEFAULT ''");
@@ -1809,17 +1811,18 @@ try{typedAppStateRepository=require(path.join(__dirname,'dist','src','repositori
 let typedWorkflowRepository=null;
 try{typedWorkflowRepository=require(path.join(__dirname,'dist','src','repositories','workflow.repository.js'))}catch(_error){}
 const normalizeHisApiPayload=typedHisPayload?.normalizeHisApiPayload||normalizeHisApiPayloadLegacy;
-async function callConfiguredHisJson(systemCode,payload,{timeoutMs=30000,maxBytes=12*1024*1024,retryAttempt=0}={}){
+async function callConfiguredHisJson(systemCode,payload,options={}){return apiExchangeLogger.his(systemCode,payload,()=>callConfiguredHisJsonUnlogged(systemCode,payload,options))}
+async function callConfiguredHisJsonUnlogged(systemCode,payload,{timeoutMs=30000,maxBytes=12*1024*1024,retryAttempt=0}={}){
   const config=typedHisConnectionRepository?.findActiveHisConnection?await typedHisConnectionRepository.findActiveHisConnection(pool,systemCode):(await pool.query('SELECT * FROM his_api_connections WHERE system_code=$1 AND active=true LIMIT 1',[systemCode])).rows[0];if(!config)throw new Error(`ไม่พบการตั้งค่า API ${systemCode}`);
   const endpoint=String(config.endpoint_url||'').trim();if(!endpoint)throw new Error(`ยังไม่ได้ตั้ง URL สำหรับ ${config.api_name||systemCode} ในเมนู SetUp API to HIS`);
   let url;try{url=new URL(endpoint)}catch(_){throw new Error(`URL ${config.api_name||systemCode} ไม่ถูกต้อง`)}
   if(!['https:','http:'].includes(url.protocol))throw new Error(`URL ${config.api_name||systemCode} ต้องเป็น HTTP/HTTPS`);
   const method=String(config.http_method||'POST').toUpperCase();
   if(!['GET','POST','PUT','PATCH','DELETE'].includes(method))throw new Error(`Method ${method} ไม่รองรับ`);
-  if(typedHisTransport?.requestConfiguredHisJson){try{return await typedHisTransport.requestConfiguredHisJson({endpointUrl:String(url),apiName:String(config.api_name||systemCode),method,contentType:String(config.content_type||'application/json'),apiKey:String(config.api_key||'')},payload||{},{timeoutMs,maxBytes})}catch(error){const transient=systemCode==='GET_VISIT'&&/(HTTP 50[234]|ECONNRESET|ETIMEDOUT|ไม่ตอบกลับ)/i.test(String(error?.message||error));if(transient&&retryAttempt<2){await new Promise(resolve=>setTimeout(resolve,400*(retryAttempt+1)));return callConfiguredHisJson(systemCode,payload,{timeoutMs,maxBytes,retryAttempt:retryAttempt+1})}throw error}}
+  if(typedHisTransport?.requestConfiguredHisJson){try{return await typedHisTransport.requestConfiguredHisJson({endpointUrl:String(url),apiName:String(config.api_name||systemCode),method,contentType:String(config.content_type||'application/json'),apiKey:String(config.api_key||'')},payload||{},{timeoutMs,maxBytes})}catch(error){if(!error.requestMethod)Object.defineProperty(error,'requestMethod',{value:method});const transient=systemCode==='GET_VISIT'&&/(HTTP 50[234]|ECONNRESET|ETIMEDOUT|ไม่ตอบกลับ)/i.test(String(error?.message||error));if(transient&&retryAttempt<2){await new Promise(resolve=>setTimeout(resolve,400*(retryAttempt+1)));return callConfiguredHisJsonUnlogged(systemCode,payload,{timeoutMs,maxBytes,retryAttempt:retryAttempt+1})}throw error}}
   if(method==='GET')Object.entries(payload||{}).forEach(([key,value])=>{if(value!=null&&String(value)!=='')url.searchParams.set(key,String(value))});
   const bodyText=method==='GET'||method==='DELETE'?'':JSON.stringify(payload||{}),client=url.protocol==='https:'?https:http;
-  return await new Promise((resolve,reject)=>{const headers={Accept:'application/json','Content-Type':String(config.content_type||'application/json')};if(config.api_key)headers['x-api-key']=String(config.api_key);if(bodyText)headers['Content-Length']=Buffer.byteLength(bodyText);const request=client.request(url,{method,headers,timeout:timeoutMs,rejectUnauthorized:false},response=>{const chunks=[];let size=0;response.on('data',chunk=>{size+=chunk.length;if(size>maxBytes)return request.destroy(new Error(`Response ${config.api_name||systemCode} เกิน ${Math.round(maxBytes/1024/1024)} MB`));chunks.push(chunk)});response.on('end',()=>{const raw=Buffer.concat(chunks).toString('utf8');let data=null;try{data=raw?JSON.parse(raw):null}catch(_){data=raw}data=normalizeHisApiPayload(data);const status=response.statusCode||502;if(status<200||status>=300)return reject(new Error(`${config.api_name||systemCode} ตอบกลับ HTTP ${status}${typeof data==='string'&&data?` · ${data.slice(0,300)}`:''}`));resolve({status,data,method,url:String(url)})})});request.on('timeout',()=>request.destroy(new Error(`${config.api_name||systemCode} ไม่ตอบกลับภายใน ${Math.round(timeoutMs/1000)} วินาที`)));request.on('error',reject);if(bodyText)request.write(bodyText);request.end()})
+  return await new Promise((resolve,reject)=>{const headers={Accept:'application/json','Content-Type':String(config.content_type||'application/json')};if(config.api_key)headers['x-api-key']=String(config.api_key);if(bodyText)headers['Content-Length']=Buffer.byteLength(bodyText);const request=client.request(url,{method,headers,timeout:timeoutMs,rejectUnauthorized:false},response=>{const chunks=[];let size=0;response.on('data',chunk=>{size+=chunk.length;if(size>maxBytes)return request.destroy(new Error(`Response ${config.api_name||systemCode} เกิน ${Math.round(maxBytes/1024/1024)} MB`));chunks.push(chunk)});response.on('end',()=>{const raw=Buffer.concat(chunks).toString('utf8');let data=null;try{data=raw?JSON.parse(raw):null}catch(_){data=raw}data=normalizeHisApiPayload(data);const status=response.statusCode||502;if(status<200||status>=300)return reject(Object.defineProperties(new Error(`${config.api_name||systemCode} ตอบกลับ HTTP ${status}${typeof data==='string'&&data?` · ${data.slice(0,300)}`:''}`),{httpStatus:{value:status},responseData:{value:data},requestMethod:{value:method}}));resolve({status,data,method,url:String(url)})})});request.on('timeout',()=>request.destroy(new Error(`${config.api_name||systemCode} ไม่ตอบกลับภายใน ${Math.round(timeoutMs/1000)} วินาที`)));request.on('error',error=>{if(!error.requestMethod)Object.defineProperty(error,'requestMethod',{value:method});reject(error)});if(bodyText)request.write(bodyText);request.end()})
 }
 app.get('/api/his/lab-lookup/health',localOnly,async(_req,res)=>{try{const found=await pool.query("SELECT endpoint_url,active FROM his_api_connections WHERE system_code='LAB_SID_LOOKUP' LIMIT 1"),config=found.rows[0];res.set('Cache-Control','no-store');res.json({ok:true,configured:Boolean(config?.active&&String(config.endpoint_url||'').trim())})}catch(error){res.status(500).json({ok:false,error:error.message||String(error)})}});
 function labScanFindValueShallow(data,names){if(!data||typeof data!=='object')return'';const wanted=new Set(names.map(x=>String(x).toLowerCase().replace(/[^a-z0-9]/g,'')));for(const [key,value] of Object.entries(data)){if(wanted.has(String(key).toLowerCase().replace(/[^a-z0-9]/g,''))&&value!=null&&typeof value!=='object'&&String(value).trim())return String(value).trim()}return''}
@@ -2517,6 +2520,7 @@ registerCheckupFormats(app,{pool,localOnly,staffPermissionRequired});
 registerSummaryPdf(app,{localOnly,staffPermissionRequired,customerQr:(req,key)=>customerAccess.issue(req,key)});
 require('./navigation-sheet').register({app,pool,localOnly,staffPermissionRequired});
 require('./navigation-mapping').register({app,pool,localOnly,staffPermissionRequired});
+require('./api-exchange-log').register({app,pool,logger:apiExchangeLogger,localOnly,staffPermissionRequired});
 registerOrderVisibility(app,{pool,localOnly,staffPermissionRequired,invalidate:()=>{compressedStateCache={revision:null,body:null}}});
 app.get('/api/users/me/experience',localOnly,staffPermissionRequired(null),async(req,res)=>{try{res.set('Cache-Control','no-store');res.json(await readExperience(pool,req.staffUser.id,req.staffRole))}catch(error){res.status(500).json({error:'โหลด EXP ไม่สำเร็จ'})}});
 app.post('/api/users/save',localOnly,(req,res,next)=>staffPermissionRequired(req.body?.id?'userEdit':'userCreate')(req,res,next),async(req,res)=>{try{
@@ -3040,6 +3044,7 @@ app.post('/api/company-years/:companyId/save-and-generate-pdf',localOnly,staffPe
     if(!found.rows.length){await client.query('ROLLBACK');return res.status(404).json({error:'ไม่พบบริษัท/ปี กรุณาบันทึกบริษัทใหม่ก่อนสร้าง PDF'});}
     const row=found.rows[0],current=row.source_data||{};
     co={...current,id};for(const field of allowed)if(Object.prototype.hasOwnProperty.call(incoming,field))co[field]=incoming[field];
+    if(!require('./assets/company-year-fields').validYear(co.year))throw new Error('กรุณาระบุปีตรวจสุขภาพเป็นตัวเลข 4 หลัก ระหว่าง 2000–2700');
     if(!String(co.name||'').trim()||!String(co.year||'').trim())throw new Error('ต้องระบุชื่อบริษัทและปี');
     co.updatedAt=new Date().toISOString();
     await client.query(`UPDATE company_years SET screening_year=$2,note=$3,source_data=$4::jsonb,revision=revision+1,updated_at=NOW() WHERE id=$1`,[id,String(co.year),String(co.note||''),JSON.stringify(co)]);
@@ -3076,7 +3081,7 @@ app.patch('/api/company-circulars/:companyId/sections/:section',localOnly,staffP
       '01':['companyNameEn','taxId','address','coordinator','coordinators','employeeCount','payorCode','payorPlan','additionalCompanies'],
       'subsidiaries':['additionalCompanies'],'coordinators':['coordinator','coordinators'],'employees':['employeeCount'],
       '02':['screeningPeriod'],'03':['listenResults','noListenResults','mealCoupon','noMealCoupon','medicalStaff','medicalDetails'],
-      '04':['programConditions'],'05':['eligibility','financeDetails'],'06':['reporting'],
+      '04':['programConditions'],'05':['eligibility','financeDetails'],'06':['reporting','reportDelivery'],
       '07':['receivables','receivableDetails'],'08':['salesContact','signatory'],'09':['programMatrix'],
       '10':['appendixDetails'],'attachments':['appendixDetails']
     }[section];
@@ -3096,6 +3101,7 @@ app.patch('/api/company-years/:companyId/sections/:section',localOnly,staffPermi
       '04':[],'05':[],'06':['reportConditions'],'07':[],'08':['salesName','salesPhone'],
       '09':[],'10':['billingPackages','cashPackages'],'11':['note']
     }[section];if(!fields)return res.status(400).json({error:'หัวข้อต้องเป็น 00-11'});
+    if(fields.includes('year')&&Object.hasOwn(patch,'year')&&!require('./assets/company-year-fields').validYear(patch.year))return res.status(400).json({error:'กรุณาระบุปีตรวจสุขภาพเป็นตัวเลข 4 หลัก ระหว่าง 2000–2700'});
     await client.query('BEGIN');const locked=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE'),data=locked.rows[0]?.data||{},companies=Array.isArray(data.companies)?[...data.companies]:[];let index=companies.findIndex(x=>String(x?.id||'')===id);
     // A normalized company/year can exist before an older app_state snapshot has
     // been refreshed. Rehydrate that valid row instead of rejecting the save.
@@ -3319,6 +3325,7 @@ app.put('/api/state', localOnly, async (req, res) => {
     const current=await client.query('SELECT data,revision FROM app_state WHERE id=1 FOR UPDATE');
     if(!current.rowCount||Number(current.rows[0].revision)!==expected){await client.query('ROLLBACK');return res.status(409).json({error:'ข้อมูลบน Server มีการเปลี่ยนแปลงแล้ว กรุณาโหลดหน้าใหม่ก่อนบันทึกเพื่อป้องกันข้อมูลทับกัน',conflict:true});}
     const stored=current.rows[0].data||{};
+    if(require('./assets/company-year-fields').invalidChangedYear(stored.companies||[],clean.companies)){await client.query('ROLLBACK');return res.status(400).json({error:'ปีตรวจสุขภาพต้องเป็นตัวเลข 4 หลัก ระหว่าง 2000–2700'});}
     const permissions=new Set(expAccess.role?.permissions||[]),isAdmin=expAccess.user?.roleId==='admin';
     // Older browsers expand legacy role definitions locally. Keep their business
     // saves working, but ignore users/roles that this actor cannot administer.

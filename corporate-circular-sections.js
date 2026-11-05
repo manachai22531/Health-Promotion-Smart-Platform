@@ -125,6 +125,7 @@ function appendAnnualCircularSections(pdf,font,company={},data={},options={}) {
   field('เงื่อนไขโปรแกรมตรวจ',data.programConditions);
   field('ต้อนรับและการเงิน',data.financeDetails||data.eligibility);
   if(data.financeDetails&&trim(data.eligibility)&&!trim(data.financeDetails).startsWith(trim(data.eligibility)))field('การแสดงสิทธิ์ / การเงิน',data.eligibility);
+  if(data.reportDelivery?.length)field('ช่องทางการรายงานผล',require('./assets/company-year-fields').deliveryText(data.reportDelivery));
   field('เงื่อนไขการรายงานผล',data.reporting);
   field('บัญชีลูกหนี้',data.receivables);
   field('รายละเอียด / เงื่อนไข',data.receivableDetails);
