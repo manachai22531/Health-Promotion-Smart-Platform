@@ -7,7 +7,7 @@
 <title>Health Check Up Smart Search</title>
 <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
 <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
-<link href="assets/style.css?v=7.65.15-report-delivery-1" rel="stylesheet"/>
+<link href="assets/style.css?v=7.65.16-report-delivery-1" rel="stylesheet"/>
 <link href="assets/global-ui-density.css?v=7.65.06-users-exp" rel="stylesheet"/>
 <link href="assets/appearance-settings.css?v=7.65.06-panel-viewport-fix" rel="stylesheet"/>
 <script>/* Restore visual density before first paint; default = Compact. */
@@ -21,11 +21,11 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <link href="assets/user-experience.css?v=7.65.06-header-shield-only" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/role-experience.css?v=7.65.06-role-exp"/>
 <link rel="stylesheet" href="assets/customer-compact.css?v=7.65.07-type-column"/>
-<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.15-table-details-1"/>
+<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.16-table-details-1"/>
 <link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.65.06-global-dismiss"/>
-<link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.15"/>
+<link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.16"/>
 <link rel="stylesheet" href="assets/customer-id-camera.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.65.06-knowledge"/>
-<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.65.15-status-controls-1">
+<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.65.16-status-controls-1">
 <link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.65.06">
 <link rel="stylesheet" href="assets/auth-session.css?v=7.65.06-role-security"/>
 <link rel="stylesheet" href="assets/customer-display-settings.css?v=7.65.06-mobile-compact">
@@ -36,7 +36,7 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <link rel="stylesheet" href="/assets/button-theme.css?v=7.65.06"/>
 <script src="/assets/theme-sync.js?v=7.65.06"></script>
 <link rel="stylesheet" href="assets/customer-selection-review.css?v=7.65.06"/>
-<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/workspace-v76497.css?v=7.65.06-booking-space-draft4"/><link rel="stylesheet" href="assets/company-board-compact.css?v=booking-areas-aligned-1"/><link rel="stylesheet" href="assets/patient-zone-colors.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-sidebar.css?v=7.65.06-toolbar-wrap-1"/><link rel="stylesheet" href="assets/customer-primary-selection.css?v=7.65.15"><link rel="stylesheet" href="assets/system-api-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/performance-dashboard.css?v=7.65.06"><link rel="stylesheet" href="assets/datacenter-theme-shell.css?v=7.65.15"><link rel="stylesheet" href="assets/navigation-sheet.css?v=7.65.15-split-preview-1"><link rel="stylesheet" href="assets/navigation-mapping.css?v=7.65.15"><link rel="stylesheet" href="assets/api-exchange-log.css?v=api-log-1"><script src="assets/company-year-fields.js?v=annual-report-1"></script><link rel="stylesheet" href="assets/company-year-fields.css?v=annual-report-1"></head>
+<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/workspace-v76497.css?v=7.65.06-booking-space-draft4"/><link rel="stylesheet" href="assets/company-board-compact.css?v=booking-areas-aligned-1"/><link rel="stylesheet" href="assets/patient-zone-colors.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-sidebar.css?v=7.65.06-toolbar-wrap-1"/><link rel="stylesheet" href="assets/customer-primary-selection.css?v=7.65.16"><link rel="stylesheet" href="assets/system-api-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/performance-dashboard.css?v=7.65.06"><link rel="stylesheet" href="assets/datacenter-theme-shell.css?v=7.65.16"><link rel="stylesheet" href="assets/navigation-sheet.css?v=7.65.16-split-preview-1"><link rel="stylesheet" href="assets/navigation-mapping.css?v=7.65.16"><link rel="stylesheet" href="assets/api-exchange-log.css?v=api-log-1"><script src="assets/company-year-fields.js?v=annual-report-1"></script><link rel="stylesheet" href="assets/company-year-fields.css?v=annual-report-1"></head>
 <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
 <div class="app-version-corner">Version <b data-app-version="">-</b></div>
 <header class="topbar">
@@ -2544,11 +2544,11 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
 <script src="assets/emr-book-model.js?v=7.65.06"></script>
 <script src="assets/personal-note-model.js?v=7.65.06-note-import"></script>
-<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.15-report-delivery-1"></script>
+<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.16-report-delivery-1"></script>
 <script src="assets/customer-search-one-row.js?v=7.65.06-compact-search"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
 <script src="assets/worklist-board.js?v=7.65.06"></script>
-<script src="assets/flow-v76384.js?v=7.65.15"></script>
+<script src="assets/flow-v76384.js?v=7.65.16"></script>
 <script src="assets/global-ui-density.js?v=7.65.06-users-exp"></script>
 <script src="assets/appearance-settings.js?v=7.65.06-panel-viewport-fix"></script>
 <script src="assets/role-experience.js?v=7.65.06-role-exp"></script>
@@ -2556,13 +2556,13 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-compact.js?v=7.65.06-coverage-rows-remove-open-button"></script>
 <script src="assets/checkup-summary-template.js?v=7.65.06-print-parity-qr"></script>
 <script src="assets/booking-defaults.js?v=7.65.06"></script>
-<script src="assets/checkup-unified.js?v=7.65.15"></script>
+<script src="assets/checkup-unified.js?v=7.65.16"></script>
 <script src="assets/customer-save-all.js?v=7.65.06-note-detail"></script>
 <script src="assets/package-knowledge-editor.js?v=7.65.06"></script>
 <script src="assets/customer-shop.js?v=7.65.06-knowledge"></script>
 <script src="assets/global-dismiss-buttons.js?v=7.65.06-global-dismiss"></script>
 <link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.65.06">
-<script src="assets/his-operation-monitor.js?v=7.65.15-status-controls-1" defer></script>
+<script src="assets/his-operation-monitor.js?v=7.65.16-status-controls-1" defer></script>
 <script src="assets/clinical-lifecycle.js?v=7.65.06-confirmed-only-1"></script>
 <script src="assets/customer-access.js?v=7.65.06"></script>
 <script src="assets/customer-url-settings.js?v=7.65.06"></script>
@@ -2580,5 +2580,5 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-profile-header.js?v=7.65.06-fast-save"></script><script src="assets/booking-calendar.js?v=7.65.06"></script><script src="assets/id-card-camera-model.js?v=7.65.06"></script><script src="assets/customer-id-camera.js?v=7.65.06"></script><script src="assets/appointment-schedules.js?v=7.65.06"></script>
 <script src="assets/personal-notes.js?v=7.65.06-note-detail"></script>
 <script src="assets/customer-selection-review.js?v=7.65.06-selection-edit-draft1"></script>
-<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.15"></script><script src="assets/customer-staff-preview.js?v=7.65.15"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.07-health-visible-1"></script><script src="assets/customer-search-preferences.js?v=7.65.15"></script><script src="assets/navigation-sheet-template.js?v=7.65.15-navigation-stations-2"></script><script src="assets/navigation-print.js?v=7.65.15-navigation-stations-2"></script><script src="assets/navigation-sheet.js?v=7.65.15-split-preview-1"></script><script src="assets/navigation-mapping-model.js?v=7.65.15-consult-1"></script><script src="assets/navigation-mapping.js?v=7.65.15"></script><script src="assets/consult-location.js?v=7.65.15"></script><script src="assets/api-exchange-log.js?v=api-log-1"></script></body>
+<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.16"></script><script src="assets/customer-staff-preview.js?v=7.65.16"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.07-health-visible-1"></script><script src="assets/customer-search-preferences.js?v=7.65.16"></script><script src="assets/navigation-sheet-template.js?v=7.65.16-navigation-stations-2"></script><script src="assets/navigation-print.js?v=7.65.16-navigation-stations-2"></script><script src="assets/navigation-sheet.js?v=7.65.16-split-preview-1"></script><script src="assets/navigation-mapping-model.js?v=7.65.16-package-origins-1"></script><script src="assets/navigation-mapping.js?v=7.65.16"></script><script src="assets/consult-location.js?v=7.65.16"></script><script src="assets/api-exchange-log.js?v=api-log-1"></script></body>
 </html>

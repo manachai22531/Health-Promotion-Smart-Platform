@@ -1,0 +1,21 @@
+HealthCheck v7.65.16 verification — 2026-11-05
+PASS npm run build
+PASS npm run test:release — 167 tests (159 + 8), zero failures/skips
+PASS 7 Chromium browser tests:
+ - Chrome-style left tabs, keyboard switching, retained package/navigation drafts, primary package detail loading/removal and stale-response isolation
+ - split editor/A4 preview, live update, Summary restoration, save/reload and customer isolation
+ - automatic navigation mapping, manual overrides and Reset automatic
+ - direct navigation print/cancellation without application preview
+ - Consult setup multiple orders, trial, save/reload and read-only controls
+ - DataCenter shared tool theme/control sizing, OpenVisit filters across pages and button baseline/mobile layout
+ - company year/report-delivery validation, alignment and save/reload
+PASS real PostgreSQL disposable-database integrations:
+ - navigation schema/idempotency, permissions, revisions, locked cases, customer isolation, audit and cascade
+ - actual package expansion and origins, Consult settings/matching, company-year reporting, inclusive Thai insertion dates, latest VN/HN verification
+ - combined Local/response/current status filtering over 101 results with correct second page, zero matches and invalid JSON/no-VN handling
+PASS package-origin browser desktop/mobile display and grouping/escaping tests during implementation.
+PASS actual Chromium navigation PDF cache verification: 1 A4 page, 32359 bytes, identical original/reused bytes. Local first generation 7891ms under concurrent test load; cache retrieval 0.16ms. This measures PDF generation/cache only, not hospital network, model-loading or printer-dialog latency. First generation still builds the document.
+PASS cache unit coverage: identical-request coalescing, changed-model invalidation, TTL expiry, bounded eviction and concurrent-job limit.
+PASS syntax and diff whitespace checks (existing Windows CRLF preserved).
+The package builder checks required payloads, release identity, ZIP CRC and every source SHA-256. Uploaded files must be downloaded and SHA-256 verified before completion.
+Limits: Windows GUI/UAC installation, hospital HIS/production database and physical printer were not exercised. Browser API fixtures and isolated PostgreSQL were used.

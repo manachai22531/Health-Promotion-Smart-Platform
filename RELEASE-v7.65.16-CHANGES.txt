@@ -1,0 +1,10 @@
+HealthCheck v7.65.16 — 2026-11-05
+Includes all v7.65.15 functionality and subsequent approved changes:
+- Chrome-style left tabs: customer/package data and Navigation, with retained drafts and keyboard switching.
+- Primary package details refresh on selection/removal; stale responses are ignored and legacy code-only records are supported.
+- Unmapped-order panel pairs each order with its source package code/name, grouped Main, Billing, Cash, Contract.
+- Radiology/LAB Checker and Patient Package follow the VN/OpenVisit theme; consistent cards, input sizing, tabs and aligned buttons.
+- OpenVisit filters: Local result, response result, current VN status; combine text filters over the insertion-date range before pagination/counts. Filtered scans over 10,000 source rows explicitly request a narrower date range.
+- Saved navigation PDFs are reused for unchanged models for up to two minutes; bounded memory and current permissions/data checks. Changed data regenerates PDF. First-time generation is still required.
+
+Back up the production database, extract the ZIP and run INSTALL-REPAIR.bat as Administrator. Existing environment/API/database settings and Consult mapping are preserved. No additional database table is required by these changes.

@@ -1,0 +1,8 @@
+# DataCenter tool consistency and OpenVisit filters
+
+- Radiology/LAB Checker, Patient Package and VN/OpenVisit load a shared stylesheet scoped to their iframe pages. Cards, typography, controls, active tabs and widths follow the existing VN/OpenVisit design. Search and other staff pages do not load it. Existing Windows HTML line endings are preserved.
+- VN/OpenVisit adds Local result, response result and current VN status text filters, with suggestions. Matching is case-insensitive substring matching and all three conditions are combined. Blank values mean no restriction. Submit and Enter apply filters; pagination retains the submitted query.
+- The search button has the same 40px height and bottom alignment as date inputs. Filters stack on narrow screens.
+- Filters are applied before pagination and totals, across the requested date range. Current status filters resolve latest VN/HN identity-checked status for candidate records; local and response filters are applied first. Status checks are skipped for empty batches. The unfiltered path retains the existing database-side 100-row pagination.
+- Filtered scans are bounded to 10,000 source records; larger ranges return an explicit request to narrow dates, never incomplete results. The endpoint uses a read-only repeatable-read transaction and retains existing statement timeout, permissions and inclusive Thai-date boundary.
+- Verified browser input/button geometry, stylesheet scope, filter submission/pagination and mobile layout. Actual isolated PostgreSQL verifies combined filters, 101 matching records across pages, no-match results and malformed response/unknown/no-VN handling. Existing OpenVisit identity/date tests pass.

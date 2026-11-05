@@ -29,3 +29,17 @@ The subsequent HTML mockup revisions are now implemented: conditional extra tube
 - Preview uses the same template and computed fields as PDF generation; it does not request a server PDF on each edit. PDF preview/direct print continue using saved data.
 - Switching customer, closing, failed loading and reset clear both frames; current record guards, dirty confirmation and revision handling remain intact.
 - Browser checks cover left/right geometry, noneditable paper preview, live changes, summary restoration, save/reload, case isolation, mapping reset, mobile layout and direct-print behavior.
+
+## Package origin in unmapped orders (2026-11-05)
+- Package expansion now retains selected-source category, package code and current package name for each order.
+- The unmapped-orders panel shows paired columns for order and source package, grouped in order: primary, billing, cash, contract.
+- A package selected in multiple categories appears in each corresponding group. Existing matching and automatic selections remain unchanged.
+- Missing package details remain explicit; older responses without source metadata retain the text-list fallback.
+- Verified shared-package provenance, category order, escaping and browser desktop/mobile display; real PostgreSQL package expansion and existing mapping integration pass.
+
+## v7.65.16 — Chrome-style tabs and package synchronization
+- Persistent Chrome-shaped left tabs switch customer/package input and the seven-station navigation editor, with keyboard switching and draft preservation; right document tabs remain synchronized.
+- Selecting/removing primary packages now reloads the left detail panel from current form choices. Initial legacy package-code fallback is supported. Existing request sequence guards discard late responses.
+- Unmapped-order details include source package code/name, grouped primary → billing → cash → contract.
+- Navigation PDF generation now has a bounded in-memory cache (2 minutes, up to 20 PDFs / 16 MiB). The key includes the full freshly read model, including customer identity, saved data, package mappings, reporting rules and certificate catalog. Changed content generates a new file; every HTTP request still enforces permissions and reads current data. Concurrent identical generation is coalesced; at most two distinct jobs run. First generation remains required.
+- Browser tests verify actual package detail loading/removal and response races, left-tab keyboard navigation and retained drafts. Real Chromium generation confirms cached bytes equal original A4 PDF output.
