@@ -5,7 +5,7 @@
 )
 $ErrorActionPreference='Stop'
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.65.19'
+$version='v7.65.20'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
@@ -251,6 +251,9 @@ try{
   Emit 'Backup' 'SUCCESS'
   Emit 'Deploy' 'SUCCESS'
   Emit 'Migrate' 'SUCCESS' 'Database installer/migrations completed.'
+  # Verify the deployed bytes before accepting a healthy older process.
+  . (Join-Path $PSScriptRoot 'assert-deployed-payload.ps1')
+  Assert-DeployedPayload -SourceRoot $sourceRoot -TargetRoot $targetRoot
   Emit 'Start' 'RUNNING'
   $run=Join-Path $targetRoot 'tools\run.ps1'
   if(-not(Test-Path -LiteralPath $run)){throw "Launcher not found: $run"}

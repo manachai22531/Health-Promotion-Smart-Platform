@@ -69,7 +69,7 @@ function Invoke-RobocopySafe {
     [string[]]$ExcludeDirs=@(),
     [string[]]$ExcludeFiles=@()
   )
-  $args=@($Source,$Destination,'/E','/R:3','/W:1','/XJ','/COPY:DAT','/DCOPY:DAT','/NFL','/NDL','/NJH','/NJS','/NP')
+  $args=@($Source,$Destination,'/IS','/IT','/E','/R:3','/W:1','/XJ','/COPY:DAT','/DCOPY:DAT','/NFL','/NDL','/NJH','/NJS','/NP')
   if($ExcludeDirs.Count -gt 0){$args += '/XD'; $args += $ExcludeDirs}
   if($ExcludeFiles.Count -gt 0){$args += '/XF'; $args += $ExcludeFiles}
   & robocopy.exe @args | Out-Null
@@ -152,6 +152,9 @@ try {
     'DATABASE-CONNECTION.txt',
     'LOCAL-SERVER.txt'
   )
+  # ZIP releases can have identical timestamps and sizes despite changed bytes.
+  . (Join-Path $PSScriptRoot 'assert-deployed-payload.ps1')
+  Assert-DeployedPayload -SourceRoot $sourceRoot -TargetRoot $targetRoot
 } catch {
   Start-ExistingServerIfPossible -Root $targetRoot
   throw
