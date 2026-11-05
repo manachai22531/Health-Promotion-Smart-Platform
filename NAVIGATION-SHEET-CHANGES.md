@@ -22,3 +22,10 @@ Validation performed: build, release tests, template validation/escaping, isolat
 
 ## v7.65.14 — Approved mockup integration
 The subsequent HTML mockup revisions are now implemented: conditional extra tubes, certificate list from real Documents catalog, mutually exclusive wait/Book report choices with inline details, all real Consult locations with paired order/detail rows, and persistent Order & Station setup. See CONSULT-LOCATION-SETUP.md. This release includes the station tabs and previous pending station form changes.
+
+## Editor left / A4 preview right (2026-11-05)
+- Selecting Navigation replaces the left customer form visually with the station editor, preserving the original customer form DOM and draft. Summary restores the customer form.
+- The right pane renders the existing printable navigation document as a read-only A4 preview, fitted to pane width and updated from the navigation draft (120ms debounce for text input).
+- Preview uses the same template and computed fields as PDF generation; it does not request a server PDF on each edit. PDF preview/direct print continue using saved data.
+- Switching customer, closing, failed loading and reset clear both frames; current record guards, dirty confirmation and revision handling remain intact.
+- Browser checks cover left/right geometry, noneditable paper preview, live changes, summary restoration, save/reload, case isolation, mapping reset, mobile layout and direct-print behavior.

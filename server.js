@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.14-production';
+const RELEASE_NAME = 'v7.65.15-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0220';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -907,14 +907,14 @@ function compactRecordForWire(record){
 }
 async function hydrateRelationalState(base={}){
   const [companiesResult,recordsResult,packagesResult]=await Promise.all([
-    pool.query(`SELECT cy.id,cy.screening_year,cy.note,cy.source_data,c.company_code,c.company_name
-      FROM company_years cy JOIN companies c ON c.id=cy.company_id ORDER BY cy.updated_at DESC,cy.id`),
+    pool.query(`SELECT cy.id,cy.screening_year,cy.note,cy.source_data,c.company_code,c.company_name,circular.memo_data->'reportDelivery' AS report_delivery
+      FROM company_years cy JOIN companies c ON c.id=cy.company_id LEFT JOIN company_year_circulars circular ON circular.company_year_id=cy.id ORDER BY cy.updated_at DESC,cy.id`),
     pool.query(`SELECT cc.legacy_record_key,cc.company_year_id,cc.employee_code,cc.package_code,cc.package_name,cc.visited_at,cc.source_data,
       c.hn,c.vn,c.identification_number,c.passport_number,c.title,c.first_name,c.last_name,c.birth_date,c.sex,c.phone,c.email
       FROM company_customers cc JOIN customers c ON c.id=cc.customer_id ORDER BY cc.updated_at DESC,cc.id`),
     pool.query(`SELECT id,package_code,package_name,price,usage_condition,source_data FROM contract_packages ORDER BY updated_at DESC,id`)
   ]);
-  const companies=companiesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.id||''),code:String(row.company_code||row.source_data?.code||''),name:String(row.company_name||row.source_data?.name||''),year:String(row.screening_year||row.source_data?.year||''),note:String(row.note??row.source_data?.note??'')}));
+  const companies=companiesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.id||''),code:String(row.company_code||row.source_data?.code||''),name:String(row.company_name||row.source_data?.name||''),year:String(row.screening_year||row.source_data?.year||''),note:String(row.note??row.source_data?.note??''),reportDelivery:Array.isArray(row.report_delivery)?row.report_delivery:[]}));
   const records=recordsResult.rows.map(row=>({...(row.source_data||{}),key:String(row.legacy_record_key||row.source_data?.key||row.source_data?.id||''),companyId:String(row.company_year_id||row.source_data?.companyId||''),hn:String(row.hn||row.source_data?.hn||''),vn:String(row.vn||row.source_data?.vn||row.source_data?.hisLastVisitUID||''),hisLastVisitUID:String(row.vn||row.source_data?.hisLastVisitUID||''),id:String(row.identification_number||row.passport_number||row.source_data?.id||''),title:String(row.title||row.source_data?.title||''),first:String(row.first_name||row.source_data?.first||''),last:String(row.last_name||row.source_data?.last||''),birth:String(row.birth_date||row.source_data?.birth||''),sex:String(row.sex||row.source_data?.sex||''),phone:String(row.phone||row.source_data?.phone||''),email:String(row.email||row.source_data?.email||''),employeeCode:String(row.employee_code||row.source_data?.employeeCode||''),code:String(row.package_code||row.source_data?.code||''),packageName:String(row.package_name||row.source_data?.packageName||''),visitedAt:row.visited_at||row.source_data?.visitedAt||null}));
   const packages=packagesResult.rows.map(row=>({...(row.source_data||{}),id:String(row.source_data?.id||row.id||''),code:String(row.package_code||row.source_data?.code||''),name:String(row.package_name||row.source_data?.name||''),price:row.price??row.source_data?.price??null,usageCondition:String(row.usage_condition||row.source_data?.usageCondition||'')}));
   return {...base,companies,records,packages};
@@ -3025,6 +3025,7 @@ app.put('/api/company-circulars/:companyId',localOnly,staffPermissionRequired('c
       VALUES($1,$2::jsonb,$3,NOW()) ON CONFLICT(company_year_id) DO UPDATE
       SET memo_data=EXCLUDED.memo_data,updated_by=EXCLUDED.updated_by,updated_at=NOW()
       RETURNING updated_at`,[co.id,JSON.stringify(memo),actor]);
+    compressedStateCache={revision:null,body:null};
     res.set('Cache-Control','no-store').json({ok:true,companyId:co.id,updatedAt:result.rows[0].updated_at});
   }catch(error){res.status(400).json({error:'บันทึกหนังสือเวียนไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}
 });
@@ -3091,6 +3092,7 @@ app.patch('/api/company-circulars/:companyId/sections/:section',localOnly,staffP
     const incoming=req.body?.item||{},merged={...current};for(const key of allowed)if(Object.prototype.hasOwnProperty.call(incoming,key))merged[key]=incoming[key];
     const memo=normalizeCircular(merged),actor=String(req.staffUser?.displayName||req.staffUser?.username||'system').slice(0,120);
     const result=await pool.query(`INSERT INTO company_year_circulars(company_year_id,memo_data,updated_by,updated_at) VALUES($1,$2::jsonb,$3,NOW()) ON CONFLICT(company_year_id) DO UPDATE SET memo_data=EXCLUDED.memo_data,updated_by=EXCLUDED.updated_by,updated_at=NOW() RETURNING updated_at`,[co.id,JSON.stringify(memo),actor]);
+    compressedStateCache={revision:null,body:null};
     res.set('Cache-Control','no-store').json({ok:true,section,updatedAt:result.rows[0].updated_at});
   }catch(error){res.status(400).json({error:'บันทึกหัวข้อไม่สำเร็จ',detail:String(error.message||error).slice(0,300)})}
 });

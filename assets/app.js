@@ -1189,8 +1189,8 @@ function companyCheckupPeriodHtml(co){
   return `<section class="company-checkup-period ${status.kind}${status.urgent?' urgent':''}"><span class="company-checkup-period-icon" aria-hidden="true">▣</span><span class="company-checkup-period-copy"><small>ระยะเวลาในการตรวจ</small><strong>${esc(status.label)}</strong><em>${esc(status.detail)}</em></span></section>`;
 }
 function companyServiceInfoHtml(co){
-  if(!co||(!co.reportConditions&&!co.salesName&&!co.salesPhone))return '';
-  return `<section class="company-service-info"><div class="report-condition-box"><small>เงื่อนไขการรายงานผล</small><strong>${co.reportConditions?esc(co.reportConditions):'ไม่ระบุ'}</strong></div><div class="sales-contact-box"><small>เจ้าหน้าที่ขาย</small><strong>${esc(co.salesName||'ไม่ระบุ')}</strong>${co.salesPhone?`<a href="tel:${esc(co.salesPhone.replace(/[^0-9+]/g,''))}" onclick="event.stopPropagation()">${esc(co.salesPhone)}</a>`:'<span>ไม่ระบุเบอร์โทร</span>'}</div></section>`;
+  if(!co)return '';const labels=HealthCheckCompanyYearFields.reportDeliveryLabels,channels=Object.keys(labels).filter(key=>(co.reportDelivery||[]).includes(key));if(!co.reportConditions&&!co.salesName&&!co.salesPhone&&!channels.length)return '';const delivery=channels.length?'<span class="report-delivery-channels" aria-label="ช่องทางการรายงานผล">'+channels.map(key=>'<span>'+esc(labels[key])+'</span>').join('')+'</span>':'';
+  return `<section class="company-service-info"><div class="report-condition-box"><div class="report-condition-heading"><small>เงื่อนไขการรายงานผล</small>${delivery}</div><strong>${co.reportConditions?esc(co.reportConditions):'ไม่ระบุ'}</strong></div><div class="sales-contact-box"><small>เจ้าหน้าที่ขาย</small><strong>${esc(co.salesName||'ไม่ระบุ')}</strong>${co.salesPhone?`<a href="tel:${esc(co.salesPhone.replace(/[^0-9+]/g,''))}" onclick="event.stopPropagation()">${esc(co.salesPhone)}</a>`:'<span>ไม่ระบุเบอร์โทร</span>'}</div></section>`;
 }
 function workflowBookingTypeLabel(value=''){const type=workflowNormalizeBookingType(value);return type==='MOBILE'?'Mobile':type==='INHOUSE'?'Inhouse':String(value||'-')}
 function bookingMembershipHtml(recordKey){const items=recordBookingMemberships.get(String(recordKey))||[];if(!items.length)return '<span class="booking-membership-empty">ยังไม่อยู่ใน Booking</span>';return items.slice(0,4).map(item=>`<button type="button" class="booking-membership-chip booking-membership-link" data-booking-project-detail="${esc(item.project_id||'')}" title="ดูรายละเอียดโครงการ"><b>${esc(item.project_name||item.project_code||'Booking')}</b><small>${esc(workflowBookingTypeLabel(item.billing_type))}${item.scheduled_date?` · ${esc(String(item.scheduled_date).slice(0,10))}`:''}</small></button>`).join('')+(items.length>4?`<span class="booking-membership-more">+${items.length-4}</span>`:'')}
@@ -1999,7 +1999,7 @@ async function saveCircularBackendV76393(companyId=editingCompanyId,payload=circ
   if(!companyId)throw new Error('กรุณาบันทึกบริษัท/ปีก่อนบันทึกเอกสารเวียน');
   const response=await fetch(`/api/company-circulars/${encodeURIComponent(companyId)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({item:payload})});
   const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.detail||result.error||'บันทึกเอกสารเวียนไม่สำเร็จ');
-  $('#companyCircularSaved').textContent='บันทึกล่าสุด: '+new Date(result.updatedAt||Date.now()).toLocaleString('th-TH');return result;
+  if(company(companyId))company(companyId).reportDelivery=[...(payload.reportDelivery||[])];$('#companyCircularSaved').textContent='บันทึกล่าสุด: '+new Date(result.updatedAt||Date.now()).toLocaleString('th-TH');return result;
 }
 async function circularPdfV76393(preview=false){if(!guard(preview?'companyView':'companyPdfView'))return;const st=$('#companyCircularStatus');const id=editingCompanyId,co=company(id);if(!co){st.style.color='#a53737';st.textContent='กรุณาบันทึกข้อมูลบริษัท/ปีนี้ก่อนสร้างเอกสาร';return}const requestId=++circularPreviewRequestV76420;st.style.color='#22698b';st.textContent='กำลังสร้างตัวอย่าง PDF จากรูปแบบ Word ล่าสุด…';const data=circularToApiV76393();try{
   if(!preview){skipCircularAutoSaveV76393=true;let saved;try{saved=$('#saveCompany').onclick()}finally{skipCircularAutoSaveV76393=false}if(saved!==true)return;await persistStateNow();await saveCircularBackendV76393(id,data);}
@@ -3640,7 +3640,7 @@ detail=function(key){
   if(co&&(companyPrimaryDocuments.has(String(co.id))||companyDocuments.has(String(co.id)))&&primarySection)primarySection.insertAdjacentHTML('afterend',`<div class="customer-company-pdf"><span>เอกสารรายละเอียดของ ${esc(co.name)} · ปี ${esc(co.year)}</span>${companyPdfButton(co.id)}</div>`);
   const packageDetail=$('#customerHisPackage');
   if(co&&co.note&&packageDetail)packageDetail.insertAdjacentHTML('afterend',`<div class="company-note-before-billing"><strong>หมายเหตุจากบริษัท</strong><span>${esc(co.note)}</span></div>`);
-  if(co&&packageDetail&&(co.reportConditions||co.salesName||co.salesPhone)){const anchor=$('#detailBody .company-note-before-billing')||packageDetail;anchor.insertAdjacentHTML('afterend',companyServiceInfoHtml(co))}
+  if(co&&packageDetail&&(co.reportConditions||co.salesName||co.salesPhone||co.reportDelivery?.length)){const anchor=$('#detailBody .company-note-before-billing')||packageDetail;anchor.insertAdjacentHTML('afterend',companyServiceInfoHtml(co))}
 };
 $('#detailBody').addEventListener('change',event=>{const input=event.target.closest('[data-primary-code]');if(!input)return;const record=state.records.find(item=>item.key===activeRecordKey),allowed=primaryPackageBookingCodes(record),code=norm(input.value);if(allowed&&code&&!allowed.has(code)){event.stopImmediatePropagation();const row=input.closest('[data-primary-package]');input.value='';const name=row?.querySelector('[data-primary-name]');if(name)name.value='';alert('ผู้ป่วยมี Booking จึงเลือกได้เฉพาะแพ็กเกจที่กำหนดไว้ใน Booking เท่านั้น')}},true);
 $('#detailBody').addEventListener('click',async event=>{
@@ -4928,6 +4928,7 @@ async function saveAnnualSectionV76400(number,button){
    if(number!=='11'){const response=await fetch(`/api/company-circulars/${encodeURIComponent(id)}/sections/${encodeURIComponent(number)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({item:circularToApiV76393()})});result=await response.json().catch(()=>({}));
    if(!response.ok)throw new Error(result.detail||result.error||'บันทึกไม่สำเร็จ');}
   }
+  if(number==='06'&&company(id))company(id).reportDelivery=[...(circularToApiV76393().reportDelivery||[])];
   $('#companyCircularSaved').textContent=`หัวข้อ ${annualSectionLabelV76467(number)} บันทึกล่าสุด: ${new Date(result.updatedAt||Date.now()).toLocaleString('th-TH')}`;
   button?.classList.add('is-saved');if(button)button.textContent=`บันทึกแล้ว`;
   clearTimeout(annualPreviewTimerV76400);annualPreviewTimerV76400=setTimeout(()=>circularPdfV76393(true),180);

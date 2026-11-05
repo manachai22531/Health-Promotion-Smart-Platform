@@ -7,3 +7,6 @@
 .cf-preview-pane>header .navigation-sheet-actions{margin-left:auto;align-items:center;justify-content:flex-end;gap:6px}
 .cf-preview-pane>header .navigation-sheet-actions .button{min-height:34px;font-size:11px;padding:5px 9px}
 .navigation-document-tabs{flex-shrink:0}
+
+/* Navigation editing occupies the left column; the right column remains a paper preview. */
+.cf-workspace[data-navigation-editing=true]>#detailBody{display:none!important}.navigation-sheet-editor{display:flex;flex-direction:column;min-width:0;min-height:0;background:#f2f7fb;border:1px solid #d0e2ec;border-radius:9px;overflow:hidden}.navigation-sheet-editor[hidden]{display:none!important}.navigation-sheet-editor>header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:#edf8fa;border-bottom:1px solid #d0e2ec;color:#174e68}.navigation-sheet-editor>header span{font-size:11px;color:#5a7c8f}.navigation-sheet-editor>iframe{display:block;flex:1;min-height:500px;width:100%;border:0;background:#f2f7fb}#navigationSheetPreview{background:#e6eef2}.navigation-sheet-panel>iframe{min-height:500px}@media(max-width:1000px){.navigation-sheet-editor{min-height:650px}.navigation-sheet-editor>iframe{min-height:600px}}@media print{.navigation-sheet-editor{display:none!important}}

@@ -1,0 +1,11 @@
+HealthCheck v7.65.15 — 2026-11-05
+Includes all v7.65.14 functionality and the latest approved changes:
+- Search customer card shows selected reporting channels beside reporting conditions, scoped to company/year, sourced from the saved circular.
+- Saved reporting changes update local company metadata and invalidate the state-response cache.
+- Navigation editor and seven station tabs move to the left pane.
+- Right pane becomes a read-only A4 document preview using the PDF template, updating from draft inputs with debounced rendering.
+- Switching to Summary restores the original customer form without discarding its DOM or edits.
+- Saved PDF preview and direct printing retain their previous behavior.
+- Closing, changing customers or failed loads clear the editor and paper preview together.
+
+After backing up the production database, extract the ZIP and run INSTALL-REPAIR.bat as Administrator. Existing environment/API/database configuration is preserved. Consult Location & Order configuration from v7.65.14 remains in system_settings; no additional schema table is required for these UI changes.

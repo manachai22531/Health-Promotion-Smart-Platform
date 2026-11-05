@@ -1,0 +1,13 @@
+HealthCheck v7.65.15 verification — 2026-11-05
+PASS npm run build
+PASS npm run test:release — 164 tests (156 + 8), zero failures/skips
+PASS Chromium browser suite — 5 tests, zero failures:
+ - editor left / read-only A4 preview right geometry, live draft update, Summary restores original form, save/reload, customer isolation, PDF preview and desktop/tablet layout
+ - derived automatic mapping versus manual overrides and Reset automatic
+ - direct navigation print/cancellation without application preview
+ - Consult setup multiple orders, trial, save/reload and read-only controls
+ - company year validation, reporting delivery section save/reload and field alignment
+PASS company-year reporting projection against isolated PostgreSQL and browser selected-channel rendering/empty state/year isolation during implementation.
+PASS JavaScript syntax and diff whitespace checks (existing Windows CRLF retained).
+Existing v7.65.14 navigation PDF template, backend save/locking and Consult mapping are retained. Package builder checks required payloads, ZIP CRC, source SHA-256 manifest and version consistency. Uploaded installer is downloaded and SHA-256 verified before reporting completion.
+Limits: Windows GUI/UAC installation, hospital HIS/production database and physical printer were not exercised. Browser API fixtures and isolated PostgreSQL were used. Actual deployment must validate hospital configuration and printer behavior.
