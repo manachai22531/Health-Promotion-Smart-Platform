@@ -10,6 +10,37 @@ test('printed Register groups format and certificate rows; doctor certificates h
  const register=html.match(/<section class="station register">([\s\S]*?)<\/section>/)[1];
  assert.equal((html.match(/รูปแบบการตรวจสุขภาพ:/g)||[]).length,1);assert(register.includes('ประจำปี'));
  for(const label of ['ตรวจตาม Package','ตรวจตามบริษัทคู่สัญญา','ตรวจสุขภาพก่อนทำประกันชีวิต'])assert(!register.includes(label));
- assert.match(register,/register-row[^>]*repeat\(2[^]*ใบรับรองแพทย์อื่น ๆ[^]*รายละเอียด[^]*register-row[^]*วัคซีน/);
+ assert.match(register,/certificate-other-row[^>]*repeat\(3[^]*ใบรับรองแพทย์อื่น ๆ[^]*รายละเอียด[^]*register-row[^]*วัคซีน/);
  assert.match(html,/class="entry paper-wide"><span>ต้องการใบรับรองแพทย์<\/span><span class="answer">ภาษาไทย\nEnglish/);
+});
+test('PDF registration room, physician and allergies appear once inside patient header',()=>{
+ const html=T.document({data:{room:'R123',attendingPhysician:'Doctor Test',headerAllergies:'Allergy Test'}});
+ const header=html.match(/<header class="patient">([\s\S]*?)<\/header>/)[1];
+ const register=html.match(/<section class="station register">([\s\S]*?)<\/section>/)[1];
+ for(const value of ['R123','Doctor Test','Allergy Test']){assert(header.includes(value));assert(!register.includes(value));assert.equal(html.split(value).length-1,1)}
+ assert.match(header,/identity-registration/);
+});
+test('PDF shows company reporting delivery and conditions together above stations',()=>{
+ const html=T.document({companyReporting:{delivery:['COMPANY','EMAIL','POSTAL'],conditions:'ส่งภายใน 15 วัน'}});
+ const reporting=html.match(/<div class="paper-reporting">([\s\S]*?)<\/div><\/div>/)[1];
+ for(const label of ['ส่ง Company','Email','ไปรษณีย์','ส่งภายใน 15 วัน'])assert(reporting.includes(label));
+ assert(html.indexOf('paper-reporting\"><b>')<html.indexOf('<main class="grid">'));
+ assert.match(T.document({companyReporting:{delivery:['EMAIL'],conditions:''}}),/ช่องทางรับผล: <span class="paper-value">Email/);
+});
+test('Assessment groups retain every field once; medication and vaccine stay editable and printable',()=>{
+ const data={medication:'มียา',receiveVaccine:'Yes',doctorFee:'legacy hidden'};
+ const html=T.document({data}),workspace=T.workspaceDocument({data},true);
+ assert.equal((html.match(/<fieldset class="assessment-box">/g)||[]).length,3);
+ assert.equal((workspace.match(/workspace-group assessment-workspace-group/g)||[]).length,3);
+ for(const f of T.sections[1].fields)assert.equal((workspace.match(new RegExp('data-nav-field="'+f.key+'"','g'))||[]).length,1,f.key);
+ assert.match(workspace,/data-nav-field="receiveVaccine"/);assert.match(workspace,/data-nav-field="medication"/);
+ assert(!workspace.includes('ค่าแพทย์'));assert(!html.includes('legacy hidden'));assert.match(html,/discharge-billing/);
+ assert.match(html,/มียา/);assert.match(html,/Yes/);assert(!html.includes('อิง FM-CHU'));
+ assert.deepEqual(T.normalize({medication:'ไม่มียา',receiveVaccine:'No'}),{medication:'ไม่มียา',receiveVaccine:'No'});
+});
+test('HN QR uses only embedded PNG images, with no image when HN is empty',async()=>{
+ const qr=await require('qrcode').toDataURL('01-26-000001',{margin:4,width:240});
+ assert.match(T.document({patient:{hn:'01-26-000001'},hnQrDataUrl:qr}),/alt="QR Code HN 01-26-000001"/);
+ assert(!T.document({patient:{hn:''},hnQrDataUrl:qr}).includes('<img'));
+ assert(!T.document({patient:{hn:'HN'},hnQrDataUrl:'https://example.com/image.png'}).includes('<img'));
 });
