@@ -1,0 +1,13 @@
+HealthCheck v7.65.17 verification — 2026-11-05
+PASS npm run build
+PASS npm run test:release — 167 tests (159 + 8), zero failures/skips
+PASS 5 Chromium tests:
+ - footer Save persists both summary/patient data and navigation from either tab; Refresh only reads; navigation conflict retains draft and reports error rather than combined success
+ - split navigation editor/A4 preview, draft updates, save/reload, case isolation and PDF preview
+ - derived automatic mapping, explicit manual overrides and reset
+ - Chrome-style tabs, keyboard switching, retained drafts, package selection/removal and stale-response handling
+ - direct print/cancellation without application preview
+PASS JavaScript syntax and diff whitespace checks (existing Windows CRLF preserved).
+Backend navigation save API, permission/revision checks, clinical locking and v7.65.16 PDF cache remain unchanged. The combined frontend save uses existing write endpoints in sequence; partial failure is explicitly reported and uncommitted navigation edits remain available.
+Package builder checks required payloads, ZIP CRC, every source SHA-256 and release identity. Uploaded installer must be downloaded and SHA-256 verified before completion.
+Limits: Windows GUI/UAC installation, hospital HIS/production database and physical printer were not exercised. Browser API fixtures were used for this frontend change.

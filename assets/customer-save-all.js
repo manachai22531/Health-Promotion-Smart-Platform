@@ -3,16 +3,18 @@
  const ids=['saveCustomerDetail','saveCustomerPackages','saveCustomerSupplements','saveCustomerPackageSettings'];
  const originals=ids.map(id=>document.getElementById(id)).filter(Boolean),parent=originals[0]?.parentElement;if(!parent)return;
  originals.forEach(b=>b.setAttribute('data-save-all-source',''));
- const button=document.createElement('button');button.id='saveCustomerAll';button.type='button';button.className='button primary';button.textContent='บันทึกข้อมูล';button.title='บันทึกข้อมูลส่วนบุคคล แพ็กเกจหลัก แพ็กเกจเสริม และประเภท / สถานี ตามสิทธิ์ที่มี';parent.insertBefore(button,originals[0]);
+ const button=document.createElement('button');button.id='saveCustomerAll';button.type='button';button.className='button primary';button.textContent='บันทึกข้อมูล';button.title='บันทึกสรุปการตรวจและใบนำทาง รวมข้อมูลส่วนบุคคล แพ็กเกจ และประเภท / สถานี ตามสิทธิ์ที่มี';parent.insertBefore(button,originals[0]);
  let busy=false;
- function sync(){const allowed=can('customerEdit')||can('receiveEdit')||can('packageStationEdit')||can('orderItemManage')||can('orderTypeManage');button.hidden=!allowed;button.disabled=busy}
+ function sync(){const allowed=can('customerEdit')||can('receiveEdit')||can('packageStationEdit')||can('orderItemManage')||can('orderTypeManage')||can('receiveCreate');button.hidden=!allowed;button.disabled=busy}
  const oldDetail=detail;detail=function(key){const result=oldDetail(key);sync();return result};sync();
  button.onclick=async()=>{
   if(busy||globalThis.HealthCheckCustomerBusy?.active)return;const record=state.records.find(r=>String(r.key)===String(activeRecordKey));if(!record)return;
   const release=globalThis.HealthCheckCustomerBusy?.begin();busy=true;sync();button.textContent='กำลังบันทึก…';
-  let patientSaved=false,settingsSaved=false,noteSaved=false,auditWarning='';
+  let patientSaved=false,settingsSaved=false,noteSaved=false,navigationSaved=false,auditWarning='';
   const acknowledgedControls=[...document.querySelectorAll('#detailBody input,#detailBody select,#detailBody textarea')].map(el=>({el,value:el.type==='checkbox'?el.checked:el.value}));
   try{
+   const navigationPlan=globalThis.HealthCheckNavigationEditor?.prepareSave(record.key);
+   const saveNavigation=async()=>{if(navigationPlan){const result=await HealthCheckNavigationEditor.commitSave(navigationPlan);navigationSaved=!!result.saved}};
    const noteForm=document.querySelector('#detailBody .detail-personal-note');if(noteForm&&(can('customerEdit')||can('receiveEdit'))&&noteForm.querySelector('textarea').value!==decodeURIComponent(noteForm.dataset.expectedNote)){await HealthCheckPersonalNotes.save(noteForm);noteSaved=true;}
    const payload=JSON.parse(JSON.stringify(record)),before=customerDetailSnapshot(record),extrasBefore=auditSnapshot(record);
    if(can('customerEdit')){
@@ -40,9 +42,10 @@
    const changes=customerDetailChanges(before,customerDetailSnapshot(payload)),patientChanged=JSON.stringify(record)!==JSON.stringify(payload);
    if(!patientChanged&&!merged.size){
     busy=true;sync();button.textContent='กำลังตรวจข้อมูล…';
+    await saveNavigation();
     document.dispatchEvent(new CustomEvent('hc-customer-save-all',{detail:{record:payload,controls:acknowledgedControls}}));
     await showA4Summary(savedCheckupDraft(record));
-    return packageSaveNotify('success',noteSaved?'บันทึกหมายเหตุแล้ว':'ข้อมูลเป็นปัจจุบัน',noteSaved?'บันทึกหมายเหตุเฉพาะบุคคลแล้ว':'ข้อมูลที่แก้ไขตรงกับข้อมูลที่บันทึกแล้ว');
+    return packageSaveNotify('success',navigationSaved?'บันทึกสรุปการตรวจและใบนำทางแล้ว':noteSaved?'บันทึกหมายเหตุแล้ว':'ข้อมูลเป็นปัจจุบัน',navigationSaved?'บันทึกใบนำทางแล้ว และอัปเดตสรุปการตรวจจากข้อมูลบันทึกล่าสุด':noteSaved?'บันทึกหมายเหตุเฉพาะบุคคลแล้ว':'สรุปการตรวจและใบนำทางใช้ข้อมูลบันทึกล่าสุด');
    }
    busy=true;sync();button.textContent='กำลังบันทึก…';
    if(patientChanged){
@@ -55,12 +58,13 @@
     document.querySelectorAll('#customerHisPackage [data-package-type-item]').forEach(el=>{const c=types.find(c=>String(c.packageId)===String(el.dataset.packageId)&&c.itemKey===el.dataset.packageTypeItem);if(c)el.dataset.currentType=c.type||''});
     document.querySelectorAll('#customerHisPackage [data-package-station-item]').forEach(el=>{const c=stations.find(c=>String(c.packageId)===String(el.dataset.packageId)&&c.itemKey===el.dataset.packageStationItem);if(c)el.dataset.currentStationId=c.stationId||''});
    }
+   await saveNavigation();
    pendingCheckup=savedCheckupDraft(record);updateSelectedTotal();updateCustomerPackageSaveButton();search();
    // Both writes have completed before refreshing the shared HTML summary.
    document.dispatchEvent(new CustomEvent('hc-customer-save-all',{detail:{record:payload,controls:acknowledgedControls}}));
    await showA4Summary(pendingCheckup);
-   packageSaveNotify('success','บันทึกข้อมูลสำเร็จ',auditWarning?'บันทึกข้อมูลแล้ว แต่ประวัติบางส่วนไม่สำเร็จ: '+auditWarning:'บันทึกส่วนที่เปลี่ยนแปลงแล้ว ไม่ได้ส่ง Order ไป HIS');
-  }catch(error){if(error.cancelled)return;packageSaveNotify('error',patientSaved||settingsSaved||noteSaved?'บันทึกได้บางส่วน':'บันทึกไม่สำเร็จ',(noteSaved?'หมายเหตุบันทึกแล้ว · ':'')+(patientSaved?'ข้อมูลผู้ป่วยและแพ็กเกจบันทึกแล้ว · ':'')+(settingsSaved?'ประเภท / สถานีบันทึกแล้ว · ':'')+(error.message||String(error)))}
+   packageSaveNotify('success','บันทึกข้อมูลสำเร็จ',auditWarning?'บันทึกข้อมูลแล้ว แต่ประวัติบางส่วนไม่สำเร็จ: '+auditWarning:'บันทึกสรุปการตรวจและใบนำทางแล้ว ไม่ได้ส่ง Order ไป HIS');
+  }catch(error){if(error.cancelled)return;packageSaveNotify('error',patientSaved||settingsSaved||noteSaved||navigationSaved?'บันทึกได้บางส่วน':'บันทึกไม่สำเร็จ',(navigationSaved?'ใบนำทางบันทึกแล้ว · ':'')+(noteSaved?'หมายเหตุบันทึกแล้ว · ':'')+(patientSaved?'ข้อมูลผู้ป่วยและแพ็กเกจบันทึกแล้ว · ':'')+(settingsSaved?'ประเภท / สถานีบันทึกแล้ว · ':'')+(error.message||String(error)))}
   finally{release?.();busy=false;button.textContent='บันทึกข้อมูล';sync()}
  };
 })();

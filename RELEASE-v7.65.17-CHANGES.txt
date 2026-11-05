@@ -1,0 +1,10 @@
+HealthCheck v7.65.17 — 2026-11-05
+Includes all v7.65.16 functionality plus:
+- Navigation header action changed from Save navigation to Refresh.
+- Footer Save data persists both checkup/summary data and navigation edits, from either left tab.
+- Navigation-only edits save even when checkup data has no changes.
+- Current patient/revision/permission checks remain; failures retain the navigation draft and report partial-save/error accurately.
+- Navigation refresh performs no writes. Dirty refresh still asks before discarding navigation edits.
+- Saved data refreshes the two document previews. Save does not confirm attendance, open Visit or send HIS Orders.
+
+Back up the production database, extract the ZIP and run INSTALL-REPAIR.bat as Administrator. Existing environment/API/database configuration is preserved. No additional database table is required.

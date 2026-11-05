@@ -43,3 +43,11 @@ The subsequent HTML mockup revisions are now implemented: conditional extra tube
 - Unmapped-order details include source package code/name, grouped primary → billing → cash → contract.
 - Navigation PDF generation now has a bounded in-memory cache (2 minutes, up to 20 PDFs / 16 MiB). The key includes the full freshly read model, including customer identity, saved data, package mappings, reporting rules and certificate catalog. Changed content generates a new file; every HTTP request still enforces permissions and reads current data. Concurrent identical generation is coalesced; at most two distinct jobs run. First generation remains required.
 - Browser tests verify actual package detail loading/removal and response races, left-tab keyboard navigation and retained drafts. Real Chromium generation confirms cached bytes equal original A4 PDF output.
+
+## Unified footer save and navigation refresh (2026-11-05)
+- Replaced the upper navigation Save button with a secondary Refresh action, retaining dirty-discard confirmation and read-only reload behavior.
+- The footer Save data action validates a navigation save plan before writing, persists the patient/checkup and package settings through the existing flow, then awaits the navigation write before refreshing the summary and reporting success.
+- Navigation-only edits save even when the checkup payload has no changes. The footer can save from either editor tab. No confirmation, Visit or HIS Order is triggered by this save.
+- Navigation requests retain customer/revision/permission checks. Failures retain the navigation draft and are propagated to the existing partial-save/error feedback; no combined success is reported after a failed navigation write.
+- An unchanged navigation model is reloaded after the patient save to refresh identity and derived package mappings. PDF preview and printing still use saved data.
+- Verified actual footer interaction with patient and navigation request capture, both tabs, Refresh producing no writes, failed navigation revision retaining draft, automatic/manual mapping reset, case isolation and direct-print regressions. Included in v7.65.17.

@@ -1,12 +1,12 @@
 {
-  "release": "v7.65.16",
-  "base_release": "v7.65.15",
-  "base_source_commit": "c63a451",
-  "base_installer_commit": "884d75ffd3ad1842a52d02cdac3b57ee7ac2f701",
-  "source_branch": "releases/v7.65.16",
-  "installer_branch": "installers/v7.65.16",
-  "changes_file": "RELEASE-v7.65.16-CHANGES.txt",
-  "validation_file": "TEST-RESULTS-v7.65.16.txt",
+  "release": "v7.65.17",
+  "base_release": "v7.65.16",
+  "base_source_commit": "df0c287",
+  "base_installer_commit": "6c37ac0f991b3b6422c539c312735e6fc00e2697",
+  "source_branch": "releases/v7.65.17",
+  "installer_branch": "installers/v7.65.17",
+  "changes_file": "RELEASE-v7.65.17-CHANGES.txt",
+  "validation_file": "TEST-RESULTS-v7.65.17.txt",
   "windows_installation_executed": false,
   "hospital_his_executed": false
 }
