@@ -82,25 +82,32 @@ try {
     if (-not $node) { throw 'ไม่พบ Node.js' }
 
     Write-LauncherLog "start env=$envName node=$node server=$serverPath cwd=$appRoot port=$appPort"
-    Start-Process -FilePath $node -ArgumentList @("`"$serverPath`"") -WorkingDirectory $appRoot -WindowStyle Hidden | Out-Null
+    New-Item -ItemType Directory -Force -Path $logDir|Out-Null
+    $launchStamp=(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[Guid]::NewGuid().ToString('N').Substring(0,8)
+    $stdoutLog=Join-Path $logDir ("server-$launchStamp.stdout.log")
+    $stderrLog=Join-Path $logDir ("server-$launchStamp.stderr.log")
+    Write-LauncherLog "server output=$stdoutLog error=$stderrLog"
+    $serverProcess=Start-Process -FilePath $node -ArgumentList @("`"$serverPath`"") -WorkingDirectory $appRoot -WindowStyle Hidden -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog -PassThru
     $healthy = $false
     for ($i=0; $i -lt 50; $i++) {
       Start-Sleep -Milliseconds 500
       if (Test-Healthy) { $healthy = $true; break }
+      if($serverProcess.HasExited){throw "Server process exited with code $($serverProcess.ExitCode). See $stderrLog and $stdoutLog"}
     }
     if (-not $healthy) { throw "Start server แล้ว แต่ /api/version ยังไม่ตอบ $expectedVersion $envName ที่ port $appPort" }
   }
 
   Write-LauncherLog "health ok env=$envName port=$appPort; opening browser"
-  Start-Process "http://127.0.0.1:$appPort/?release=$expectedVersion"
+  if($env:HEALTH_CHECK_NONINTERACTIVE -ne '1'){Start-Process "http://127.0.0.1:$appPort/?release=$expectedVersion"}
   exit 0
 } catch {
   Write-LauncherLog "ERROR: $($_.Exception.Message)"
-  try {
+  Write-Output "Launcher failed: $($_.Exception.Message). See $launcherLog"
+  if($env:HEALTH_CHECK_NONINTERACTIVE -ne '1'){try {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(
       "Health Check Smart Search เปิดไม่สำเร็จ`n`n$($_.Exception.Message)`n`nดู Log: $launcherLog",
       'Health Check Smart Search','OK','Error') | Out-Null
-  } catch {}
+  } catch {}}
   exit 1
 }

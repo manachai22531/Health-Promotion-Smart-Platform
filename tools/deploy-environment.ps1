@@ -62,21 +62,6 @@ function Start-ExistingServerIfPossible {
   } catch {Write-Warning ("Could not restart existing Production: "+$_.Exception.Message)}
 }
 
-function Invoke-RobocopySafe {
-  param(
-    [string]$Source,
-    [string]$Destination,
-    [string[]]$ExcludeDirs=@(),
-    [string[]]$ExcludeFiles=@()
-  )
-  $args=@($Source,$Destination,'/IS','/IT','/E','/R:3','/W:1','/XJ','/COPY:DAT','/DCOPY:DAT','/NFL','/NDL','/NJH','/NJS','/NP')
-  if($ExcludeDirs.Count -gt 0){$args += '/XD'; $args += $ExcludeDirs}
-  if($ExcludeFiles.Count -gt 0){$args += '/XF'; $args += $ExcludeFiles}
-  & robocopy.exe @args | Out-Null
-  $code=$LASTEXITCODE
-  if($code -gt 7){throw "Robocopy failed with exit code $code while copying $Source"}
-}
-
 # Scan only backup content and check capacity BEFORE stopping the existing app.
 $backupRoot='D:\HealthCheck\Backups'
 $hasExisting=(Test-Path -LiteralPath $targetRoot) -and (Get-ChildItem -LiteralPath $targetRoot -Force -ErrorAction Stop | Select-Object -First 1)
@@ -139,24 +124,12 @@ if(Test-Path -LiteralPath $targetEnv){
 # file handles. Existing .env/API keys/database connection files are preserved.
 try {
   Write-Host "Deploying application files to $targetRoot ..."
-  Invoke-RobocopySafe -Source $sourceRoot -Destination $targetRoot -ExcludeDirs @(
-    (Join-Path $sourceRoot '.git'),
-    (Join-Path $sourceRoot 'release'),
-    (Join-Path $sourceRoot 'node_modules'),
-    (Join-Path $sourceRoot 'logs'),
-    (Join-Path $sourceRoot 'backups'),
-    (Join-Path $sourceRoot 'tmp')
-  ) -ExcludeFiles @(
-    '.env',
-    'API-KEY.txt',
-    'DATABASE-CONNECTION.txt',
-    'LOCAL-SERVER.txt'
-  )
-  # ZIP releases can have identical timestamps and sizes despite changed bytes.
+  # Existing .env/API keys/database connection files are preserved.
   . (Join-Path $PSScriptRoot 'assert-deployed-payload.ps1')
-  Assert-DeployedPayload -SourceRoot $sourceRoot -TargetRoot $targetRoot
+  Copy-VerifiedPayload -SourceRoot $sourceRoot -TargetRoot $targetRoot
 } catch {
-  Start-ExistingServerIfPossible -Root $targetRoot
+  Write-Host ("DEPLOY COPY FAILED: "+$_.Exception.Message)
+  Write-Host 'Core installation has not started. Unverified application files will not be launched.'
   throw
 }
 
