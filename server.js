@@ -28,7 +28,7 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.13-production';
+const RELEASE_NAME = 'v7.65.14-production';
 const { registerDataCenter } = require('./datacenter');
 const SCHEMA_VERSION = '0220';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
@@ -2518,7 +2518,8 @@ app.put('/api/roles/:roleId/security-policy',localOnly,staffPermissionRequired('
 });
 registerCheckupFormats(app,{pool,localOnly,staffPermissionRequired});
 registerSummaryPdf(app,{localOnly,staffPermissionRequired,customerQr:(req,key)=>customerAccess.issue(req,key)});
-require('./navigation-sheet').register({app,pool,localOnly,staffPermissionRequired});
+require('./navigation-sheet').register({app,pool,localOnly,staffPermissionRequired,certificateCatalog:()=>Object.entries(patientPdfForms).filter(([,f])=>f.active!==false&&normalizePdfFormCategory(f.category)==='MEDICAL_CERTIFICATE').map(([id,f])=>({id,name:f.name}))});
+require('./consult-location').register({app,pool,localOnly,staffPermissionRequired});
 require('./navigation-mapping').register({app,pool,localOnly,staffPermissionRequired});
 require('./api-exchange-log').register({app,pool,logger:apiExchangeLogger,localOnly,staffPermissionRequired});
 registerOrderVisibility(app,{pool,localOnly,staffPermissionRequired,invalidate:()=>{compressedStateCache={revision:null,body:null}}});

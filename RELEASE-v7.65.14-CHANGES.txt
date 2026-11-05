@@ -1,0 +1,13 @@
+HealthCheck v7.65.14 — 2026-11-05
+Includes all v7.65.13 changes plus approved navigation mockups:
+- Seven independent station tabs; duplicate identity/package/company information removed.
+- Grouped registration, medical certificates, vaccine/other, examiner/time fields.
+- Conditional extra-tube fields, medical/insurance fields and Book report details.
+- Certificate options from the active Documents medical-certificate catalog.
+- Exclusive wait/no-wait and No/Yes Book report choices; inline details.
+- Company-year reporting delivery and conditions.
+- All enabled Consult locations with paired order/detail fields; automatic/manual selections.
+- Order & Station > Consult Location & Order: master-based locations, multiple order codes, enable/disable, order, preview, revision-safe save and audit.
+- PDF/direct printing retain saved A4 layout and include real order names and selected Consult locations.
+
+Run INSTALL-REPAIR.bat as Administrator after backing up the production database. Existing environment/API/database configuration is preserved by the installer. Configure real Location master and Order codes before use; no mockup sample locations or patient data are installed.

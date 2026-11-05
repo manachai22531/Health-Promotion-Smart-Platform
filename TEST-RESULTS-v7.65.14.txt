@@ -1,0 +1,17 @@
+HealthCheck v7.65.14 verification — 2026-11-05
+PASS npm run build
+PASS npm run test:release — 164 tests (156 + 8), zero failures/skips
+PASS targeted final navigation/consult unit suite — 7 tests
+PASS 4 Chromium tests:
+ - station tabs, conditional fields, actual certificate metadata selection, paired Consult order rows, save/reload, case isolation, preview and original search theme
+ - automatic selections versus manual overrides and Reset automatic
+ - direct navigation print/cancellation without application preview
+ - Consult setup multiple orders, matching trial, save/reload and read-only controls
+PASS actual PostgreSQL disposable-database integration:
+ - navigation schema/idempotency, save/reload, revision conflict, permissions, locked cases, audit, isolation and cascade
+ - real package expansion, Consult configuration persistence, permission rejection and stale revision; real Location rows and orders, derived selections removed when orders disappear; company-year reporting and health-check format; existing OpenVisit date-batch boundary/status/identity checks
+PASS real server startup/schema using documented installer test mode on disposable DB, and unauthenticated rejection for Consult setup and navigation APIs
+PASS actual Chromium A4 navigation PDF output with selected Consult location, real order names and certificate metadata: 1 page, 36556 bytes
+PASS syntax and diff whitespace checks (existing Windows CRLF retained)
+Package builder checks required payloads, version identity, ZIP CRC and every source SHA-256. Uploaded installer must be downloaded and SHA-256 verified before reporting completion.
+Limits: no Windows GUI/UAC installation, hospital HIS/production database, or physical printer was exercised. Local browser API fixtures and disposable PostgreSQL were used; real hospital Location master, Order codes, document catalog and printer must be validated during deployment.
