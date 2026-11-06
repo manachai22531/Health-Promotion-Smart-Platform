@@ -12,15 +12,15 @@ server {
     ssl_certificate_key /etc/ssl/hr/privkey.pem;
     add_header Strict-Transport-Security "max-age=31536000" always;
     client_max_body_size 6m;
-    location = /hr-connect { proxy_pass http://127.0.0.1:3000; }
-    location = /hr-connect/ { proxy_pass http://127.0.0.1:3000; }
+    location = /hr-connect { proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass http://127.0.0.1:3000; }
+    location = /hr-connect/ { proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass http://127.0.0.1:3000; }
     location ^~ /hr-api/ {
         proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass http://127.0.0.1:3000;
         proxy_read_timeout 60s;
     }
     location ~ ^/assets/(hr-connect\.(css)|hr-connect-(client|model)\.js|vendor/xlsx\.full\.min\.js)$ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host; proxy_set_header X-Forwarded-Proto $scheme; proxy_pass http://127.0.0.1:3000;
     }
     location / { return 404; }
 }

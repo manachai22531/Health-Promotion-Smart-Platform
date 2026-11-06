@@ -959,6 +959,11 @@ $migration0221 = Join-Path $appRoot 'migrations\0221_hr_connect.up.sql'
 if (-not (Test-Path -LiteralPath $migration0221)) { throw 'HR Connect migration 0221 is missing.' }
 Invoke-DatabaseMigration -Arguments @('-h','127.0.0.1','-p',[string]$port,'-U',$dbUser,'-d',$dbName,'-v','ON_ERROR_STOP=1','-f',$migration0221) -FailureMessage 'HR Connect migration 0221 failed.'
 
+Write-Step 'Initialize HR direct-link access'
+$migration0222 = Join-Path $appRoot 'migrations\0222_hr_direct_access.up.sql'
+if (-not (Test-Path -LiteralPath $migration0222)) { throw 'HR direct access migration 0222 is missing.' }
+Invoke-DatabaseMigration -Arguments @('-h','127.0.0.1','-p',[string]$port,'-U',$dbUser,'-d',$dbName,'-v','ON_ERROR_STOP=1','-f',$migration0222) -FailureMessage 'HR direct access migration 0222 failed.'
+
 Repair-ApplicationOwnershipAfterMigration
 $migrationAdminPassword = $null
 
