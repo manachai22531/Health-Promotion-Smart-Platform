@@ -42,3 +42,12 @@ test('installer entry and desktop startup use visible PowerShell/UAC without VBS
  assert(read('tools/production-installer-worker.ps1').includes('Test-PayloadIntegrity -Root $sourceRoot'));
  for(const name of ['INSTALL-REPAIR.vbs','REPAIR-UPDATE-CENTER.vbs','tools/launch.vbs','tools/start-production-installer.vbs'])assert(!fs.existsSync(name));
 });
+test('source backup readability is checked before stopping Production and reboot is offered only for verified success',()=>{
+ const deploy=read('tools/deploy-environment.ps1'),gui=read('tools/production-installer-gui.ps1');
+ const probe=deploy.indexOf('Assert-SourceBackupReadable -Plan $backupPlan');assert(probe>0);assert(probe<deploy.indexOf('Stop-TargetServer -Root $targetRoot'));
+ assert(gui.includes('Test-InstallerCompleted -ExitCode $script:worker.ExitCode'));
+ assert(gui.includes('Invoke-ConfirmedInstallerReboot -InstallSucceeded'));
+ assert(gui.includes("'YesNo','Warning','No'"));
+ assert.match(gui,/ResultRestartButton"[^>]*Visibility="Collapsed"/);
+ assert(!/shutdown\.exe/.test(gui));
+});

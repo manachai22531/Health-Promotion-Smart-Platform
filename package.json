@@ -1,6 +1,6 @@
 {
   "name": "health-check-smart-search-postgresql",
-  "version": "7.65.29",
+  "version": "7.65.30",
   "private": true,
   "scripts": {
     "start": "node server.js",

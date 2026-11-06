@@ -70,6 +70,7 @@ if($hasExisting){
   Write-Host 'Inspecting Source backup size and free space before stopping Production...'
   $backupPlan=Get-SourceBackupPlan -Root $targetRoot
   Assert-SourceBackupSpace -Plan $backupPlan -Destination $backupRoot -PayloadBytes $payloadPlan.Bytes
+  Assert-SourceBackupReadable -Plan $backupPlan
 }
 
 Write-Host "Stopping the existing Production server before backup..."

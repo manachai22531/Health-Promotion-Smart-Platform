@@ -21,6 +21,25 @@ function Get-SourceBackupPlan {
   return [pscustomobject]@{Files=$files;Bytes=$bytes;Root=$base}
 }
 
+function Assert-SourceBackupReadable {
+  param([object]$Plan,[scriptblock]$OpenRead={param($file) [IO.File]::Open($file,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)})
+  Write-Host 'Checking source backup readability before stopping Production...'
+  $timer=[Diagnostics.Stopwatch]::StartNew();$lastReport=0;$count=0
+  foreach($file in $Plan.Files){
+    $stream=$null
+    try {
+      $stream=& $OpenRead $file.Path
+      if($null -eq $stream){throw 'Could not open the file.'}
+      if($stream.Length -gt 0){[void]$stream.ReadByte()}
+      $count++
+    } catch {
+      throw ("Source backup preflight cannot read '{0}' at '{1}': {2}. Production has not been stopped by this deployment. No files were skipped. If Windows Security blocked it, keep protection enabled and have Defender/IT finish remediation before retrying; do not restore quarantined files." -f $file.Name,$file.Path,$_.Exception.Message)
+    } finally {if($stream){$stream.Dispose()}}
+    if($timer.Elapsed.TotalSeconds-$lastReport -ge 10){$lastReport=$timer.Elapsed.TotalSeconds;Write-Host ("Backup readability: {0}/{1} files; {2}s elapsed" -f $count,$Plan.Files.Count,[int]$lastReport)}
+  }
+  Write-Host ("Source backup readability passed: {0} files" -f $count)
+}
+
 function Get-BackupAvailableBytes {
   param([string]$Destination)
   $root=[IO.Path]::GetPathRoot([IO.Path]::GetFullPath($Destination))
@@ -62,7 +81,7 @@ function Write-SourceBackupZip {
           }
         }
         $count++
-      } finally {if($entryStream){$entryStream.Dispose()};if($input){$input.Dispose()}}
+      } catch {throw ("Source backup could not read or archive '{0}' at '{1}': {2}. Backup aborted; no files were skipped." -f $file.Name,$file.Path,$_.Exception.Message)} finally {if($entryStream){$entryStream.Dispose()};if($input){$input.Dispose()}}
     }
     $archive.Dispose();$archive=$null;$output.Dispose();$output=$null
     # Read the central directory and compare every entry to the source plan.

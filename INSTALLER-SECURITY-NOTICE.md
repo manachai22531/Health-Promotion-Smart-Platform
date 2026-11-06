@@ -29,3 +29,11 @@ Keep the detected v7.65.28 files quarantined. Do not restore/allow them, disable
 https://www.microsoft.com/en-us/wdsi/filesubmission
 
 The new v7.65.29 artifact has NOT been scanned by Defender in this environment. Extract a new package into a new folder, keep endpoint protection enabled, and follow the organization's normal scan/review process. If protection blocks it, stop and preserve the threat name, affected filename and log for IT/Microsoft review; do not force execution. Existing quarantined files are not restored or altered by this release.
+
+## v7.65.30: existing installation backup and optional reboot
+
+A subsequent v7.65.29 installation log confirmed Source backup was blocked when opening an existing Production file; Defender named D:\HealthCheck\Production\INSTALL-REPAIR.vbs. This is an obsolete file in the old installation, not a file included in the v7.65.29/30 payload. Keep it quarantined and have Defender/IT complete remediation before retrying. The installer must not restore it, disable protection or silently skip blocked backup files.
+
+v7.65.30 probes source-file readability before stopping Production and reports the specific blocked path. Backups still remain mandatory and may still fail until the endpoint-security issue is resolved. This preflight improvement is not an antivirus clearance or remediation.
+
+The GUI offers Windows reboot only after worker success plus Health Check and Complete SUCCESS records. The user must explicitly confirm; the default is No. It requests shutdown.exe /r /t 0 without /f. No scheduled/automatic reboot occurs on failure, closing the window, choosing Later, or unattended worker operation. Windows restart/UAC and Defender behaviour have not been exercised in this cloud environment.

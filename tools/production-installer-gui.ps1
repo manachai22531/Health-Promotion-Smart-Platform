@@ -1,7 +1,8 @@
 ﻿$ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'installer-completion.ps1')
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.65.29 PRODUCTION'
+$version='v7.65.30 PRODUCTION'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
@@ -109,7 +110,7 @@ $credentialFile=Join-Path $runtimeRoot "pgadmin-production-$stamp.sec"
      <TextBlock x:Name="ResultTitle" Text="Installation result" FontSize="22" FontWeight="Bold" Foreground="#173D59" Margin="0,14,0,0" TextWrapping="Wrap"/>
      <TextBlock x:Name="ResultMessage" Text="" Foreground="#526A78" Margin="0,8,0,0" TextWrapping="Wrap" MaxHeight="150"/>
      <TextBlock x:Name="ResultLogPath" Text="" Foreground="#7A8992" FontSize="10" Margin="0,12,0,0" TextWrapping="Wrap"/>
-     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="ResultCopyButton" Content="Copy details"/><Button x:Name="ResultOpenLogButton" Content="Open log"/><Button x:Name="ResultCloseButton" Content="OK" MinWidth="85" Background="#0A8FA1" Foreground="White" BorderBrush="#0A8FA1"/></StackPanel>
+     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="ResultCopyButton" Content="Copy details"/><Button x:Name="ResultOpenLogButton" Content="Open log"/><Button x:Name="ResultRestartButton" Content="รีสตาร์ทเครื่องตอนนี้" Visibility="Collapsed" Background="#0A8FA1" Foreground="White" BorderBrush="#0A8FA1"/><Button x:Name="ResultCloseButton" Content="OK" MinWidth="85" Background="#0A8FA1" Foreground="White" BorderBrush="#0A8FA1"/></StackPanel>
     </StackPanel>
    </Border>
   </Grid>
@@ -118,10 +119,10 @@ $credentialFile=Join-Path $runtimeRoot "pgadmin-production-$stamp.sec"
 '@
 $reader=New-Object System.Xml.XmlNodeReader $xaml
 $window=[Windows.Markup.XamlReader]::Load($reader)
-$names=@('VersionText','PgPasswordBox','StepPreflight','StepBackup','StepDeploy','StepMigrate','StepStart','StepHealth','Progress','StatusText','LogBox','CopyErrorButton','OpenLogButton','FooterText','CloseButton','InstallButton','ResultOverlay','ResultBadge','ResultKind','ResultTitle','ResultMessage','ResultLogPath','ResultCopyButton','ResultOpenLogButton','ResultCloseButton')
+$names=@('VersionText','PgPasswordBox','StepPreflight','StepBackup','StepDeploy','StepMigrate','StepStart','StepHealth','Progress','StatusText','LogBox','CopyErrorButton','OpenLogButton','FooterText','CloseButton','InstallButton','ResultOverlay','ResultBadge','ResultKind','ResultTitle','ResultMessage','ResultLogPath','ResultCopyButton','ResultOpenLogButton','ResultRestartButton','ResultCloseButton')
 foreach($name in $names){Set-Variable -Name $name -Value $window.FindName($name) -Scope Script}
 $VersionText.Text=$version
-$script:worker=$null; $script:lastStatusCount=0; $script:lastError=''
+$script:worker=$null; $script:lastStatusCount=0; $script:lastError=''; $script:installationSucceeded=$false
 
 function Set-StepState([string]$Stage,[string]$State){$map=@{'Preflight'=$StepPreflight;'Backup'=$StepBackup;'Deploy'=$StepDeploy;'Migrate'=$StepMigrate;'Start'=$StepStart;'Health Check'=$StepHealth};$box=$map[$Stage];if(-not $box){return};switch($State){'RUNNING'{$box.Background='#FFF0C2'}'SUCCESS'{$box.Background='#D9F1E4'}'FAILED'{$box.Background='#F8D9D7'}default{$box.Background='#EDF2F6'}}}
 function Save-CredentialFile {Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue;$plain=$PgPasswordBox.Password;if([string]::IsNullOrWhiteSpace($plain)){return ''};Add-Type -AssemblyName System.Security -ErrorAction SilentlyContinue;$bytes=[Text.Encoding]::UTF8.GetBytes($plain);$blob=[Security.Cryptography.ProtectedData]::Protect($bytes,$null,[Security.Cryptography.DataProtectionScope]::LocalMachine);('DPAPI-MACHINE:'+[Convert]::ToBase64String($blob))|Set-Content $credentialFile -Encoding ASCII;return $credentialFile}
@@ -147,7 +148,7 @@ function Refresh-LogBox {
     $LogBox.ScrollToEnd()
   } catch {}
 }
-function Show-Result([bool]$Success,[string]$Message){if($Success){$ResultBadge.Background='#E1F3E9';$ResultKind.Text='SUCCESS';$ResultKind.Foreground='#176844';$ResultTitle.Text='Production installation completed';$ResultMessage.Text=$Message}else{$ResultBadge.Background='#FBE3E1';$ResultKind.Text='FAILED';$ResultKind.Foreground='#A52C25';$ResultTitle.Text='Installation stopped safely';$ResultMessage.Text=$Message};$ResultLogPath.Text="Log: $logFile";$ResultOverlay.Visibility='Visible'}
+function Show-Result([bool]$Success,[string]$Message){$script:installationSucceeded=$Success;$ResultRestartButton.Visibility=if($Success){'Visible'}else{'Collapsed'};$ResultCloseButton.Content=if($Success){'ภายหลัง / ปิด'}else{'OK'};if($Success){$Message+="`n`nต้องการรีสตาร์ทเครื่อง Windows ตอนนี้หรือไม่? กรุณาบันทึกงานในโปรแกรมอื่นก่อน หากเลือกภายหลัง โปรแกรมเซิร์ฟเวอร์ยังใช้งานได้"};if($Success){$ResultBadge.Background='#E1F3E9';$ResultKind.Text='SUCCESS';$ResultKind.Foreground='#176844';$ResultTitle.Text='Production installation completed';$ResultMessage.Text=$Message}else{$ResultBadge.Background='#FBE3E1';$ResultKind.Text='FAILED';$ResultKind.Foreground='#A52C25';$ResultTitle.Text='Installation stopped safely';$ResultMessage.Text=$Message};$ResultLogPath.Text="Log: $logFile";$ResultOverlay.Visibility='Visible'}
 function Open-Log {
   # An elevated Windows shell may inherit a broken 8.3 alias to C:\Users\...
   # Do not let this optional log-viewer action escape into WPF ShowDialog().
@@ -171,7 +172,18 @@ function Open-Log {
     try {[Windows.MessageBox]::Show("$message`n`nLog: $logFile",'Installer log','OK','Warning') | Out-Null} catch {}
   }
 }
-$OpenLogButton.Add_Click({Open-Log});$ResultOpenLogButton.Add_Click({Open-Log});$ResultCloseButton.Add_Click({$ResultOverlay.Visibility='Collapsed'})
+$OpenLogButton.Add_Click({Open-Log});$ResultOpenLogButton.Add_Click({Open-Log});$ResultCloseButton.Add_Click({if($script:installationSucceeded){$window.Close()}else{$ResultOverlay.Visibility='Collapsed'}})
+$ResultRestartButton.Add_Click({
+ try {
+  $running=$script:worker -and -not $script:worker.HasExited
+  if(-not $script:installationSucceeded -or $running){return}
+  $answer=[Windows.MessageBox]::Show('ต้องการรีสตาร์ทเครื่อง Windows ตอนนี้หรือไม่? กรุณาบันทึกงานในโปรแกรมอื่นก่อน ระบบจะไม่บังคับปิดโปรแกรมที่มีงานค้าง','ยืนยันรีสตาร์ทเครื่อง','YesNo','Warning','No')
+  if($answer -ne 'Yes'){return}
+  if(Invoke-ConfirmedInstallerReboot -InstallSucceeded $script:installationSucceeded -WorkerRunning $running -Confirmed $true){$window.Close()}
+ } catch {
+  try{[Windows.MessageBox]::Show(('ส่งคำสั่งรีสตาร์ทไม่สำเร็จ: '+$_.Exception.Message),'Windows restart','OK','Error')|Out-Null}catch{}
+ }
+})
 $CopyErrorButton.Add_Click({if($script:lastError){[Windows.Clipboard]::SetText($script:lastError)}});$ResultCopyButton.Add_Click({$text="$($ResultTitle.Text)`r`n$($ResultMessage.Text)`r`n$($ResultLogPath.Text)";[Windows.Clipboard]::SetText($text)})
 $CloseButton.Add_Click({if($script:worker -and -not $script:worker.HasExited){Show-Result $false 'Installation is still running. Wait for it to finish before closing the window.'}else{$window.Close()}})
 
@@ -181,7 +193,7 @@ $timer.Add_Tick({
   try { if(Test-Path -LiteralPath $env:WINDIR -PathType Container){Set-Location -LiteralPath $env:WINDIR -ErrorAction Stop} } catch {}
   Refresh-LogBox
  if(Test-Path -LiteralPath $statusFile -PathType Leaf){$statusFileText=Read-SharedText $statusFile;$statusLines=@($statusFileText -split "`r?`n"|Where-Object{$_});if($statusLines.Count -gt $script:lastStatusCount){for($i=$script:lastStatusCount;$i -lt $statusLines.Count;$i++){try{$event=$statusLines[$i]|ConvertFrom-Json;Set-StepState $event.stage $event.state;$StatusText.Text=("{0} - {1} {2}" -f $event.stage,$event.state,$event.message);if($event.state -eq 'FAILED'){$script:lastError=$event.message;$CopyErrorButton.IsEnabled=$true}}catch{}};$script:lastStatusCount=$statusLines.Count;$success=@($statusLines|ForEach-Object{try{$_|ConvertFrom-Json}catch{}}|Where-Object{$_.state -eq 'SUCCESS' -and $_.stage -in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')}).Count;$Progress.Value=[Math]::Min(95,$success*16)}}
- if($script:worker -and $script:worker.HasExited){$timer.Stop();$InstallButton.IsEnabled=$true;$PgPasswordBox.IsEnabled=$true;Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue;if($script:worker.ExitCode -eq 0){$Progress.Value=100;$StatusText.Text='Production installation completed successfully.';$FooterText.Text='Production is ready at http://localhost:3000';Show-Result $true 'Backup, deployment, migration, start and health check completed successfully.'}else{if(-not $script:lastError){$script:lastError='The installer worker exited with an error. Review the log for the final details.'};$StatusText.Text='Installation stopped. Review the log.';$FooterText.Text='Production installation stopped safely. Existing backups were retained.';Show-Result $false $script:lastError};$script:worker=$null}
+ if($script:worker -and $script:worker.HasExited){$timer.Stop();$InstallButton.IsEnabled=$true;$PgPasswordBox.IsEnabled=$true;Remove-Item $credentialFile -Force -ErrorAction SilentlyContinue; $completedEvents=@();if(Test-Path -LiteralPath $statusFile){$completedEvents=@((Read-SharedText $statusFile) -split "`r?`n"|Where-Object{$_}|ForEach-Object{try{$_|ConvertFrom-Json}catch{}})};if(Test-InstallerCompleted -ExitCode $script:worker.ExitCode -Events $completedEvents){$Progress.Value=100;$StatusText.Text='Production installation completed successfully.';$FooterText.Text='Production is ready at http://localhost:3000';Show-Result $true 'Backup, deployment, migration, start and health check completed successfully.'}else{if(-not $script:lastError){$script:lastError='The installer worker exited with an error. Review the log for the final details.'};$StatusText.Text='Installation stopped. Review the log.';$FooterText.Text='Production installation stopped safely. Existing backups were retained.';Show-Result $false $script:lastError};$script:worker=$null}
  } catch {
    # A failed preflight must not trigger a second WPF exception in ShowDialog.
    $uiError="Installer status display error: $($_.Exception.Message)"
@@ -204,7 +216,7 @@ $InstallButton.Add_Click({
     foreach($stage in @('Preflight','Backup','Deploy','Migrate','Start','Health Check')){Set-StepState $stage 'PENDING'}
     $Progress.Value=2;$StatusText.Text='Starting Production installer...';$FooterText.Text='Installation is running. Do not close this window.'
     $InstallButton.IsEnabled=$false;$PgPasswordBox.IsEnabled=$false;$CopyErrorButton.IsEnabled=$false
-    $script:lastError='';$script:lastStatusCount=0
+    $script:lastError='';$script:lastStatusCount=0;$script:installationSucceeded=$false;$ResultRestartButton.Visibility='Collapsed'
     $credentialPath=Save-CredentialFile
     $workerPath=Join-Path $PSScriptRoot 'production-installer-worker.ps1'
     if(-not(Test-Path -LiteralPath $sourceRoot -PathType Container)){throw "Installer source folder is not accessible: $sourceRoot. Extract the ZIP to C:\HealthCheckInstaller and retry."}
