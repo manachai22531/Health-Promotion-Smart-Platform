@@ -7,7 +7,7 @@
 <title>Health Check Up Smart Search</title>
 <link href="assets/app-capybara.ico?v=7.63.31" id="appFavicon" rel="icon" sizes="any" type="image/x-icon"/>
 <link href="assets/app-capybara.ico?v=7.63.31" rel="shortcut icon" type="image/x-icon"/>
-<link href="assets/style.css?v=7.65.21-report-delivery-1" rel="stylesheet"/>
+<link href="assets/style.css?v=7.65.22-report-delivery-1" rel="stylesheet"/>
 <link href="assets/global-ui-density.css?v=7.65.06-users-exp" rel="stylesheet"/>
 <link href="assets/appearance-settings.css?v=7.65.06-panel-viewport-fix" rel="stylesheet"/>
 <script>/* Restore visual density before first paint; default = Compact. */
@@ -21,11 +21,11 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <link href="assets/user-experience.css?v=7.65.06-header-shield-only" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/role-experience.css?v=7.65.06-role-exp"/>
 <link rel="stylesheet" href="assets/customer-compact.css?v=7.65.07-type-column"/>
-<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.21-table-details-1"/>
+<link rel="stylesheet" href="assets/customer-search-table.css?v=7.65.22-table-details-1"/>
 <link rel="stylesheet" href="assets/global-dismiss-buttons.css?v=7.65.06-global-dismiss"/>
-<link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.21"/>
+<link rel="stylesheet" href="assets/checkup-unified.css?v=7.65.22"/>
 <link rel="stylesheet" href="assets/customer-id-camera.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-profile-header.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-shop.css?v=7.65.06-knowledge"/>
-<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.65.21-status-controls-1">
+<link rel="stylesheet" href="assets/clinical-lifecycle.css?v=7.65.22-status-controls-1">
 <link rel="stylesheet" href="assets/customer-create-workspace.css?v=7.65.06">
 <link rel="stylesheet" href="assets/auth-session.css?v=7.65.06-role-security"/>
 <link rel="stylesheet" href="assets/customer-display-settings.css?v=7.65.06-mobile-compact">
@@ -36,7 +36,8 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <link rel="stylesheet" href="/assets/button-theme.css?v=7.65.06"/>
 <script src="/assets/theme-sync.js?v=7.65.06"></script>
 <link rel="stylesheet" href="assets/customer-selection-review.css?v=7.65.06"/>
-<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/workspace-v76497.css?v=7.65.06-booking-space-draft4"/><link rel="stylesheet" href="assets/company-board-compact.css?v=booking-areas-aligned-1"/><link rel="stylesheet" href="assets/patient-zone-colors.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-sidebar.css?v=7.65.06-toolbar-wrap-1"/><link rel="stylesheet" href="assets/customer-primary-selection.css?v=7.65.21"><link rel="stylesheet" href="assets/system-api-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/performance-dashboard.css?v=7.65.06"><link rel="stylesheet" href="assets/datacenter-theme-shell.css?v=7.65.21"><link rel="stylesheet" href="assets/navigation-sheet.css?v=7.65.21-split-preview-1"><link rel="stylesheet" href="assets/navigation-mapping.css?v=7.65.21"><link rel="stylesheet" href="assets/api-exchange-log.css?v=api-log-1"><script src="assets/company-year-fields.js?v=annual-report-1"></script><link rel="stylesheet" href="assets/company-year-fields.css?v=annual-report-1"></head>
+<link rel="stylesheet" href="assets/personal-book-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/workspace-v76497.css?v=7.65.06-booking-space-draft4"/><link rel="stylesheet" href="assets/company-board-compact.css?v=booking-areas-aligned-1"/><link rel="stylesheet" href="assets/patient-zone-colors.css?v=7.65.06"/><link rel="stylesheet" href="assets/customer-sidebar.css?v=7.65.06-toolbar-wrap-1"/><link rel="stylesheet" href="assets/customer-primary-selection.css?v=7.65.22"><link rel="stylesheet" href="assets/system-api-workspace.css?v=7.65.06"><link rel="stylesheet" href="assets/performance-dashboard.css?v=7.65.06"><link rel="stylesheet" href="assets/datacenter-theme-shell.css?v=7.65.22"><link rel="stylesheet" href="assets/navigation-sheet.css?v=7.65.22-split-preview-1"><link rel="stylesheet" href="assets/navigation-mapping.css?v=7.65.22"><link rel="stylesheet" href="assets/api-exchange-log.css?v=api-log-1"><script src="assets/company-year-fields.js?v=annual-report-1"></script><link rel="stylesheet" href="assets/company-year-fields.css?v=annual-report-1"><link rel="stylesheet" href="assets/customer-template.css?v=customer-template-1"/>
+</head>
 <body class="ui-v755 ui-v756 ui-v757 ui-v758 ui-v7592">
 <div class="app-version-corner">Version <b data-app-version="">-</b></div>
 <header class="topbar">
@@ -62,6 +63,7 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/emr-health-search.png"/></i>
 <span class="nav-popover" role="tooltip"><strong>EMR</strong><small>หน้าสำหรับแพทย์ลงข้อมูล ซักประวัติ ตรวจร่างกาย และติดตามเคสที่ส่งตรวจจาก Worklist</small></span>
 </button>
+<button aria-label="เตรียมเทมเพลตลูกค้า" class="nav-button" data-permission="customerImport" data-view="customerTemplateView" title="เตรียมเทมเพลตลูกค้า" type="button"><i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/customer-template.svg"/></i><span class="nav-popover" role="tooltip"><strong>เตรียมเทมเพลตลูกค้า</strong><small>สร้าง Excel เปล่าพร้อมข้อมูลบริษัทและคู่มือสำหรับส่งให้ลูกค้า</small></span></button>
 <button aria-label="ข้อมูลบริษัท" class="nav-button" data-permission="companyView" data-view="companyView" title="ข้อมูลบริษัท" type="button">
 <i aria-hidden="true" class="nav-icon-3d"><img alt="" src="assets/nav/company.svg"/></i>
 <span class="nav-popover" role="tooltip"><strong>ข้อมูลบริษัท</strong><small>จัดการข้อมูลบริษัท ผู้ประสานงาน และปีตรวจสุขภาพ</small></span>
@@ -536,6 +538,37 @@ try { var hcDensityValue = localStorage.getItem('healthcheck.uiDensity.v1');
 </section>
 </div>
 </div>
+<section class="app-view customer-template-view" id="customerTemplateView">
+  <header class="ct-hero"><div><small>CUSTOMER TEMPLATE</small><h1>เตรียมเทมเพลตส่งให้ลูกค้า</h1><p>กำหนดข้อมูลบริษัทและค่าเริ่มต้น แล้วส่ง Excel หรือ HTML ให้ลูกค้ากรอกและอัปโหลดรายชื่อกลับมา</p></div><span class="ct-badge">Excel .xlsx / HTML</span></header>
+  <div class="ct-layout">
+    <form class="ct-card" id="customerTemplateForm">
+      <h2>1. บริษัทและช่วงวันตรวจ</h2>
+      <div class="ct-grid">
+        <label class="ct-wide">เลือกบริษัท / ปีในระบบ<select id="ctCompany"><option value="">เทมเพลตทั่วไป / ระบุเอง</option></select></label>
+        <label>ชื่อบริษัท<input id="ctCompanyName" maxlength="500" placeholder="ชื่อบริษัทที่จะส่งเทมเพลตให้"/></label>
+        <label>ปีตรวจ (พ.ศ.)<input id="ctYear" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="เช่น 2569"/></label>
+        <label>วันที่เริ่มตรวจ<input type="date" id="ctStartDate"/></label><label>วันที่สิ้นสุด<input type="date" id="ctEndDate"/></label>
+      </div>
+      <h2>2. ค่าเริ่มต้นสำหรับทุกแถว</h2><p class="ct-muted">ช่องที่ยังไม่ทราบเว้นว่างได้ ข้อมูลบุคคลให้ลูกค้าเป็นผู้กรอก</p>
+      <div class="ct-grid">
+        <label>Package Code<input id="ctPackageCode" list="ctPackages" maxlength="500" placeholder="ค้นหารหัสแพ็กเกจ"/></label><label>Package Name<input id="ctPackageName" maxlength="500" placeholder="ชื่อแพ็กเกจ"/></label>
+        <label>Payor<input id="ctPayor" maxlength="500" placeholder="รหัสผู้จ่าย"/></label><label>PayorAgreement<input id="ctPayorAgreement" maxlength="500" placeholder="รหัสเงื่อนไขการจ่าย"/></label>
+        <label>PayorOffice<input id="ctPayorOffice" maxlength="500" placeholder="รหัสบริษัทผู้จ่าย"/></label><label>LocationCode<input id="ctLocation" list="ctLocations" maxlength="500" placeholder="รหัสแผนกเปิด Visit"/></label>
+        <label>Nationality<input id="ctNationality" list="ctNationalities" maxlength="500" placeholder="รหัสสัญชาติ"/></label><label>ประเภทเอกสาร<select id="ctIdentification"><option value="">ให้ลูกค้าระบุ</option><option value="idnumber">idnumber · บัตรประชาชน</option><option value="passport">passport · หนังสือเดินทาง</option></select></label>
+      </div>
+      <h2>3. จำนวนแถวสำหรับกรอก</h2><div class="ct-grid"><label>จำนวนรายชื่อ<input type="number" id="ctRows" min="1" max="5000" value="100" required/></label><div class="ct-muted">เตรียมได้ 1–5,000 แถว เลขเอกสาร HN และเบอร์โทรตั้งเป็นข้อความเพื่อเก็บเลขศูนย์ด้านหน้า</div></div>
+      <div class="ct-actions"><button class="button primary" type="button" id="ctHtml">ดาวน์โหลด HTML ให้ลูกค้า</button><button class="button secondary" type="submit" id="ctDownload">ดาวน์โหลด Excel</button><button class="button secondary" type="button" id="ctBlank">Excel แบบว่าง</button></div><p id="ctStatus" role="status" aria-live="polite"></p>
+    </form>
+    <aside class="ct-card"><h2>ตัวอย่างไฟล์ที่จะส่ง</h2><div class="ct-summary" id="ctSummary"></div><div class="ct-preview"><table><thead><tr><th>CompanyName</th><th>Year</th><th>DisplayOrder</th><th>FirstName</th><th>LastName</th></tr></thead><tbody id="ctPreview"></tbody></table></div>
+      <div class="ct-legend"><span>🟨 ข้อมูลบุคคล</span><span>🟩 ข้อมูลแนะนำ</span><span>🟦 ค่าเริ่มต้น / ข้อมูลเพิ่มเติม</span></div>
+      <h3>HTML สำหรับลูกค้า</h3><p class="ct-muted">เปิดกรอกได้โดยไม่ต้องเข้าสู่ระบบ อัปโหลด Excel/CSV ได้ ตรวจข้อมูลก่อนส่งกลับ และบันทึก HTML พร้อมรายชื่อเพื่อทำต่อได้ การกรอกยังไม่ส่งข้อมูลเข้าระบบจนกว่าจะส่งไฟล์กลับให้ผู้ประสานงาน</p><h3>ภายในไฟล์ Excel</h3><ul><li><b>Customer Import</b> — รายชื่อเปล่าสำหรับลูกค้ากรอก</li><li><b>คู่มือ</b> — คำอธิบายทุกคอลัมน์และรูปแบบวันเกิด</li><li><b>Location / Nationality / Title / Package</b> — ตารางรหัสอ้างอิงและรายการให้เลือกใน Excel</li></ul>
+      <p class="ct-muted">กรอกในแถว 2 เป็นต้นไป คงชื่อหัวคอลัมน์ไว้ เมื่อลูกค้าส่งกลับให้นำเข้าจากหน้าบริษัทตามเดิม</p>
+      <div class="ct-master"><b>รายการอ้างอิง</b><p id="ctMasterStatus" role="status">เปิดเมนูเพื่อโหลดรายการอ้างอิง</p><button class="button secondary" id="ctRefresh" type="button">โหลดรายการล่าสุด</button></div>
+    </aside>
+  </div>
+  <datalist id="ctPackages"></datalist><datalist id="ctLocations"></datalist><datalist id="ctNationalities"></datalist>
+</section>
+
 <div class="app-view" id="companyView">
 <section class="hero">
 <div>
@@ -2544,11 +2577,11 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <div class="overlay" id="emrBookReviewOverlay" hidden aria-hidden="true"><section class="modal emr-review-modal" role="dialog" aria-modal="true" aria-labelledby="emrReviewTitle"><header><div><h2 id="emrReviewTitle">รีวิวเล่มตรวจสุขภาพ</h2><p id="emrReviewPatient"></p></div><div class="emr-review-actions"><button class="button secondary mini" type="button" id="emrReviewEdit">ทำเล่ม / แก้ไข</button><button class="button primary mini" type="button" id="emrReviewPrint" disabled>พิมพ์เล่ม</button><button class="modal-close" type="button" data-close="emrBookReviewOverlay" aria-label="ปิดรีวิว">×</button></div></header><p role="status" id="emrReviewStatus"></p><iframe id="emrReviewPdf" title="รีวิว PDF เล่มตรวจสุขภาพ" src="about:blank"></iframe></section></div>
 <script src="assets/emr-book-model.js?v=7.65.06"></script>
 <script src="assets/personal-note-model.js?v=7.65.06-note-import"></script>
-<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.21-report-delivery-1"></script>
+<script src="assets/customer-profile-presentation.js?v=7.65.06"></script><script src="assets/app.js?v=7.65.22-report-delivery-1"></script>
 <script src="assets/customer-search-one-row.js?v=7.65.06-compact-search"></script>
 <script src="assets/ocr-native.js?v=7.63.83-first-login-overlay"></script>
 <script src="assets/worklist-board.js?v=7.65.06"></script>
-<script src="assets/flow-v76384.js?v=7.65.21"></script>
+<script src="assets/flow-v76384.js?v=7.65.22"></script>
 <script src="assets/global-ui-density.js?v=7.65.06-users-exp"></script>
 <script src="assets/appearance-settings.js?v=7.65.06-panel-viewport-fix"></script>
 <script src="assets/role-experience.js?v=7.65.06-role-exp"></script>
@@ -2556,13 +2589,13 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-compact.js?v=7.65.06-coverage-rows-remove-open-button"></script>
 <script src="assets/checkup-summary-template.js?v=7.65.06-print-parity-qr"></script>
 <script src="assets/booking-defaults.js?v=7.65.06"></script>
-<script src="assets/checkup-unified.js?v=7.65.21"></script>
-<script src="assets/customer-save-all.js?v=7.65.21-navigation-save-1"></script>
+<script src="assets/checkup-unified.js?v=7.65.22"></script>
+<script src="assets/customer-save-all.js?v=7.65.22-navigation-save-1"></script>
 <script src="assets/package-knowledge-editor.js?v=7.65.06"></script>
 <script src="assets/customer-shop.js?v=7.65.06-knowledge"></script>
 <script src="assets/global-dismiss-buttons.js?v=7.65.06-global-dismiss"></script>
 <link rel="stylesheet" href="assets/his-operation-monitor.css?v=7.65.06">
-<script src="assets/his-operation-monitor.js?v=7.65.21-status-controls-1" defer></script>
+<script src="assets/his-operation-monitor.js?v=7.65.22-status-controls-1" defer></script>
 <script src="assets/clinical-lifecycle.js?v=7.65.06-confirmed-only-1"></script>
 <script src="assets/customer-access.js?v=7.65.06"></script>
 <script src="assets/customer-url-settings.js?v=7.65.06"></script>
@@ -2580,5 +2613,5 @@ CompanyName, CurrentCompanyCode, NewCompanyCode, Year, StartDate, EndDate, Billi
 <script src="assets/customer-profile-header.js?v=7.65.06-fast-save"></script><script src="assets/booking-calendar.js?v=7.65.06"></script><script src="assets/id-card-camera-model.js?v=7.65.06"></script><script src="assets/customer-id-camera.js?v=7.65.06"></script><script src="assets/appointment-schedules.js?v=7.65.06"></script>
 <script src="assets/personal-notes.js?v=7.65.06-note-detail"></script>
 <script src="assets/customer-selection-review.js?v=7.65.06-selection-edit-draft1"></script>
-<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.21"></script><script src="assets/customer-staff-preview.js?v=7.65.21"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.07-health-visible-1"></script><script src="assets/customer-search-preferences.js?v=7.65.21"></script><script src="assets/navigation-sheet-template.js?v=7.65.21-medication-vaccine-1"></script><script src="assets/navigation-print.js?v=7.65.21-navigation-stations-2"></script><script src="assets/navigation-sheet.js?v=7.65.21-combined-save-1"></script><script src="assets/navigation-mapping-model.js?v=7.65.21-package-origins-1"></script><script src="assets/navigation-mapping.js?v=7.65.21"></script><script src="assets/consult-location.js?v=7.65.21"></script><script src="assets/api-exchange-log.js?v=api-log-1"></script></body>
+<script src="assets/personal-book-report.js?v=7.65.06"></script><script src="assets/personal-book-workspace.js?v=7.65.06"></script><script src="assets/customer-primary-selection.js?v=7.65.22"></script><script src="assets/customer-staff-preview.js?v=7.65.22"></script><script src="assets/workspace-v76497.js?v=7.65.06-toolbar-wrap-1-booking-space-draft4"></script><script src="assets/patient-zone-colors.js?v=7.65.06"></script><script src="assets/customer-sidebar.js?v=7.65.06"></script><script src="assets/system-api-workspace.js?v=7.65.06"></script><script src="assets/managed-his-sql.js?v=7.65.06"></script><script src="assets/performance-monitor.js?v=7.65.06"></script><script src="assets/performance-dashboard.js?v=7.65.07-health-visible-1"></script><script src="assets/customer-search-preferences.js?v=7.65.22"></script><script src="assets/navigation-sheet-template.js?v=7.65.22-medication-vaccine-1"></script><script src="assets/navigation-print.js?v=7.65.22-navigation-stations-2"></script><script src="assets/navigation-sheet.js?v=7.65.22-combined-save-1"></script><script src="assets/navigation-mapping-model.js?v=7.65.22-package-origins-1"></script><script src="assets/navigation-mapping.js?v=7.65.22"></script><script src="assets/consult-location.js?v=7.65.22"></script><script src="assets/api-exchange-log.js?v=api-log-1"></script><script src="assets/customer-template-model.js?v=customer-template-1"></script><script src="assets/customer-offline-export.js?v=customer-html-1"></script><script src="assets/customer-template.js?v=customer-template-1"></script></body>
 </html>

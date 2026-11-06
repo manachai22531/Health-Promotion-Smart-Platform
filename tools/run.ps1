@@ -38,8 +38,11 @@ function Read-EnvMap([string]$path) {
 }
 
 function Get-AppVersion([int]$port) {
-  try { return Invoke-RestMethod -Uri "http://127.0.0.1:$port/api/version" -TimeoutSec 2 }
-  catch { return $null }
+  try {
+    $response=Invoke-RestMethod -Uri "http://127.0.0.1:$port/api/version" -TimeoutSec 2
+    $script:lastVersionObservation="version=$($response.version) environment=$($response.environment)"
+    return $response
+  } catch { $script:lastVersionObservation='version API not responding yet'; return $null }
 }
 
 try {
@@ -89,9 +92,17 @@ try {
     Write-LauncherLog "server output=$stdoutLog error=$stderrLog"
     $serverProcess=Start-Process -FilePath $node -ArgumentList @("`"$serverPath`"") -WorkingDirectory $appRoot -WindowStyle Hidden -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog -PassThru
     $healthy = $false
+    $startupTimer=[Diagnostics.Stopwatch]::StartNew()
+    $lastStartupReport=-5
     for ($i=0; $i -lt 50; $i++) {
       Start-Sleep -Milliseconds 500
       if (Test-Healthy) { $healthy = $true; break }
+      if($startupTimer.Elapsed.TotalSeconds-$lastStartupReport -ge 5){
+        $lastStartupReport=$startupTimer.Elapsed.TotalSeconds
+        $progress="Waiting for Production startup: PID=$($serverProcess.Id), elapsed=$([int]$lastStartupReport)s, $script:lastVersionObservation. Logs: $stderrLog / $stdoutLog"
+        Write-LauncherLog $progress
+        Write-Output $progress
+      }
       if($serverProcess.HasExited){throw "Server process exited with code $($serverProcess.ExitCode). See $stderrLog and $stdoutLog"}
     }
     if (-not $healthy) { throw "Start server แล้ว แต่ /api/version ยังไม่ตอบ $expectedVersion $envName ที่ port $appPort" }
