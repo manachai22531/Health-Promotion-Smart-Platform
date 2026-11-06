@@ -28,19 +28,8 @@ async function transaction(pool,action){const db=await pool.connect();try{await 
 async function lockScope(db,scope){await db.query("SELECT pg_advisory_xact_lock(hashtext('hr:'||$1))",[scope])}
 async function publicBase(pool){const row=(await pool.query("SELECT value FROM system_settings WHERE key='hr_connect_public_url'")).rows[0];return String(row?.value||process.env.HR_CONNECT_PUBLIC_URL||'')}
 function validateBase(value){let u;try{u=new URL(value)}catch{throw fail('กรุณาระบุ URL HTTPS ของ HR Connect')};if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/'||/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(u.hostname))throw fail('URL ต้องเป็น HTTPS ของโดเมนภายนอก ไม่ใส่ path');return u.origin}
-function origin(value){try{const u=new URL(String(value||''));if(!['https:','http:'].includes(u.protocol)||u.username||u.password||u.pathname!=='/'||u.search||u.hash)return '';return u.origin}catch{return ''}}
-function localHost(value){try{return /^(localhost|127\..*|0\.0\.0\.0|\[::1\])$/i.test(new URL(value).hostname)}catch{return true}}
-async function linkBase(pool,req){
- const remote=String(req.socket.remoteAddress||'').replace(/^::ffff:/,'');const trusted=['127.0.0.1','::1',...String(process.env.HR_CONNECT_TRUSTED_PROXIES||'').split(',').map(s=>s.trim())].includes(remote);
- const forwarded=trusted&&req.get('X-Forwarded-Host')?origin((req.get('X-Forwarded-Proto')==='https'?'https':'http')+'://'+req.get('X-Forwarded-Host')):'';
- const current=origin(req.get('X-HR-Origin'))||origin(req.get('Origin'))||forwarded||origin(req.protocol+'://'+req.get('Host'));
- if(current&&!localHost(current))return current;
- const configured=origin(process.env.HR_CONNECT_PUBLIC_URL)||origin(process.env.CUSTOMER_PUBLIC_BASE_URL);
- if(configured&&!localHost(configured))return configured;
- const hostname=String(process.env.COMPUTERNAME||require('node:os').hostname()).trim();
- if(current&&/^[a-z0-9][a-z0-9.-]*$/i.test(hostname)&&!localHost('http://'+hostname)){const u=new URL(current);return u.protocol+'//'+hostname+(u.port?':'+u.port:'')}
- if(current)return current;throw fail('ไม่พบที่อยู่ server กรุณาเปิดระบบผ่าน URL ของ server แล้วสร้างลิงก์อีกครั้ง');
-}
+const {origin,resolveServerOrigin}=require('./server-origin');
+async function linkBase(_pool,req){return resolveServerOrigin(req,{environmentKeys:['HR_CONNECT_PUBLIC_URL','CUSTOMER_PUBLIC_BASE_URL']})}
 function register({app,pool,localOnly,staffPermissionRequired}){
  const staffRead=[localOnly,staffPermissionRequired('companyView')],staffWrite=[localOnly,staffPermissionRequired('customerImport')],actor=req=>String(req.staffUser?.username||req.staffUser?.id||'staff');
  const wrap=fn=>async(req,res)=>{try{res.set('Cache-Control','no-store');await fn(req,res)}catch(e){if(!e.status)console.error('[HR CONNECT]',e.code||'internal');res.status(e.status||500).json({error:e.status?e.message:'ดำเนินการไม่สำเร็จ กรุณาโหลดข้อมูลล่าสุดแล้วลองอีกครั้ง'})}};
