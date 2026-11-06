@@ -44,3 +44,10 @@ test('HN QR uses only embedded PNG images, with no image when HN is empty',async
  assert(!T.document({patient:{hn:''},hnQrDataUrl:qr}).includes('<img'));
  assert(!T.document({patient:{hn:'HN'},hnQrDataUrl:'https://example.com/image.png'}).includes('<img'));
 });
+test('X-ray and Cardio Other map order names into gated editable and printed detail fields, preserving legacy notes',()=>{
+ const model={data:{xrayOtherSelected:true,cardioOtherSelected:true,cardioOther:'เพิ่มเติม'},orderDetails:{xrayOtherSelected:['CT · Other imaging'],cardioOtherSelected:['ABI · Vascular study']}};
+ for(const html of [T.document(model),T.workspaceDocument(model,true)]){assert(html.includes('CT · Other imaging'));assert(html.includes('ABI · Vascular study'))}
+ assert.deepEqual(T.normalize({xrayOtherSelected:false,cardioOtherSelected:true}),{xrayOtherSelected:false,cardioOtherSelected:true});
+ assert(!T.document({...model,data:{...model.data,xrayOtherSelected:false}}).includes('CT · Other imaging'));
+ assert(T.document({data:{xrayOther:'legacy note'}}).includes('legacy note'));
+});
