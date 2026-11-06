@@ -33,3 +33,12 @@ test('installer startup polls the launcher without a native pipeline and retains
  assert(worker.indexOf("Emit 'Start' 'SUCCESS'")<worker.indexOf("  Wait-Health\n"));
  assert.match(worker,/\$h.ok -eq \$true -and \[string\]\$h.database -eq 'PostgreSQL'/);
 });
+test('installer entry and desktop startup use visible PowerShell/UAC without VBScript engines; security validation remains',()=>{
+ const batch=read('INSTALL-REPAIR.bat'),bootstrap=read('tools/start-production-installer.ps1'),install=read('tools/install.ps1');
+ assert(batch.includes('start-production-installer.ps1'));assert(bootstrap.includes("$launch.Verb='RunAs'"));assert(bootstrap.includes('Get-InstallerLaunchPlan'));
+ for(const text of [batch,bootstrap,install])assert(!/wscript\.exe|cscript\.exe|\.vbs\b/i.test(text));
+ assert(!/-WindowStyle\s+Hidden|EncodedCommand/i.test(bootstrap));
+ assert(install.includes("Join-Path $appRoot 'tools\\run.ps1'"));
+ assert(read('tools/production-installer-worker.ps1').includes('Test-PayloadIntegrity -Root $sourceRoot'));
+ for(const name of ['INSTALL-REPAIR.vbs','REPAIR-UPDATE-CENTER.vbs','tools/launch.vbs','tools/start-production-installer.vbs'])assert(!fs.existsSync(name));
+});

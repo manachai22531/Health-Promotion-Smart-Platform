@@ -1,14 +1,15 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-if not exist "%~dp0tools\start-production-installer.vbs" (
-  echo.
-  echo Installer files are incomplete.
-  echo Please extract the ZIP completely and run INSTALL-REPAIR.bat again.
-  echo Missing: tools\start-production-installer.vbs
-  echo.
+if not exist "%~dp0tools\start-production-installer.ps1" (
+  echo Installer files are incomplete. Extract the ZIP completely.
   pause
   exit /b 2
 )
-start "" wscript.exe "%~dp0tools\start-production-installer.vbs"
-exit /b %errorlevel%
+"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File "%~dp0tools\start-production-installer.ps1"
+if errorlevel 1 (
+  echo Installation could not start. Keep Windows Security enabled and review the message above.
+  pause
+  exit /b 1
+)
+exit /b 0

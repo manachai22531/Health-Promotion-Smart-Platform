@@ -39,12 +39,12 @@ try{
  Add-Type -AssemblyName PresentationFramework
  $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
  $principal=New-Object Security.Principal.WindowsPrincipal($identity)
- if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Please launch REPAIR-UPDATE-CENTER.vbs and allow Administrator access.'}
+ if(-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Please launch REPAIR-UPDATE-CENTER.bat and allow Administrator access.'}
  $node=(Get-Command node.exe -ErrorAction SilentlyContinue).Source
  if(-not $node){$node=Join-Path $env:ProgramFiles 'nodejs\node.exe'}
  if(-not(Test-Path -LiteralPath $node)){throw 'Node.js was not found.'}
- $result=Install-UpdaterRepair -TargetRoot 'D:\HealthCheck\Production' -Payload (Join-Path (Join-Path $PSScriptRoot 'tools') 'app-update-helper.js') -ExpectedHash 'e360654ea44491f4a0d0641484df51bb254e8257cf240e5b86ef7e71c3429999' -NodePath $node
- [Windows.MessageBox]::Show("$result`n`nNext: upload the v7.64.87 PRODUCTION installer ZIP again in Update Center, then run the readiness check before installing. The running app was not stopped.",'HealthCheck Update Center Repair','OK','Information')|Out-Null
+ $result=Install-UpdaterRepair -TargetRoot 'D:\HealthCheck\Production' -Payload (Join-Path (Join-Path $PSScriptRoot 'tools') 'app-update-helper.js') -ExpectedHash 'a2683d797d86b6994f46207d9b606d4e1e5931e68b0060d21070e4b5bebb5030' -NodePath $node
+ [Windows.MessageBox]::Show("$result`n`nNext: upload the current PRODUCTION installer ZIP again in Update Center, then run the readiness check before installing. The running app was not stopped.",'HealthCheck Update Center Repair','OK','Information')|Out-Null
 }catch{
  try{[Windows.MessageBox]::Show($_.Exception.Message,'HealthCheck Update Center Repair','OK','Error')|Out-Null}catch{Write-Error $_}
  exit 1

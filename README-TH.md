@@ -1,3 +1,7 @@
+## หมายเหตุรุ่น 7.65.29
+
+ใช้ INSTALL-REPAIR.bat หลังแตก ZIP ลงโฟลเดอร์ใหม่ ตัวเรียกติดตั้งและ shortcut ใช้ PowerShell โดยตรง ไม่มี VBScript ในแพ็กใหม่ หากโปรแกรมป้องกันไวรัสแจ้งเตือน ให้หยุดและให้ฝ่าย IT ตรวจ ไม่ต้องปิด Defender เพิ่ม exclusions หรือคืนไฟล์ที่ถูกกักกัน ดู INSTALLER-SECURITY-NOTICE.md สำหรับข้อจำกัดและผลตรวจซอร์ส แพ็กนี้ยังไม่มีผลสแกน Defender จาก environment นี้
+
 ﻿HealthCheck v7.64.70 — Windows Production Installer / Update Center Package
 
 แก้ปัญหา Production health/version preflight failed
@@ -27,14 +31,14 @@
 ติดตั้ง Windows โดยตรง
 1. รอให้ตัวติดตั้ง/ตัวอัปเดตเดิมหยุดทำงานก่อน ห้ามเปิดซ้อนกัน
 2. แตก ZIP ทั้งหมดในโฟลเดอร์ใหม่ ไม่ใช่โฟลเดอร์ Production ที่รันอยู่
-3. เปิด INSTALL-REPAIR.vbs และอนุญาต UAC
+3. เปิด INSTALL-REPAIR.bat และอนุญาต UAC
 4. รอ Complete SUCCESS จากนั้นตรวจ /api/version เป็น v7.64.70 แล้วกด Ctrl+F5
 เป้าหมาย D:\HealthCheck\Production / พอร์ต 3000 / health_check_smart_search
 ตัวติดตั้งสำรอง Source/ฐานข้อมูลและรักษา .env/ค่าระบบเดิม
 การบีบอัด Source backup ยังใช้วิธีเดิมและอาจใช้เวลานาน
 
 อัปเดตผ่าน Update Center
-1. หากเจอ health/version preflight failed จากรุ่นเก่า ให้รัน REPAIR-UPDATE-CENTER.vbs
+1. หากเจอ health/version preflight failed จากรุ่นเก่า ให้รัน REPAIR-UPDATE-CENTER.bat
    ในไฟล์ซ่อมแยกหนึ่งครั้ง (ไม่ต้องใช้ไฟล์ซ่อมเมื่อติดตั้ง Windows โดยตรง)
 2. อัปโหลด ZIP ตัวติดตั้ง v7.64.70 นี้ใหม่ แล้วกดตรวจความพร้อมก่อนติดตั้ง
 3. การตรวจความพร้อมต้องผ่านก่อนกดติดตั้งจริง

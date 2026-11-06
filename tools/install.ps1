@@ -1020,8 +1020,8 @@ foreach ($oldShortcut in $oldVersionedShortcuts) {
 $shortcutPath = Join-Path $desktop ($displayName + '.lnk')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = (Join-Path $env:WINDIR 'System32\wscript.exe')
-$shortcut.Arguments = '"' + (Join-Path $appRoot 'tools\launch.vbs') + '"'
+$shortcut.TargetPath = (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe')
+$shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $appRoot 'tools\run.ps1') + '"'
 $shortcut.WorkingDirectory = $appRoot
 $shortcut.Description = $displayName
 $iconFile = 'assets\app-capybara.ico'
@@ -1048,7 +1048,7 @@ if ($env:HEALTH_CHECK_PERMANENT_BOOTSTRAP -eq '1') {
   Write-Host "`nInstallation completed successfully." -ForegroundColor Green
   Write-Host "The Health Check Smart Search Desktop shortcut is ready."
   Write-Host 'Starting the application...'
-  Start-Process -FilePath (Join-Path $env:WINDIR 'System32\wscript.exe') `
-    -ArgumentList ('"' + (Join-Path $appRoot 'tools\launch.vbs') + '"') `
+  Start-Process -FilePath (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') `
+    -ArgumentList ('-NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $appRoot 'tools\run.ps1') + '"') `
     -WorkingDirectory $appRoot
 }
