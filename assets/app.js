@@ -1118,11 +1118,11 @@ function companyBoardBookingCellHtml(c){
   const rows=companyRows(c.id);
   return `<div class="company-board-booking-cell"><div class="company-board-booking-actions">${can('customerImport')?`<button class="button primary" type="button" data-import="${esc(c.id)}">นำเข้าข้อมูลลูกค้า</button>`:''}${can('bookingManage')?`<button class="button secondary booking-company-button" type="button" data-add-booking-company="${esc(c.id)}">+ เพิ่ม Booking</button>`:''}${can('search')?`<button class="button secondary" type="button" data-view-customers="${esc(c.id)}" ${rows.length?'':'disabled'}>ดูข้อมูลทั้งหมด</button>`:''}${companyPdfButton(c.id)}${companyImportFileButton(c.id)}</div>${companyProjectBarsHtml(c)}</div>`
 }
-function companyBoardYearRowHtml(c){const tone=((Number(c.year)||0)%4+4)%4;return `<section class="company-board-year-row company-year-tone-${tone}">${companyBoardYearCellHtml(c)}<div class="company-board-year-note"><strong>หมายเหตุ:</strong> ${esc(String(c.note||'').trim()||'—')}</div>${companyBoardBookingCellHtml(c)}</section>`}
+function companyBoardYearRowHtml(c){const tone=((Number(c.year)||0)%4+4)%4;return `<section class="company-board-year-row company-year-tone-${tone}">${companyBoardYearCellHtml(c)}<div class="company-board-year-note"><strong>หมายเหตุ:</strong> ${esc(String(c.note||'').trim()||'—')}</div>${companyBoardBookingCellHtml(c)}${window.HRConnectStaff?.strip(c)||''}</section>`}
 function renderCompanies(){
   const list=$('#companyList'),query=norm($('#companySearch')?.value||''),statusFilter=$('#companyStatusFilter')?.value||'',yearFilter=$('#companyYearFilter')?.value||'',sortMode=$('#companySort')?.value||'name-asc';
   companyBoardSyncYearFilter();
-  let filtered=state.companies.filter(c=>(!query||norm([c.name,c.code,c.year].join(' ')).includes(query))&&(!yearFilter||String(c.year)===String(yearFilter))&&(!statusFilter||companyYearStatus(c).key===statusFilter));
+  let filtered=state.companies.filter(c=>(!query||norm([c.name,c.code,c.year].join(' ')).includes(query))&&(!yearFilter||String(c.year)===String(yearFilter))&&(!statusFilter||companyYearStatus(c).key===statusFilter)&&(!window.HRConnectStaff||window.HRConnectStaff.matches(c)));
   $('#companyEmpty').hidden=state.companies.length>0;list.hidden=!state.companies.length;
   const filterKey=[query,statusFilter,yearFilter,sortMode].join('|');if(filterKey!==companyRenderQuery){companyRenderQuery=filterKey;companyRenderLimit=50}
   const groupMap=new Map();filtered.forEach(c=>{const key=norm(c.name);if(!groupMap.has(key))groupMap.set(key,{key,name:c.name,years:[]});groupMap.get(key).years.push(c)});

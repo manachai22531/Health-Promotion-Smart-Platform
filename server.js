@@ -28,9 +28,9 @@ const DEFAULT_PACKAGE_DETAIL_API_URL = 'https://qzh0pwepu2.execute-api.ap-southe
 const DEFAULT_PACKAGE_STATUS_API_URL = String(process.env.PACKAGE_STATUS_API_URL||'').trim();
 const DEFAULT_PATIENT_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/getpatientlist';
 const DEFAULT_PATIENTINFO_API_URL = 'https://qzh0pwepu2.execute-api.ap-southeast-1.amazonaws.com/prod/checkup/patientinfo';
-const RELEASE_NAME = 'v7.65.24-production';
+const RELEASE_NAME = 'v7.65.25-production';
 const { registerDataCenter } = require('./datacenter');
-const SCHEMA_VERSION = '0220';
+const SCHEMA_VERSION = '0221';
 const {ensureExperienceSchema,seedExperienceWorkClaims,readExperience,awardActivity,revokeActivities,activityResult,recordExperienceTransitions}=require('./user-experience');
 const {importSignature,importBatchKey}=require('./experience-rules');
 const {registerSummaryPdf}=require('./checkup-summary-pdf');
@@ -280,6 +280,7 @@ performanceMonitor.instrument(require('pg'),http,https);
 app.use(performanceMonitor.middleware);
 const apiExchangeLogger=require('./api-exchange-log').makeLogger({pool});
 app.use(apiExchangeLogger.middleware);
+app.use('/hr-api', express.json({ limit: '6mb' }));
 app.use(express.json({ limit: '100mb' }));
 // All staff APIs enforce password age and idle expiry. Public/customer/integration
 // routes keep their own authentication, and only explicit activity renews idle time.
@@ -1377,7 +1378,7 @@ END $$`);
     created_by TEXT NOT NULL DEFAULT 'system',
     updated_by TEXT NOT NULL DEFAULT 'system'
   )`);
-  await pool.query(require('./api-exchange-log').schemaSql);await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./navigation-sheet').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
+  await pool.query(require('./api-exchange-log').schemaSql);await pool.query(require('./clinical-lifecycle').schemaSql);await pool.query(require('./navigation-sheet').schemaSql);await pool.query(require('./customer-access').schemaSql);await pool.query(require('./hr-connect').schemaSql);await pool.query(require('./appointments-self-service').schemaSql);
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS booking_defaults JSONB NOT NULL DEFAULT '{}'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS payor_options JSONB NOT NULL DEFAULT '[]'::jsonb");
   await pool.query("ALTER TABLE checkup_projects ADD COLUMN IF NOT EXISTS default_location_code TEXT NOT NULL DEFAULT ''");
@@ -3758,6 +3759,7 @@ app.use('/external-api/v1', (req, res, next) => {
 
 app.use('/customer-api', customerCors);
 require('./customer-services').registerCustomerServices({app,pool,customerSessionRequired,readState,renderPdf:healthBookPdfBytesForRecord});
+require('./hr-connect').register({app,pool,localOnly,staffPermissionRequired});
 require('./appointments-self-service').registerAppointments({app,pool,localOnly,staffPermissionRequired,customerSessionRequired,readState});
 
 app.get('/customer-api/read-thai-id', localOnly, async (_req, res) => {

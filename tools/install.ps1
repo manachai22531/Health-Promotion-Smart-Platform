@@ -954,6 +954,11 @@ $migration0220 = Join-Path $appRoot 'migrations\0220_navigation_sheet.up.sql'
 if (-not (Test-Path -LiteralPath $migration0220)) { throw 'Navigation migration 0220 is missing.' }
 Invoke-DatabaseMigration -Arguments @('-h','127.0.0.1','-p',[string]$port,'-U',$dbUser,'-d',$dbName,'-v','ON_ERROR_STOP=1','-f',$migration0220) -FailureMessage 'Navigation migration 0220 failed.'
 
+Write-Step 'Initialize HR Connect schema'
+$migration0221 = Join-Path $appRoot 'migrations\0221_hr_connect.up.sql'
+if (-not (Test-Path -LiteralPath $migration0221)) { throw 'HR Connect migration 0221 is missing.' }
+Invoke-DatabaseMigration -Arguments @('-h','127.0.0.1','-p',[string]$port,'-U',$dbUser,'-d',$dbName,'-v','ON_ERROR_STOP=1','-f',$migration0221) -FailureMessage 'HR Connect migration 0221 failed.'
+
 Repair-ApplicationOwnershipAfterMigration
 $migrationAdminPassword = $null
 

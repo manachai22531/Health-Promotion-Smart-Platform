@@ -5,7 +5,7 @@
 )
 $ErrorActionPreference='Stop'
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.65.24'
+$version='v7.65.25'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
