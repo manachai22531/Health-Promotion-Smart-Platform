@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $version = 'v7.65.25'
-$expectedSha = 'ecd260fd542318a0d1e87aac5e929bcf90d975cdb826b743ecad98d80ce88d84'
+$expectedSha = 'b52dfe54bba32a04fc12dc865a9c273137b0dc9affc63d949e7675c413bc569a'
 $zipName = "HealthCheck-$version-PRODUCTION-WINDOWS-INSTALLER.zip"
 $repository = 'https://websales.pruksa.com//GitServer/Git.vimut.HealthCheckupSmartSearch.git'
 $branch = "installers/$version"
