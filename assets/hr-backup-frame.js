@@ -1,0 +1,1 @@
+(()=>{'use strict';function receive(event){if(event.source!==parent||event.origin!==new URL(document.URL).origin||event.data?.type!=='HR_BACKUP_DOCUMENT'||typeof event.data.html!=='string')return;window.removeEventListener('message',receive);document.open();document.write(event.data.html);document.close()}window.addEventListener('message',receive)})();
