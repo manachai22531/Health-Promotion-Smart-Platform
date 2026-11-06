@@ -5,7 +5,7 @@
 )
 $ErrorActionPreference='Stop'
 $sourceRoot=Split-Path -Parent $PSScriptRoot
-$version='v7.65.23'
+$version='v7.65.24'
 try {
   $pkgPath=Join-Path $sourceRoot 'package.json'
   if(Test-Path -LiteralPath $pkgPath){
@@ -257,9 +257,8 @@ try{
   Emit 'Start' 'RUNNING'
   $run=Join-Path $targetRoot 'tools\run.ps1'
   if(-not(Test-Path -LiteralPath $run)){throw "Launcher not found: $run"}
-  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $run *>&1 | ForEach-Object {Write-Log ([string]$_)}
-  $runExitCode=$LASTEXITCODE
-  if($runExitCode -ne 0){throw "Production launcher failed with exit code $runExitCode. Review D:\HealthCheck\Production\logs\launcher.log"}
+  . (Join-Path $PSScriptRoot 'invoke-installer-launcher.ps1')
+  Invoke-InstallerLauncher -Executable (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') -ScriptPath $run -WorkingDirectory $targetRoot -TimeoutSeconds 120 -Log {param($message) Write-Log $message}
   Emit 'Start' 'SUCCESS'
   Wait-Health
   Emit 'Complete' 'SUCCESS' 'Production installation completed successfully.'

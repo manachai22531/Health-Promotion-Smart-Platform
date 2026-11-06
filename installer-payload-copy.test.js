@@ -23,3 +23,13 @@ test('installer launcher captures crash output and does not block unattended err
  assert.match(launcher,/\$serverProcess.HasExited/);
  assert.match(launcher,/if\(\$env:HEALTH_CHECK_NONINTERACTIVE -ne '1'\)\{try/);
 });
+test('installer startup polls the launcher without a native pipeline and retains independent readiness checks',()=>{
+ const worker=read('tools/production-installer-worker.ps1'),helper=read('tools/invoke-installer-launcher.ps1');
+ assert(!worker.includes('& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $run *>&1'));
+ assert.match(worker,/Invoke-InstallerLauncher .* -TimeoutSeconds 120/);
+ assert.match(helper,/while\(-not \$process.HasExited\)/);
+ assert.match(helper,/\$process.Kill\(\)/);
+ assert(!helper.includes('RedirectStandardOutput=$true'));
+ assert(worker.indexOf("Emit 'Start' 'SUCCESS'")<worker.indexOf("  Wait-Health\n"));
+ assert.match(worker,/\$h.ok -eq \$true -and \[string\]\$h.database -eq 'PostgreSQL'/);
+});
